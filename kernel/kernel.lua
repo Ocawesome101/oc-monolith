@@ -2,12 +2,12 @@
 
 local _START = computer.uptime()
 
-local flags = ...
+local flags = ... or {}
 flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
-local _KERNEL = "ComputOS"
-local _KERNEL_REVISION = "c95ab82"
+local _KERNEL_NAME = "ComputOS"
+local _KERNEL_REVISION = "986f02c"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -31,7 +31,7 @@ do
     w, h = gpu.maxResolution()
     gpu.setResolution(w, h)
     function kernel.logger.log(msg)
-      msg = string.format("[%03.3f] %s", computer.uptime() - _START, tostring(msg))
+      msg = string.format("[%3.3f] %s", computer.uptime() - _START, tostring(msg))
       if y == h then
         gpu.copy(1, 2, w, h, 0, -1)
         gpu.fill(1, h, w, 1, " ")
@@ -49,7 +49,7 @@ function kernel.logger.panic(reason)
   reason = tostring(reason)
   kernel.logger.log("==== Crash ".. os.date() .." ====")
   local trace = debug.traceback(reason):gsub("\t", "  ")
-  for line in trage:gmatch("[^\n]+") do
+  for line in trace:gmatch("[^\n]+") do
     kernel.logger.log(line)
   end
   kernel.logger.log("=========== End trace ===========")
@@ -101,11 +101,11 @@ do
   local files = {}
   for i=1, 2048, 32 do
     local name, start, size = string.unpack("<c24I4I4", filetable:sub(i, i + 31))
-    if name == 0 then
+    if name == "\0" then
       break
     end
-    files[#files + 1] = {
-      name = name,
+    name = name:gsub("\0", "")
+    files[name] = {
       start= start,
       size = size
     }
@@ -115,13 +115,13 @@ do
     if files[file] then
       kernel.logger.log("reading " .. file .. " from initramfs")
       local nptr = fs.seek(iramfs, "set", files[file].start)
-      if not mptr then
-        return nil, "invalid initramfs entry: " .. file
+      if not nptr then
+        kernel.logger.panic("invalid initramfs entry: " .. file)
       end
       local data = fs.read(iramfs, files[file].size)
       return data
     end
-    return nil, "no such file: " .. file
+    kernel.logger.panic("no such file: " .. file)
   end
 
   function ifs.close()
@@ -140,9 +140,9 @@ do
 
   local sha = ifs.read("sha256.lua")
   sha = load(sha, "=initramfs:sha256.lua", "bt", _G)
-  local passwd = ifs.read("passwd")
 
-  passwd = pload(passwd)
+  u.passwd = {}
+  u.psave = function()end
 
   function u.authenticate(uid, password)
     checkArg(1, uid, "number")
@@ -150,7 +150,7 @@ do
     if not passwd[uid] then
       return nil, "no such user"
     end
-    return sha.sha256(password) == passwd[uid].p
+    return sha.sha256(password) == pswd.p
   end
 
   function u.login(uid, password)
@@ -169,25 +169,25 @@ do
   function u.add(oassword, cansudo)
     checkArg(1, password, "string")
     checkArg(2, cansudo, "boolean", "nil")
-    if cuid ~= 0 then
+    if u.uid() ~= 0 then
       return nil, "only root can do that"
     end
     local nuid = #passwd + 1
     passwd[nuid] = {p = sha.sha256(password), c = (cansudo and true) or false}
-    psave()
+    u.psave()
     return nuid
   end
 
   function u.del(uid)
     checkArg(1, uid, "number")
-    if cuid  ~= 0 then
+    if u.uid()  ~= 0 then
       return nil, "only root can do that"
     end
     if not passwd[uid] then
       return nil, "no such user"
     end
     passwd[uid] = nil
-    psave()
+    u.psave()
     return true
   end
 
@@ -267,11 +267,14 @@ do
     if path == "." then path = os.getenv("PWD") end
     if path:sub(1,1) ~= "/" then path = os.getenv("PWD") .. "/" .. path end
     local s = split(path)
-    for i=#s, 1, -1 do
-      local cur = table.concat(s, "/", 1, i)
+    for i=1, #s, 1 do
+      local cur = table.concat(s, "/", 1)
       if mounts[cur] and mounts[cur].exists(table.concat(s, "/", i)) then
         return mounts[cur], table.concat(s, "/", i)
       end
+    end
+    if mounts["/"].exists(path) then
+      return mounts["/"], path
     end
     return nil, path .. ": no such file or directory"
   end
@@ -289,7 +292,15 @@ do
   end
 
   local function fread(self, amount)
-    checkArg(1, amount, "number")
+    checkArg(1, amount, "number", "string")
+    if amount == math.huge or amount == "*a" then
+      local r = ""
+      repeat
+        local d = self.fs.read(self.handle, math.huge)
+        r = r .. (d or "")
+      until not d
+      return r
+    end
     return self.fs.read(self.handle, amount)
   end
 
@@ -445,7 +456,7 @@ do
     checkArg(1, fsp, "string", "table")
     checkArg(2, path, "string")
     checkArg(2, ro, "boolean", "nil")
-    path = fs.canonical(path)
+    --path = fs.canonical(path)
     if type(fsp) == "string" then
       fsp = component.proxy(fsp)
     end
@@ -470,7 +481,6 @@ do
 
   function fs.umount(path)
     checkArg(1, path, "string")
-    path = fs.canonical(path)
     if not mounts[path] then
       return nil, "no filesystem mounted at " .. path
     end
@@ -478,13 +488,23 @@ do
     return true
   end
 
-  local fstab = ifs.read("fstab")
+--[[ loading things from the initramfs fstab is just broken. No separate boot drive for now.
+  local fstab = ifs.read("fstab"):sub(1, -2) -- there's some weird char at the end we don't want, and I don't know what it is
   ifs.close()
-  fstab = load("return " .. fstab, "=initramfs:fstab", "bt", {})()
-
-  for i=1, #fstab, 1 do
-    fs.mount(compoennt.get(fstab[i].address), fstab[i].path)
+  local fstab, err = load("return " .. fstab, "=initramfs:fstab", "bt", {})
+  if not fstab then
+    kernel.logger.panic(err)
   end
+  fstab = fstab()
+
+  for i, b in pairs(fstab) do
+    local addr = component.get(b.address)
+    kernel.logger.log("mounting " .. addr .. " at " .. b.path)
+    fs.mount(addr, b.path)
+  end]]
+
+  fs.mount(computer.getBootAddress(), "/")
+  fs.mount(computer.tmpAddress(), "/tmp")
 
   kernel.filesystem = fs
 end
@@ -494,8 +514,8 @@ end
 
 do
   local shutdown = computer.shutdown
-  local closeAll = kernel.fs.closeAll
-  kernel.fs.closeAll = nil
+  local closeAll = kernel.filesystem.closeAll
+  kernel.filesystem.closeAll = nil
   function computer.shutdown(reboot)
     checkArg(1, reboot, "boolean")
     local running = kernel.thread.threads()
@@ -520,10 +540,10 @@ kernel.logger.log("wrapping setmetatable,getmetatable for security")
 local smt, gmt = setmetatable, getmetatable
 
 function _G.setmetatable(tbl, mt)
-  checkAeg(1, tbl, "table")
+  checkArg(1, tbl, "table")
   checkArg(2, mt, "table")
   local _mt = gmt(tbl)
-  if _mt.__ro then
+  if _mt and _mt.__ro then
     error("table is read-only")
   end
   return smt(tbl, mt)
@@ -534,10 +554,11 @@ function _G.getmetatable(tbl)
   local mt = gmt(tbl)
   local _mt = {
     __index = mt,
-    __newindex = function()error("metatable is read-only")end
+    __newindex = function()error("metatable is read-only")end,
+    __ro = true
   }
-  if mt.__ro then
-    return smt({}, mt)
+  if mt and mt.__ro then
+    return smt({}, _mt)
   else
     return mt
   end
@@ -643,7 +664,7 @@ do
       name = name, -- thread name
       handler = handler, -- error handler
       user = kernel.users.uid(), -- current user
-      users = {} -- user history
+      users = {}, -- user history
       owner = kernel.users.uid(), -- thread owner
       sig = {}, -- signal buffer
       ipc = {}, -- IPC buffer
@@ -832,16 +853,17 @@ do
           if nsig[3] == thread.signals.kill then
             thd.dead = true
           end
-        elseif #sig > 0 then
+        elseif sig and #sig > 0 then
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(sig))
         else
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
-        if not ok and p1 then
-          handleProcessError(thd.pid, p1)
+        --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
+        if (not p1) and p2 then
+          handleProcessError(thd, p2)
         elseif ok then
-          if p1 and type(p1) == "number" then
-            thd.deadline = thd.deadline + p1
+          if p1 and type(p2) == "number" then
+            thd.deadline = thd.deadline + p2
           else
             thd.deadline = math.huge
           end
@@ -864,10 +886,21 @@ local function loadfile(file, mode, env)
   checkArg(1, file, "string")
   checkArg(2, mode, "string", "nil")
   checkArg(3, env, "table", "nil")
+  mode = mode or "bt"
+  env = env or sandbox
+  local handle, err = kernel.filesystem.open(file, "r")
+  if not handle then
+    return nil, err
+  end
+  local data = handle:read("*a")
+  handle:close()
+  return load(data, "=" .. file, mode, env)
 end
 
 sandbox.loadfile = loadfile
 
+
+kernel.logger.log("loadinig init from " .. flags.init)
 
 local ok, err = loadfile(flags.init, "bt", sandbox)
 if not ok then
@@ -875,3 +908,5 @@ if not ok then
 end
 
 kernel.thread.spawn(ok, flags.init, kernel.logger.panic)
+
+kernel.thread.start()

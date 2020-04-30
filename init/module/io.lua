@@ -1,6 +1,8 @@
 -- `io` library --
 
 do
+  log("InitMe: Initialing IO library")
+
   _G.io = {}
   package.loaded.io = io
 

@@ -2,11 +2,11 @@
 
 local _START = computer.uptime()
 
-local flags = ...
+local flags = ... or {}
 flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
-local _KERNEL = "ComputOS"
+local _KERNEL_NAME = "ComputOS"
 local _KERNEL_REVISION = "$[[git rev-parse --short HEAD]]"
 local _KERNEL_BUILDER = "$[[whoami]]@$[[hostname]]"
 local _KERNEL_COMPILER = "luacomp $[[luacomp -v]]"
@@ -26,9 +26,13 @@ _G.kernel = {}
 --#include "module/thread.lua"
 --#include "module/loadfile.lua"
 
+kernel.logger.log("loadinig init from " .. flags.init)
+
 local ok, err = loadfile(flags.init, "bt", sandbox)
 if not ok then
   kernel.logger.panic(err)
 end
 
 kernel.thread.spawn(ok, flags.init, kernel.logger.panic)
+
+kernel.thread.start()

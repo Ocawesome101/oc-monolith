@@ -2,8 +2,8 @@
 
 do
   local shutdown = computer.shutdown
-  local closeAll = kernel.fs.closeAll
-  kernel.fs.closeAll = nil
+  local closeAll = kernel.filesystem.closeAll
+  kernel.filesystem.closeAll = nil
   function computer.shutdown(reboot)
     checkArg(1, reboot, "boolean")
     local running = kernel.thread.threads()

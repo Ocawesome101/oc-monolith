@@ -81,7 +81,7 @@ do
       name = name, -- thread name
       handler = handler, -- error handler
       user = kernel.users.uid(), -- current user
-      users = {} -- user history
+      users = {}, -- user history
       owner = kernel.users.uid(), -- thread owner
       sig = {}, -- signal buffer
       ipc = {}, -- IPC buffer
@@ -270,16 +270,17 @@ do
           if nsig[3] == thread.signals.kill then
             thd.dead = true
           end
-        elseif #sig > 0 then
+        elseif sig and #sig > 0 then
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(sig))
         else
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
-        if not ok and p1 then
-          handleProcessError(thd.pid, p1)
+        --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
+        if (not p1) and p2 then
+          handleProcessError(thd, p2)
         elseif ok then
-          if p1 and type(p1) == "number" then
-            thd.deadline = thd.deadline + p1
+          if p1 and type(p2) == "number" then
+            thd.deadline = thd.deadline + p2
           else
             thd.deadline = math.huge
           end

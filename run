@@ -1,0 +1,5 @@
+#!/bin/bash
+
+make
+rm -rf ../{bin,boot,etc,lib,Makefile,mnt,tmp,home,root,sbin}
+mv build/* ..

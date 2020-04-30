@@ -1,11 +1,17 @@
 -- ComputOS init --
 
-local _INITVERSION = "InitMe c95ab82 (built Wed Apr 29 20:57:09 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 986f02c (built Thu Apr 30 12:09:01 EDT 2020 by ocawesome101@manjaro-pbp)"
+local panic = kernel.logger.panic
+local log = kernel.logger.log
+
+log(_INITVERSION)
 
 
 -- `package` library --
 
 do
+  log("InitMe: Initializing package library")
+
   _G.package = {}
 
   local loaded = {
@@ -88,13 +94,15 @@ package.loaded.filesystem = kernel.filesystem
 package.loaded.users = require("users")
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
-package.loaded.kernel = kernel
+package.loaded.module = kernel.module
 _G.kernel = nil
 
 
 -- `io` library --
 
 do
+  log("InitMe: Initialing IO library")
+
   _G.io = {}
   package.loaded.io = io
 
@@ -207,6 +215,8 @@ end
 -- `initsvc` lib --
 
 do
+  log("InitMe: Initializing initsvc")
+
   local config = require("comfig")
   local fs = require("filesystem")
   local thread = require("thread")
@@ -281,5 +291,24 @@ do
   end
 
   package.loaded.initsvc = initsvc
+
+  for sname, stype in pairs(cfg) do
+    if stype == "script" then
+      local path = scripts .. sname .. ".lua"
+      local ok, err = dofile(path)
+      if not ok then
+        panic(err)
+      end
+    elseif stype == "service" then
+      local ok, err = initsvc.start(sname)
+      if not ok then
+        panic(err)
+      end
+    end
+  end
 end
 
+
+while true do
+  coroutine.yield()
+end

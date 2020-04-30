@@ -8,9 +8,9 @@ do
 
   local sha = ifs.read("sha256.lua")
   sha = load(sha, "=initramfs:sha256.lua", "bt", _G)
-  local passwd = ifs.read("passwd")
 
-  passwd = pload(passwd)
+  u.passwd = {}
+  u.psave = function()end
 
   function u.authenticate(uid, password)
     checkArg(1, uid, "number")
@@ -18,7 +18,7 @@ do
     if not passwd[uid] then
       return nil, "no such user"
     end
-    return sha.sha256(password) == passwd[uid].p
+    return sha.sha256(password) == pswd.p
   end
 
   function u.login(uid, password)
@@ -37,25 +37,25 @@ do
   function u.add(oassword, cansudo)
     checkArg(1, password, "string")
     checkArg(2, cansudo, "boolean", "nil")
-    if cuid ~= 0 then
+    if u.uid() ~= 0 then
       return nil, "only root can do that"
     end
     local nuid = #passwd + 1
     passwd[nuid] = {p = sha.sha256(password), c = (cansudo and true) or false}
-    psave()
+    u.psave()
     return nuid
   end
 
   function u.del(uid)
     checkArg(1, uid, "number")
-    if cuid  ~= 0 then
+    if u.uid()  ~= 0 then
       return nil, "only root can do that"
     end
     if not passwd[uid] then
       return nil, "no such user"
     end
     passwd[uid] = nil
-    psave()
+    u.psave()
     return true
   end
 

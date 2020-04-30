@@ -22,11 +22,14 @@ do
     if path == "." then path = os.getenv("PWD") end
     if path:sub(1,1) ~= "/" then path = os.getenv("PWD") .. "/" .. path end
     local s = split(path)
-    for i=#s, 1, -1 do
-      local cur = table.concat(s, "/", 1, i)
+    for i=1, #s, 1 do
+      local cur = table.concat(s, "/", 1)
       if mounts[cur] and mounts[cur].exists(table.concat(s, "/", i)) then
         return mounts[cur], table.concat(s, "/", i)
       end
+    end
+    if mounts["/"].exists(path) then
+      return mounts["/"], path
     end
     return nil, path .. ": no such file or directory"
   end
@@ -44,7 +47,15 @@ do
   end
 
   local function fread(self, amount)
-    checkArg(1, amount, "number")
+    checkArg(1, amount, "number", "string")
+    if amount == math.huge or amount == "*a" then
+      local r = ""
+      repeat
+        local d = self.fs.read(self.handle, math.huge)
+        r = r .. (d or "")
+      until not d
+      return r
+    end
     return self.fs.read(self.handle, amount)
   end
 
@@ -200,7 +211,7 @@ do
     checkArg(1, fsp, "string", "table")
     checkArg(2, path, "string")
     checkArg(2, ro, "boolean", "nil")
-    path = fs.canonical(path)
+    --path = fs.canonical(path)
     if type(fsp) == "string" then
       fsp = component.proxy(fsp)
     end
@@ -225,7 +236,6 @@ do
 
   function fs.umount(path)
     checkArg(1, path, "string")
-    path = fs.canonical(path)
     if not mounts[path] then
       return nil, "no filesystem mounted at " .. path
     end
@@ -233,13 +243,23 @@ do
     return true
   end
 
-  local fstab = ifs.read("fstab")
+--[[ loading things from the initramfs fstab is just broken. No separate boot drive for now.
+  local fstab = ifs.read("fstab"):sub(1, -2) -- there's some weird char at the end we don't want, and I don't know what it is
   ifs.close()
-  fstab = load("return " .. fstab, "=initramfs:fstab", "bt", {})()
-
-  for i=1, #fstab, 1 do
-    fs.mount(compoennt.get(fstab[i].address), fstab[i].path)
+  local fstab, err = load("return " .. fstab, "=initramfs:fstab", "bt", {})
+  if not fstab then
+    kernel.logger.panic(err)
   end
+  fstab = fstab()
+
+  for i, b in pairs(fstab) do
+    local addr = component.get(b.address)
+    kernel.logger.log("mounting " .. addr .. " at " .. b.path)
+    fs.mount(addr, b.path)
+  end]]
+
+  fs.mount(computer.getBootAddress(), "/")
+  fs.mount(computer.tmpAddress(), "/tmp")
 
   kernel.filesystem = fs
 end

@@ -1,6 +1,8 @@
 -- `initsvc` lib --
 
 do
+  log("InitMe: Initializing initsvc")
+
   local config = require("comfig")
   local fs = require("filesystem")
   local thread = require("thread")
@@ -75,4 +77,19 @@ do
   end
 
   package.loaded.initsvc = initsvc
+
+  for sname, stype in pairs(cfg) do
+    if stype == "script" then
+      local path = scripts .. sname .. ".lua"
+      local ok, err = dofile(path)
+      if not ok then
+        panic(err)
+      end
+    elseif stype == "service" then
+      local ok, err = initsvc.start(sname)
+      if not ok then
+        panic(err)
+      end
+    end
+  end
 end

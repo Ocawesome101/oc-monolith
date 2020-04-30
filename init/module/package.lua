@@ -1,6 +1,8 @@
 -- `package` library --
 
 do
+  log("InitMe: Initializing package library")
+
   _G.package = {}
 
   local loaded = {
@@ -83,5 +85,5 @@ package.loaded.filesystem = kernel.filesystem
 package.loaded.users = require("users")
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
-package.loaded.kernel = kernel
+package.loaded.module = kernel.module
 _G.kernel = nil

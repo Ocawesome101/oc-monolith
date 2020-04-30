@@ -13,7 +13,7 @@ do
     w, h = gpu.maxResolution()
     gpu.setResolution(w, h)
     function kernel.logger.log(msg)
-      msg = string.format("[%03.3f] %s", computer.uptime() - _START, tostring(msg))
+      msg = string.format("[%3.3f] %s", computer.uptime() - _START, tostring(msg))
       if y == h then
         gpu.copy(1, 2, w, h, 0, -1)
         gpu.fill(1, h, w, 1, " ")
@@ -31,7 +31,7 @@ function kernel.logger.panic(reason)
   reason = tostring(reason)
   kernel.logger.log("==== Crash ".. os.date() .." ====")
   local trace = debug.traceback(reason):gsub("\t", "  ")
-  for line in trage:gmatch("[^\n]+") do
+  for line in trace:gmatch("[^\n]+") do
     kernel.logger.log(line)
   end
   kernel.logger.log("=========== End trace ===========")

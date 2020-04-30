@@ -5,10 +5,10 @@ kernel.logger.log("wrapping setmetatable,getmetatable for security")
 local smt, gmt = setmetatable, getmetatable
 
 function _G.setmetatable(tbl, mt)
-  checkAeg(1, tbl, "table")
+  checkArg(1, tbl, "table")
   checkArg(2, mt, "table")
   local _mt = gmt(tbl)
-  if _mt.__ro then
+  if _mt and _mt.__ro then
     error("table is read-only")
   end
   return smt(tbl, mt)
@@ -19,10 +19,11 @@ function _G.getmetatable(tbl)
   local mt = gmt(tbl)
   local _mt = {
     __index = mt,
-    __newindex = function()error("metatable is read-only")end
+    __newindex = function()error("metatable is read-only")end,
+    __ro = true
   }
-  if mt.__ro then
-    return smt({}, mt)
+  if mt and mt.__ro then
+    return smt({}, _mt)
   else
     return mt
   end
