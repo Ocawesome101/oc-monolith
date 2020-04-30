@@ -2,11 +2,12 @@
 
 all:
 	rm -rf build
-	mkdir -p build/sbin
+	mkdir -p build/sbin build/boot
 	$(MAKE) -C kernel
-	cp kernel/kernel.lua build
+	cp kernel/kernel.lua build/boot
 	$(MAKE) -C init
 	cp init/init.lua build/sbin
 	$(MAKE) -C util
 	cp -r util/* build
-	build/bin/mkinitfs.lua --root build
+	rm -f build/Makefile
+	echo "ComputOS is now built. While installing, you will need to configure and build the initramfs with bin/mkinitfs.lua."
