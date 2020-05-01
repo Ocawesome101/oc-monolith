@@ -57,15 +57,16 @@ local function mkfs()
   return rst
 end
 
-print("mkinitfs: generating fstab")
+-- print("mkinitfs: generating fstab")
 
-local fstab = [[{
+-- loading the fstab from the initramfs has issues
+--[[local fstab = [[{
   {
-    address = "]]..boot..[[",
+    address = "] ]..boot..[[",
     path = "/"
   },
   {
-    address = "]]..tmp..[[",
+    address = "] ]..tmp..[[",
     path = "/tmp"
   }
 }]]
@@ -79,11 +80,11 @@ for file in fs.list(ifsd) do
   files[file] = data
   add(file, #data)
 end
-
+--[[
 if not files.fstab then
   files.fstab = fstab
   add("fstab", #fstab)
-end
+end]]
 
 local bin = mkfs()
 

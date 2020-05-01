@@ -10,4 +10,3 @@ all:
 	$(MAKE) -C util
 	cp -r util/* build
 	rm -f build/Makefile
-	echo "ComputOS is now built. While installing, you will need to configure and build the initramfs with bin/mkinitfs.lua."

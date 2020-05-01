@@ -156,7 +156,7 @@ do
     elseif path:sub(1,1) ~= "/" then
       path = os.getenv("PWD") .. path
     end
-    return "/" .. table.concat(split(path), "/")
+    return table.concat(split(path), "/")
   end
 
   function fs.concat(path1, path2, ...)

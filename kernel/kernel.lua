@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "ComputOS"
-local _KERNEL_REVISION = "986f02c"
+local _KERNEL_REVISION = "10316c1"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -138,19 +138,26 @@ do
 
   local u = {}
 
-  local sha = ifs.read("sha256.lua")
-  sha = load(sha, "=initramfs:sha256.lua", "bt", _G)
-
+  u.sha = {}
   u.passwd = {}
   u.psave = function()end
+
+  local sha = u.sha
+  local function hex(s)
+    local r = ""
+    for char in s:gmatch(".") do
+      r = r .. string.format("%02x", char:byte())
+    end
+    return r
+  end
 
   function u.authenticate(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
-    if not passwd[uid] then
+    if not u.passwd[uid] then
       return nil, "no such user"
     end
-    return sha.sha256(password) == pswd.p
+    return hex(u.sha.sha256(password)) == u.passwd[uid].p
   end
 
   function u.login(uid, password)
@@ -172,8 +179,8 @@ do
     if u.uid() ~= 0 then
       return nil, "only root can do that"
     end
-    local nuid = #passwd + 1
-    passwd[nuid] = {p = sha.sha256(password), c = (cansudo and true) or false}
+    local nuid = #u.passwd + 1
+    u.passwd[nuid] = {p = hex(u.sha.sha256(password)), c = (cansudo and true) or false}
     u.psave()
     return nuid
   end
@@ -183,23 +190,26 @@ do
     if u.uid()  ~= 0 then
       return nil, "only root can do that"
     end
-    if not passwd[uid] then
+    if not u.passwd[uid] then
       return nil, "no such user"
     end
-    passwd[uid] = nil
+    u.passwd[uid] = nil
     u.psave()
     return true
   end
 
+  -- run `func` as another user. Somewhat hacky.
   function u.sudo(func, uid, password)
     checkArg(1, func, "function")
     checkArg(2, uid, "number")
     checkArg(3, password, "string")
-    if sha.sha256(password) == passwd[u.uid()].p then
-      local o = u.uid()
-      cuid = uid
+    if hex(u.sha.sha256(password)) == u.passwd[u.uid()].p then
+      local uuid = u.uid
+      function u.uid()
+        return uid
+      end
       local s, r = pcall(func)
-      cuid = o
+      u.uid = uuid
       return true, s, r
     end
     return nil, "permission denied"
@@ -401,7 +411,7 @@ do
     elseif path:sub(1,1) ~= "/" then
       path = os.getenv("PWD") .. path
     end
-    return "/" .. table.concat(split(path), "/")
+    return table.concat(split(path), "/")
   end
 
   function fs.concat(path1, path2, ...)
@@ -578,6 +588,7 @@ for k, v in pairs(_G) do
   end
 end
 
+sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield()
 
 
@@ -704,21 +715,21 @@ do
 
   function thread.stdin(stdin)
     checkArg(1, stdin, "table", "nil")
-    if threads[cur] then
+    if tasks[cur] then
       if stdin then
-        threads[cur].stdin = stdin
+        tasks[cur].stdin = stdin
       end
-      return threads[cur].stdin
+      return tasks[cur].stdin
     end
   end
 
   function thread.stdout(stdout)
     checkArg(1, stdout, "table", "nil")
-    if threads[cur] then
+    if tasks[cur] then
       if stdout then
-        threads[cur].stdout = stdout
+        tasks[cur].stdout = stdout
       end
-      return threads[cur].stdout
+      return tasks[cur].stdout
     end
   end
 
@@ -731,9 +742,9 @@ do
     if not ok then
       return nil, err
     end
-    if threads[cur] then
-      table.insert(threads[cur].users, 1, threads[cur].user)
-      threads[cur].user = uid
+    if tasks[cur] then
+      table.insert(tasks[cur].users, 1, tasks[cur].user)
+      tasks[cur].user = uid
       return true
     end
     return ulogin(uid, password)
@@ -744,6 +755,8 @@ do
       tasks[cur].user = -1
       if #tasks[cur].users > 0 then
         tasks[cur].user = table.remove(tasks[cur].users, 1)
+      else
+        tasks[cur].user = -1 -- guest, no privileges
       end
       return true
     end
@@ -829,15 +842,15 @@ do
         end
       end
 
-      table.sort(run, function(a, b)
+      --[[table.sort(run, function(a, b)
         if a.priority > b.priority then
           return a, b
-        elseif a.prioroty < b.priority then
+        elseif a.priority < b.priority then
           return b, a
         else
           return a, b
         end
-      end)
+      end)]]
 
       local sig = table.remove(sbuf, 1)
 
@@ -862,8 +875,10 @@ do
         if (not p1) and p2 then
           handleProcessError(thd, p2)
         elseif ok then
-          if p1 and type(p2) == "number" then
+          if p2 and type(p2) == "number" then
             thd.deadline = thd.deadline + p2
+          elseif p1 and type(p1) == "number" then
+            thd.deadline = thd.deadline + p1
           else
             thd.deadline = math.huge
           end

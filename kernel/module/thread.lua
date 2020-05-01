@@ -111,7 +111,17 @@ do
   end
 
   function os.getenv(var)
-    checkArg(1, var, "string", "number")
+    checkArg(1, var, "string", "number", "nil")
+    if not var then -- return a table of all environment variables
+      local vtbl = {}
+      if tasks[cur] then vtbl = tasks[cur].env
+      else vtbl = global_env end
+      local r = {}
+      for k, v in pairs(vtbl) do
+        r[k] = v
+      end
+      return r
+    end
     if tasks[cur] then
       tasks[cur].env[var] = val
     else
@@ -121,21 +131,21 @@ do
 
   function thread.stdin(stdin)
     checkArg(1, stdin, "table", "nil")
-    if threads[cur] then
+    if tasks[cur] then
       if stdin then
-        threads[cur].stdin = stdin
+        tasks[cur].stdin = stdin
       end
-      return threads[cur].stdin
+      return tasks[cur].stdin
     end
   end
 
   function thread.stdout(stdout)
     checkArg(1, stdout, "table", "nil")
-    if threads[cur] then
+    if tasks[cur] then
       if stdout then
-        threads[cur].stdout = stdout
+        tasks[cur].stdout = stdout
       end
-      return threads[cur].stdout
+      return tasks[cur].stdout
     end
   end
 
@@ -148,9 +158,9 @@ do
     if not ok then
       return nil, err
     end
-    if threads[cur] then
-      table.insert(threads[cur].users, 1, threads[cur].user)
-      threads[cur].user = uid
+    if tasks[cur] then
+      table.insert(tasks[cur].users, 1, tasks[cur].user)
+      tasks[cur].user = uid
       return true
     end
     return ulogin(uid, password)
@@ -161,6 +171,8 @@ do
       tasks[cur].user = -1
       if #tasks[cur].users > 0 then
         tasks[cur].user = table.remove(tasks[cur].users, 1)
+      else
+        tasks[cur].user = -1 -- guest, no privileges
       end
       return true
     end
@@ -246,15 +258,15 @@ do
         end
       end
 
-      table.sort(run, function(a, b)
+      --[[table.sort(run, function(a, b)
         if a.priority > b.priority then
           return a, b
-        elseif a.prioroty < b.priority then
+        elseif a.priority < b.priority then
           return b, a
         else
           return a, b
         end
-      end)
+      end)]]
 
       local sig = table.remove(sbuf, 1)
 
@@ -279,8 +291,10 @@ do
         if (not p1) and p2 then
           handleProcessError(thd, p2)
         elseif ok then
-          if p1 and type(p2) == "number" then
+          if p2 and type(p2) == "number" then
             thd.deadline = thd.deadline + p2
+          elseif p1 and type(p1) == "number" then
+            thd.deadline = thd.deadline + p1
           else
             thd.deadline = math.huge
           end

@@ -10,6 +10,14 @@ log(_INITVERSION)
 --#include "module/io.lua"
 --#include "module/initsvc.lua"
 
+do
+  local component = require("component")
+  local computer  = require("computer")
+  for a, t in component.list() do
+    computer.pushSignal("component_added", a, t)
+  end
+end
+
 while true do
   coroutine.yield()
 end

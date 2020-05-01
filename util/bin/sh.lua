@@ -1,0 +1,11 @@
+-- very heavily inspired by the default *nix Bourne shell --
+
+dofile("/etc/profile.lua")
+
+local shell = require("shell")
+local sh = require("sh")
+
+os.setenv("PWD", os.getenv("HOME"))
+os.setenv("PS1", os.getenv("PS1") or "\\w\\$ ")
+
+sh.execute(".shrc")

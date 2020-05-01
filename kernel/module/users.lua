@@ -6,19 +6,26 @@ do
 
   local u = {}
 
-  local sha = ifs.read("sha256.lua")
-  sha = load(sha, "=initramfs:sha256.lua", "bt", _G)
-
+  u.sha = {}
   u.passwd = {}
   u.psave = function()end
+
+  local sha = u.sha
+  local function hex(s)
+    local r = ""
+    for char in s:gmatch(".") do
+      r = r .. string.format("%02x", char:byte())
+    end
+    return r
+  end
 
   function u.authenticate(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
-    if not passwd[uid] then
+    if not u.passwd[uid] then
       return nil, "no such user"
     end
-    return sha.sha256(password) == pswd.p
+    return hex(u.sha.sha256(password)) == u.passwd[uid].p
   end
 
   function u.login(uid, password)
@@ -40,8 +47,8 @@ do
     if u.uid() ~= 0 then
       return nil, "only root can do that"
     end
-    local nuid = #passwd + 1
-    passwd[nuid] = {p = sha.sha256(password), c = (cansudo and true) or false}
+    local nuid = #u.passwd + 1
+    u.passwd[nuid] = {p = hex(u.sha.sha256(password)), c = (cansudo and true) or false}
     u.psave()
     return nuid
   end
@@ -51,23 +58,26 @@ do
     if u.uid()  ~= 0 then
       return nil, "only root can do that"
     end
-    if not passwd[uid] then
+    if not u.passwd[uid] then
       return nil, "no such user"
     end
-    passwd[uid] = nil
+    u.passwd[uid] = nil
     u.psave()
     return true
   end
 
+  -- run `func` as another user. Somewhat hacky.
   function u.sudo(func, uid, password)
     checkArg(1, func, "function")
     checkArg(2, uid, "number")
     checkArg(3, password, "string")
-    if sha.sha256(password) == passwd[u.uid()].p then
-      local o = u.uid()
-      cuid = uid
+    if hex(u.sha.sha256(password)) == u.passwd[u.uid()].p then
+      local uuid = u.uid
+      function u.uid()
+        return uid
+      end
       local s, r = pcall(func)
-      cuid = o
+      u.uid = uuid
       return true, s, r
     end
     return nil, "permission denied"

@@ -24,7 +24,7 @@ do
   package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua"
 
   local function libError(name, searched)
-    local err = "mofule '%s' not found:\n\tno field package.loaded['%s']"
+    local err = "module '%s' not found:\n\tno field package.loaded['%s']"
     err = err .. ("\n\tno file '%s'"):rep(#searched)
     error(string.format(err, name, name, table.unpack(searched)))
   end
@@ -37,8 +37,9 @@ do
     sep = "%" .. (sep or ".")
     rep = rep or "/"
     local searched = {}
+    name = name:gsub(sep, rep)
     for search in path:gmatch("[^;]+") do
-      search = search:gsub(sep, rep):gsub("%?", name)
+      search = search:gsub("%?", name)
       if fs.exists(search) then
         return search
       end
@@ -67,7 +68,7 @@ do
     if loaded[lib] and not reload then
       return loaded[lib]
     else
-      local ok, searched = package.searchpath(name, path, sep, rep)
+      local ok, searched = package.searchpath(lib, package.path, ".", "/")
       if not ok then
         libError(lib, searched)
       end

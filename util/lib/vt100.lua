@@ -4,17 +4,6 @@ local component = require("component")
 local thread = require("thread")
 local vt100 = {}
 
-local cx, cy = 1, 1
-local hide = false
-
-function vt100.isHidden()
-  return hide
-end
-
-function vt100.cursorPos()
-  return cx, cy
-end
-
 -- Credit to Izaya, and his PsychOS2, for this function.
 function vt100.emu(gpu) -- takes GPU component proxy *gpu* and returns a function to write to it in a manner like an ANSI terminal
   local colours = {0x0,0xFF0000,0x00FF00,0xFFFF00,0x0000FF,0xFF00FF,0x00B6FF,0xFFFFFF}
@@ -23,6 +12,7 @@ function vt100.emu(gpu) -- takes GPU component proxy *gpu* and returns a functio
   local lc = ""
   local mode = 0 -- 0 normal, 1 escape, 2 command
   local lw = true
+  local cx, cy = 1,1
   local sx, sy = 1,1
   local cs = ""
   local bg, fg = 0, 0xFFFFFF
@@ -51,10 +41,8 @@ function vt100.emu(gpu) -- takes GPU component proxy *gpu* and returns a functio
         checkCursor()
         local wl = wb:sub(1,mx-cx+1)
         wb = wb:sub(wl:len()+1)
-        if not hide then
-          gpu.set(cx, cy, wl)
-          cx = cx + wl:len()
-        end
+        gpu.set(cx, cy, wl)
+        cx = cx + wl:len()
       end
     end
     local rs = ""
@@ -127,8 +115,6 @@ function vt100.emu(gpu) -- takes GPU component proxy *gpu* and returns a functio
               elseif num == 7 then
                 local nfg,nbg = bg, fg
                 fg, bg = nfg, nbg
-              elseif num == 8 then
-                hide = not hide
               elseif num > 29 and num < 38 then
                 fg = colours[num-29]
               elseif num > 39 and num < 48 then
@@ -169,10 +155,10 @@ function vt100.session(gpu, scr)
   end
   scr = component.get(scr)
   gpu.bind(scr)
-  local vtwrite = vt100.vtemu(gpu)
+  local vtwrite = vt100.emu(gpu)
   local rbuf, echo = ""
   local kbd = {}
-  for k, v in pairs(component.invoke(screen, "getKeyboards")) do
+  for k, v in pairs(component.invoke(scr, "getKeyboards")) do
     kbd[v] = true
   end
   
@@ -181,12 +167,20 @@ function vt100.session(gpu, scr)
       local sig, p1, p2 = coroutine.yield()
       if sig == "key_down" then
         if kbd[p1] then
-          if p2 == 13 then p2 = 10 end
+          if p2 == 13 then
+            p2 = 10
+          end
           if p2 == 8 then
-            if echo then write("\8\8") end
-            rbuf = rbuf:sub(1, -2)
+            if #rbuf > 0 then
+              if echo then
+                vtwrite("\8 \8")
+              end
+              rbuf = rbuf:sub(1, -2)
+            end
           else
-            if echo then write(string.char(p2))
+            if echo then
+              vtwrite(string.char(p2))
+            end
             rbuf = rbuf .. string.char(p2)
           end
         end
@@ -199,22 +193,22 @@ function vt100.session(gpu, scr)
   
   local pid = thread.spawn(key, string.format("ttyd[%s/%s]", gpu.address:sub(1,8), scr:sub(1, 8)))
   
-  local function bread(n)
-    checkArg(1, n, "number", "nil")
-    n = n or math.huge
-    while not rbuf:find("\n") or #rbuf < n do
+  local function bread()
+    --checkArg(1, n, "number", "nil")
+    --n = n or math.huge
+    while not rbuf:find("\n") --[[or #rbuf < n]] do
       coroutine.yield()
     end
-    if n == math.huge then
-      n = rbuf:find("\n")
-    end
+    --if n == math.huge then
+    local n = rbuf:find("\n")
+    --end
     local r = rbuf:sub(1, n)
     rbuf = rbuf:sub(n + 1)
     return r
   end
   
   local function bwrite(str)
-    local rs, _, ec = write(str)
+    local rs, _, ec = vtwrite(str)
     if ec ~= nil then echo = ec end
     return rs
   end

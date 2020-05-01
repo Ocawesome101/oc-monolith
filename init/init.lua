@@ -1,6 +1,6 @@
 -- ComputOS init --
 
-local _INITVERSION = "InitMe 986f02c (built Thu Apr 30 12:09:01 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 10316c1 (built Fri May 01 00:27:15 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 
@@ -33,7 +33,7 @@ do
   package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua"
 
   local function libError(name, searched)
-    local err = "mofule '%s' not found:\n\tno field package.loaded['%s']"
+    local err = "module '%s' not found:\n\tno field package.loaded['%s']"
     err = err .. ("\n\tno file '%s'"):rep(#searched)
     error(string.format(err, name, name, table.unpack(searched)))
   end
@@ -46,8 +46,9 @@ do
     sep = "%" .. (sep or ".")
     rep = rep or "/"
     local searched = {}
+    name = name:gsub(sep, rep)
     for search in path:gmatch("[^;]+") do
-      search = search:gsub(sep, rep):gsub("%?", name)
+      search = search:gsub("%?", name)
       if fs.exists(search) then
         return search
       end
@@ -76,7 +77,7 @@ do
     if loaded[lib] and not reload then
       return loaded[lib]
     else
-      local ok, searched = package.searchpath(name, path, sep, rep)
+      local ok, searched = package.searchpath(lib, package.path, ".", "/")
       if not ok then
         libError(lib, searched)
       end
@@ -217,7 +218,7 @@ end
 do
   log("InitMe: Initializing initsvc")
 
-  local config = require("comfig")
+  local config = require("config")
   local fs = require("filesystem")
   local thread = require("thread")
   local scripts = "/lib/scripts/"
@@ -226,12 +227,12 @@ do
     getty = "service"
   }
 
-  local cfg = config.load("/etc/initsvc.cfg")
+  local cfg = config.load("/etc/initsvc.cfg", default)
 
   local initsvc = {}
   local svc = {}
 
-  function initsvc.start(service)
+  function initsvc.start(service, handler)
     checkArg(1, service, "string")
     if svc[service] and thread.info(svc[service]) then
       return nil, "service is already running"
@@ -240,7 +241,7 @@ do
     if not ok then
       return nil, err
     end
-    local pid = thread.spawn(ok, service, function()initsvc.start(service)end)
+    local pid = thread.spawn(ok, service, handler or function()initsvc.start(service)end)
     svc[service] = pid
     return true
   end
@@ -293,6 +294,7 @@ do
   package.loaded.initsvc = initsvc
 
   for sname, stype in pairs(cfg) do
+    log("running " .. stype .. " " .. sname)
     if stype == "script" then
       local path = scripts .. sname .. ".lua"
       local ok, err = dofile(path)
@@ -300,14 +302,24 @@ do
         panic(err)
       end
     elseif stype == "service" then
-      local ok, err = initsvc.start(sname)
+      local ok, err = initsvc.start(sname, panic)
       if not ok then
         panic(err)
       end
     end
   end
+  --require("computer").pushSignal("init")
+  coroutine.yield(0)
 end
 
+
+do
+  local component = require("component")
+  local computer  = require("computer")
+  for a, t in component.list() do
+    computer.pushSignal("component_added", a, t)
+  end
+end
 
 while true do
   coroutine.yield()

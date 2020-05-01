@@ -3,7 +3,7 @@
 do
   log("InitMe: Initializing initsvc")
 
-  local config = require("comfig")
+  local config = require("config")
   local fs = require("filesystem")
   local thread = require("thread")
   local scripts = "/lib/scripts/"
@@ -12,12 +12,12 @@ do
     getty = "service"
   }
 
-  local cfg = config.load("/etc/initsvc.cfg")
+  local cfg = config.load("/etc/initsvc.cfg", default)
 
   local initsvc = {}
   local svc = {}
 
-  function initsvc.start(service)
+  function initsvc.start(service, handler)
     checkArg(1, service, "string")
     if svc[service] and thread.info(svc[service]) then
       return nil, "service is already running"
@@ -26,7 +26,7 @@ do
     if not ok then
       return nil, err
     end
-    local pid = thread.spawn(ok, service, function()initsvc.start(service)end)
+    local pid = thread.spawn(ok, service, handler or function()initsvc.start(service)end)
     svc[service] = pid
     return true
   end
@@ -79,6 +79,7 @@ do
   package.loaded.initsvc = initsvc
 
   for sname, stype in pairs(cfg) do
+    log("running " .. stype .. " " .. sname)
     if stype == "script" then
       local path = scripts .. sname .. ".lua"
       local ok, err = dofile(path)
@@ -86,10 +87,12 @@ do
         panic(err)
       end
     elseif stype == "service" then
-      local ok, err = initsvc.start(sname)
+      local ok, err = initsvc.start(sname, panic)
       if not ok then
         panic(err)
       end
     end
   end
+  --require("computer").pushSignal("init")
+  coroutine.yield(0)
 end
