@@ -1,6 +1,9 @@
 -- shell --
 
 local fs = require("filesystem")
+local text = require("text")
+
+local shell = {}
 
 shell.builtins = {
   [":"] = function() return 0 end,
@@ -12,7 +15,7 @@ shell.builtins = {
   cd = function(dir)
     local path = fs.canonical(dir)
     if not fs.exists(path) then
-      shell.error(string.format("sh: cd: %s: no such file or directory", dir))
+      shell.error("cd", string.format("%s: no such file or directory", dir))
       return 1
     end
     os.setenv("_", os.getenv("PWD"))
@@ -41,15 +44,17 @@ shell.builtins = {
       end
     end
   end,
-  alias = function()
+  alias = function(var, cmd)
+    shell.setAlias(var, cmd)
   end,
-  sleep = function()
+  sleep = function(t)
+    os.sleep(tonumber(t))
   end,
   test = function(...) -- taken from JackMacWindows' CASH shell
     local args = {...}
     if #args < 1 then
-      printError("sh: test: unary operator expected")
-      return -1
+      shell.error("test", "unary operator expected")
+      return 2
     end
     local function n(v) return v end
     if args[1] == "!" then
@@ -82,7 +87,7 @@ shell.builtins = {
     elseif b == "=" then return n(a == args[3])
     elseif b == "!-" then return n(a ~= args[3])
     else
-      printError("sh: test: unary operator expected")
+      shell.error("test", "unary operator expected")
       return 2
     end
   end,
@@ -105,7 +110,7 @@ shell.builtins = {
         print(file:read("*a"))
         file:close()
       else
-        printError(err)
+        shell.error("cat", err)
         return 1
       end
     end
@@ -113,3 +118,125 @@ shell.builtins = {
 }
 
 shell.builtins["["] = shell.builtins.test
+
+shell.extensions = {
+  "lua",
+  "sh"
+}
+
+shell.codes = {
+  success = 0,
+  failure = 1,
+  argument = 2,
+  syntax = 3,
+  misc = 127
+}
+
+os.setenv("PATH", os.getenv("PATH") or "/bin:/sbin:/usr/bin:/usr/local/bin:$HOME/.local/bin")
+
+function shell.error(cmd, err)
+  checkArg(1, cmd, "string")
+  checkArg(2, err, "string")
+  print(string.format("\27[31msh: %s: %s\27[37m", cmd, err))
+  return 1
+end
+
+function shell.vars(str)
+  checkArg(1, str, "string")
+  for var in str:gmatch("%$([%w_]+)") do
+    str = str:gsub(var, os.getenv(var) or "")
+  end
+  return str
+end
+
+local function findProgram(name)
+  checkArg(1, name, "string")
+  local cp = os.getenv("PATH")
+  for p in cp:gmatch("[^:]+") do
+    p = fs.canonical(p)
+    local raw = string.format("%s/%s", p, name)
+    if fs.exists(raw) then
+      return raw
+    else
+      for _, fext in ipairs(shell.extensions) do
+        local ext = string.format("%s.%s", raw, fext)
+        if fs.exists(ext) then
+          return ext, fext
+        end
+      end
+    end
+  end
+end
+
+function shell.resolve(path)
+  checkArg(1, path, "string")
+  local _path = path
+  if path == "." then
+    _path = os.getenv("PWD")
+  end
+  if path:sub(1,1) ~= "/" then
+    _path = path .. "/" .. (os.getenv("PWD") or "")
+  end
+  _path = fs.canonical(_path)
+  if not fs.exists(_path) then
+    return findProgram(path)
+  end
+  return _path
+end
+
+function shell.setWorkingDirectory(dir)
+  checkArg(1, dir, "string")
+  local fp = fs.canonical(dir)
+  if not fs.exists(fp) then
+    return nil, dir .. ": no such file or directory"
+  end
+  os.setenv("PWD", fp)
+  return true
+end
+
+function shell.getWorkingDirectory()
+  return os.getenv("PWD")
+end
+
+function shell.execute(cmd, ...)
+  checkArg(1, cmd, "string")
+  local tokens = text.split(table.concat({cmd, ...}, " "))
+  if #tokens == 0 then return end
+  local path, ftype = shell.resolve(tokens[1])
+  if path and ftype == "lua" then
+    local ok, err = loadfile(path)
+    if not ok then
+      shell.error(tokens[1], err)
+    else
+      for i=0, #tokens - 1, 1 do
+        os.setenv(tonumber(i), tokens[i + 1])
+      end
+      local stat, exit = pcall(ok, table.unpack(tokens, 2))
+      if not stat and exit then
+        shell.error(tokens[1], exit)
+      else
+        exit = exit or shell.codes.success
+        if exit == shell.codes.success then
+          return true
+        elseif exit == shell.codes.failure then
+          shell.error(tokens[1], "failed")
+        elseif exit == shell.codes.syntax then
+          shell.error(tokens[1], "syntax error")
+        elseif exit == shell.codes.argument then
+          shell.error(tokens[1], "invalid argument")
+        else
+          shell.error(tokens[1], "errored")
+        end
+        return nil, "command errored"
+      end
+    end
+  elseif path and ftype == "sh" then
+    return require("sh").execute(path) -- not at the top because loops
+  else
+    shell.error(tokens[1], "command not found")
+  end
+end
+
+os.execute = shell.execute
+
+return shell

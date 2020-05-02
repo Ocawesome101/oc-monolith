@@ -66,10 +66,11 @@ do
     checkArg(4, env, "table", "nil")
     checkArg(5, stdin, "table", "nil")
     checkArg(6, stdout, "table", "nil")
+    checkArg(7, priority, "number", "nil")
     last = last + 1
     env = setmetatable(env or {}, {__index = (tasks[cur] and tasks[cur].env) or global_env})
-    stdin = stdin or {}
-    stdour = stdout or {}
+    stdin = stdin or (tasks[cur] and tasks[cur].stdin or {})
+    stdout = stdout or (tasks[cur] and tasks[cur].stdout or {})
     priority = priority or math.huge
     local new = {
       coro = coroutine.create( -- the thread itself
@@ -103,6 +104,7 @@ do
   function os.setenv(var, val)
     checkArg(1, var, "string", "number")
     checkArg(2, val, "string", "number", "boolean", "table", "nil", "function")
+    --kernel.logger.log("SET " .. var .. "=" .. tostring(val))
     if tasks[cur] then
       tasks[cur].env[var] = val
     else
@@ -123,9 +125,9 @@ do
       return r
     end
     if tasks[cur] then
-      tasks[cur].env[var] = val
+      return tasks[cur].env[var] or nil
     else
-      global_env[var] = val
+      return global_env[var] or nil
     end
   end
 

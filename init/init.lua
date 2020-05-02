@@ -1,6 +1,6 @@
 -- ComputOS init --
 
-local _INITVERSION = "InitMe 10316c1 (built Fri May 01 00:27:15 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe b72a44e (built Sat May 02 01:07:19 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 
@@ -209,6 +209,15 @@ do
 
   function io.write(...)
     return io.output():write(...)
+  end
+
+  function _G.print(...)
+    local args = {...}
+    local tp = ""
+    for k, v in ipairs(args) do
+      tp = tp .. tostring(v) .. "\n"
+    end
+    return io.write(tp)
   end
 end
 

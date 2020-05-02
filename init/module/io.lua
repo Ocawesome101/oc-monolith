@@ -109,4 +109,13 @@ do
   function io.write(...)
     return io.output():write(...)
   end
+
+  function _G.print(...)
+    local args = {...}
+    local tp = ""
+    for k, v in ipairs(args) do
+      tp = tp .. tostring(v) .. "\n"
+    end
+    return io.write(tp)
+  end
 end

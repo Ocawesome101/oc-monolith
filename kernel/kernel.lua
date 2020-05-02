@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "ComputOS"
-local _KERNEL_REVISION = "10316c1"
+local _KERNEL_REVISION = "b72a44e"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -272,10 +272,22 @@ do
     return segments
   end
 
+  function fs.name(path)
+    checkArg(1, path, "string")
+    local s = split(path)
+    return s[#s]
+  end
+
+  function fs.path(path)
+    checkArg(1, path, "string")
+    local s = split(path)
+    return fs.canonical(table.concat(s, "/", 1, #s - 1))
+  end
+
   local function resolve(path)
-    path = path or os.getenv("PWD")
-    if path == "." then path = os.getenv("PWD") end
-    if path:sub(1,1) ~= "/" then path = os.getenv("PWD") .. "/" .. path end
+    path = path or os.getenv("PWD") or "/"
+    if path == "." then path = os.getenv("PWD") or "/" end
+    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "") .. "/" .. path end
     local s = split(path)
     for i=1, #s, 1 do
       local cur = table.concat(s, "/", 1)
@@ -407,9 +419,9 @@ do
   function fs.canonical(path)
     checkArg(1, path, "string")
     if path == "." then
-      path = os.getenv("PWD")
+      path = os.getenv("PWD") or "/"
     elseif path:sub(1,1) ~= "/" then
-      path = os.getenv("PWD") .. path
+      path = (os.getenv("PWD") or "/") .. path
     end
     return table.concat(split(path), "/")
   end
@@ -660,10 +672,11 @@ do
     checkArg(4, env, "table", "nil")
     checkArg(5, stdin, "table", "nil")
     checkArg(6, stdout, "table", "nil")
+    checkArg(7, priority, "number", "nil")
     last = last + 1
     env = setmetatable(env or {}, {__index = (tasks[cur] and tasks[cur].env) or global_env})
-    stdin = stdin or {}
-    stdour = stdout or {}
+    stdin = stdin or (tasks[cur] and tasks[cur].stdin or {})
+    stdout = stdout or (tasks[cur] and tasks[cur].stdout or {})
     priority = priority or math.huge
     local new = {
       coro = coroutine.create( -- the thread itself
@@ -697,6 +710,7 @@ do
   function os.setenv(var, val)
     checkArg(1, var, "string", "number")
     checkArg(2, val, "string", "number", "boolean", "table", "nil", "function")
+    --kernel.logger.log("SET " .. var .. "=" .. tostring(val))
     if tasks[cur] then
       tasks[cur].env[var] = val
     else
@@ -705,11 +719,21 @@ do
   end
 
   function os.getenv(var)
-    checkArg(1, var, "string", "number")
+    checkArg(1, var, "string", "number", "nil")
+    if not var then -- return a table of all environment variables
+      local vtbl = {}
+      if tasks[cur] then vtbl = tasks[cur].env
+      else vtbl = global_env end
+      local r = {}
+      for k, v in pairs(vtbl) do
+        r[k] = v
+      end
+      return r
+    end
     if tasks[cur] then
-      tasks[cur].env[var] = val
+      return tasks[cur].env[var] or nil
     else
-      global_env[var] = val
+      return global_env[var] or nil
     end
   end
 

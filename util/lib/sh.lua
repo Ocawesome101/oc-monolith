@@ -6,10 +6,10 @@ local sh = {}
 
 local psrep = {
   ["\\w"] = function()
-    return os.getenv("PWD")
+    return os.getenv("PWD") or "/"
   end,
   ["\\W"] = function()
-    return fs.name(os.getenv("PWD"))
+    return fs.name(os.getenv("PWD") or "/")
   end,
   ["\\$"] = function()
     if os.getenv("UID") == 0 then
@@ -19,7 +19,7 @@ local psrep = {
     end
   end,
   ["\\u"] = function()
-    return os.getenv("USER")
+    return os.getenv("USER") or ""
   end,
   ["\\h"] = function()
     return os.getenv("HOSTNAME") or "localhost"
@@ -28,14 +28,15 @@ local psrep = {
 
 function sh.prompt(p)
   checkArg(1, p, "string", "nil")
-  p = p or os.getenv("PS1")
+  p = p or os.getenv("PS1") or "\\w\\$ "
   for k, v in pairs(psrep) do
+    k = k:gsub("%$", "%%$") -- ouch
     p = p:gsub(k, v())
   end
   return shell.vars(p)
 end
 
--- smarter than shell.execute
+-- runs shell scripts
 function sh.execute(file)
   checkArg(1, file, "string")
   local handle, err = io.open(file)

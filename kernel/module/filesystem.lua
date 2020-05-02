@@ -17,10 +17,22 @@ do
     return segments
   end
 
+  function fs.name(path)
+    checkArg(1, path, "string")
+    local s = split(path)
+    return s[#s]
+  end
+
+  function fs.path(path)
+    checkArg(1, path, "string")
+    local s = split(path)
+    return fs.canonical(table.concat(s, "/", 1, #s - 1))
+  end
+
   local function resolve(path)
-    path = path or os.getenv("PWD")
-    if path == "." then path = os.getenv("PWD") end
-    if path:sub(1,1) ~= "/" then path = os.getenv("PWD") .. "/" .. path end
+    path = path or os.getenv("PWD") or "/"
+    if path == "." then path = os.getenv("PWD") or "/" end
+    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "") .. "/" .. path end
     local s = split(path)
     for i=1, #s, 1 do
       local cur = table.concat(s, "/", 1)
@@ -152,9 +164,9 @@ do
   function fs.canonical(path)
     checkArg(1, path, "string")
     if path == "." then
-      path = os.getenv("PWD")
+      path = os.getenv("PWD") or "/"
     elseif path:sub(1,1) ~= "/" then
-      path = os.getenv("PWD") .. path
+      path = (os.getenv("PWD") or "/") .. path
     end
     return table.concat(split(path), "/")
   end
