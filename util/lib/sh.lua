@@ -2,6 +2,7 @@
 
 local shell = require("shell")
 local fs = require("filesystem")
+--local log = require("component").sandbox.log
 local sh = {}
 
 local psrep = {
@@ -9,7 +10,7 @@ local psrep = {
     return os.getenv("PWD") or "/"
   end,
   ["\\W"] = function()
-    return fs.name(os.getenv("PWD") or "/")
+    return fs.name(os.getenv("PWD") or "/") or ""
   end,
   ["\\$"] = function()
     if os.getenv("UID") == 0 then
@@ -29,10 +30,13 @@ local psrep = {
 function sh.prompt(p)
   checkArg(1, p, "string", "nil")
   p = p or os.getenv("PS1") or "\\w\\$ "
+--log("resolve prompt", p)
   for k, v in pairs(psrep) do
     k = k:gsub("%$", "%%$") -- ouch
+--  log("gsub", k, v())
     p = p:gsub(k, v())
   end
+--log("done")
   return shell.vars(p)
 end
 

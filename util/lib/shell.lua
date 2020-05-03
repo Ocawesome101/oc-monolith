@@ -2,18 +2,24 @@
 
 local fs = require("filesystem")
 local text = require("text")
+--local log = require("component").sandbox.log
 
 local shell = {}
+local aliases = {}
 
+--log("shell builtins")
 shell.builtins = {
   [":"] = function() return 0 end,
   ["."] = function(path)
     checkArg(1, path, "string")
     return shell.execute(path)
   end,
-  echo = function(...) print(...) end,
+  echo = function(...) print(table.concat({...}, " ")) end,
   cd = function(dir)
-    local path = fs.canonical(dir)
+    local path = dir or os.getenv("HOME") or "/"
+    if path:sub(1,1) ~= "/" then
+      path = fs.concat(os.getenv("PWD") or "/", path)
+    end
     if not fs.exists(path) then
       shell.error("cd", string.format("%s: no such file or directory", dir))
       return 1
@@ -45,7 +51,15 @@ shell.builtins = {
     end
   end,
   alias = function(var, cmd)
-    shell.setAlias(var, cmd)
+    if var and cmd then
+      shell.setAlias(var, cmd)
+    elseif var then
+      print(string.format("alias %s=%s", var, aliases[var] or "nil"))
+    else
+      for a, c in pairs(aliases) do
+        print(string.format("alias %s=%s", a, c))
+      end
+    end
   end,
   sleep = function(t)
     os.sleep(tonumber(t))
@@ -104,6 +118,9 @@ shell.builtins = {
     end
   end,
   cat = function(...)
+    if not ... then
+      return 2
+    end
     for k, v in ipairs({...}) do
       local file, err = io.open(v, "r")
       if file then
@@ -137,15 +154,18 @@ os.setenv("PATH", os.getenv("PATH") or "/bin:/sbin:/usr/bin:/usr/local/bin:$HOME
 function shell.error(cmd, err)
   checkArg(1, cmd, "string")
   checkArg(2, err, "string")
+--log("SHELL ERROR:", cmd, err)
   print(string.format("\27[31msh: %s: %s\27[37m", cmd, err))
   return 1
 end
 
 function shell.vars(str)
   checkArg(1, str, "string")
+--log("substitute vars for", str)
   for var in str:gmatch("%$([%w_]+)") do
-    str = str:gsub(var, os.getenv(var) or "")
+    str = str:gsub("%$" .. var, os.getenv(var) or "")
   end
+--log("got", str)
   return str
 end
 
@@ -200,43 +220,95 @@ end
 
 function shell.execute(cmd, ...)
   checkArg(1, cmd, "string")
-  local tokens = text.split(table.concat({cmd, ...}, " "))
+  local tokens = text.split(shell.vars(table.concat({cmd, ...}, " ")))
   if #tokens == 0 then return end
+  if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]] end
   local path, ftype = shell.resolve(tokens[1])
+  local stat, exit
   if path and ftype == "lua" then
     local ok, err = loadfile(path)
     if not ok then
       shell.error(tokens[1], err)
     else
       for i=0, #tokens - 1, 1 do
-        os.setenv(tonumber(i), tokens[i + 1])
+        os.setenv(tostring(i), tokens[i + 1])
       end
-      local stat, exit = pcall(ok, table.unpack(tokens, 2))
-      if not stat and exit then
-        shell.error(tokens[1], exit)
-      else
-        exit = exit or shell.codes.success
-        if exit == shell.codes.success then
-          return true
-        elseif exit == shell.codes.failure then
-          shell.error(tokens[1], "failed")
-        elseif exit == shell.codes.syntax then
-          shell.error(tokens[1], "syntax error")
-        elseif exit == shell.codes.argument then
-          shell.error(tokens[1], "invalid argument")
-        else
-          shell.error(tokens[1], "errored")
-        end
-        return nil, "command errored"
-      end
+      stat, exit = pcall(ok, table.unpack(tokens, 2))
     end
   elseif path and ftype == "sh" then
     return require("sh").execute(path) -- not at the top because loops
+  elseif shell.builtins[tokens[1]] then
+    for i=0, #tokens - 1, 1 do
+      os.setenv(tostring(i), tokens[i + 1])
+    end
+    local exec = shell.builtins[tokens[1]]
+    stat, exit = pcall(function()exec(table.unpack(tokens, 2))end)
   else
     shell.error(tokens[1], "command not found")
+    return
+  end
+  if not stat and exit then
+    shell.error(tokens[1], exit)
+  else
+    exit = exit or shell.codes.success
+    if exit == shell.codes.success then
+      return true
+    elseif exit == shell.codes.failure then
+      shell.error(tokens[1], "failed")
+    elseif exit == shell.codes.syntax then
+      shell.error(tokens[1], "syntax error")
+    elseif exit == shell.codes.argument then
+      shell.error(tokens[1], "invalid argument")
+    else
+      shell.error(tokens[1], "errored")
+    end
+    return nil, "command errored"
   end
 end
 
 os.execute = shell.execute
+
+-- kind-of smart-ish argument parsing
+function shell.parse(...)
+  local params = {...}
+  local inopt = false
+  local cropt = ""
+  local args, opts = {}, {}
+  for i=1, #params, 1 do
+    local p = params[i]
+    if p:sub(1,2) == "--" then -- "long" option
+      local o = p:sub(3)
+      local op, vl = o:match("([%w]+)=([%w/]+)")
+      if op and vl then
+        opts[op] = vl or true
+      else
+        opts[o] = true
+      end
+    elseif p:sub(1,1) == "-" then -- "short" option
+      for opt in p:gmatch(".") do
+        opts[opt] = true
+      end
+    else
+      args[#args + 1] = p
+    end
+  end
+  return args, opts
+end
+
+function shell.setAlias(alias, cmd)
+  checkArg(1, alias, "string")
+  checkArg(2, cmd, "string")
+  aliases[alias] = cmd
+end
+
+function shell.getAlias(alias)
+  checkArg(1, alias, "string")
+  return aliases[alias] or "nil"
+end
+
+function shell.unsetAlias(alias)
+  checkArg(1, alias, "string")
+  aliases[alias] = nil
+end
 
 return shell

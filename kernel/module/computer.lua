@@ -8,11 +8,11 @@ do
     checkArg(1, reboot, "boolean")
     local running = kernel.thread.threads()
     for i=1, #running, 1 do
-      kernel.thread.signal(running[i].pid, kernel.thread.signals.term)
+      kernel.thread.signal(running[i], kernel.thread.signals.term)
     end
     coroutine.yield()
     for i=1, #running, 1 do
-      kernel.thread.signal(running[i].pid, kernel.thread.signals.kill)
+      kernel.thread.signal(running[i], kernel.thread.signals.kill)
     end
     coroutine.yield()
     closeAll()

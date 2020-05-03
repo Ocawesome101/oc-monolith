@@ -3,6 +3,7 @@
 do
   kernel.logger.log("initializing scheduler")
   local thread, tasks, sbuf, last, cur = {}, {}, {}, 0, 0
+  local lastKey = math.huge
 
   local function checkDead(thd)
     local p = tasks[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
@@ -280,9 +281,11 @@ do
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(ipc))
         elseif #thd.sig > 0 then
           local nsig = table.remove(thd.sig, 1)
-          ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
           if nsig[3] == thread.signals.kill then
             thd.dead = true
+            ok, p1, p2 = true, nil, "killed"
+          else
+            ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
           end
         elseif sig and #sig > 0 then
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(sig))
@@ -290,7 +293,7 @@ do
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
         --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
-        if (not p1) and p2 then
+        if (not (p1 or ok)) and p2 then
           handleProcessError(thd, p2)
         elseif ok then
           if p2 and type(p2) == "number" then
@@ -306,7 +309,6 @@ do
 
       cleanup()
     end
-    kernel.logger.panic("all tasks died")
   end
 
   kernel.thread = thread

@@ -177,7 +177,7 @@ function vt100.session(gpu, scr)
               end
               rbuf = rbuf:sub(1, -2)
             end
-          else
+          elseif p2 == 10 or (p2 > 31 and p2 < 127) then
             if echo then
               vtwrite(string.char(p2))
             end

@@ -2,16 +2,17 @@
 
 do
   local fs = {}
-
+--local log = component.sandbox.log
   local mounts = {}
 
   local function split(path)
     local segments = {}
-    for seg in path:gmatch("[^;]+") do
+--  log("split " .. path)
+    for seg in path:gmatch("[^/]+") do
       if seg == ".." then
-        segments[#segments] = nil
+        table.remove(segments, #segments)
       else
-        segments[#segments + 1] = seg
+        table.insert(segments, seg)
       end
     end
     return segments
@@ -30,19 +31,27 @@ do
   end
 
   local function resolve(path)
-    path = path or os.getenv("PWD") or "/"
+--  log("resolve " .. path)
     if path == "." then path = os.getenv("PWD") or "/" end
-    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "") .. "/" .. path end
+    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
     local s = split(path)
     for i=1, #s, 1 do
-      local cur = table.concat(s, "/", 1)
+      local cur = table.concat(s, "/", 1, i)
+--    log("check " .. cur .. " for " .. table.concat(s, "/", i))
       if mounts[cur] and mounts[cur].exists(table.concat(s, "/", i)) then
+--      log("found")
         return mounts[cur], table.concat(s, "/", i)
       end
     end
     if mounts["/"].exists(path) then
+--    log("found at rootfs")
       return mounts["/"], path
     end
+    if mounts[path] then
+--    log("found at " .. path)
+      return mounts[path], "/"
+    end
+--  log("no such file or directory")
     return nil, path .. ": no such file or directory"
   end
 
@@ -50,10 +59,12 @@ do
   for k, v in pairs(basic) do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
+--    log("called basic function " .. v .. " with argument " .. tostring(path))
       local mt, p = resolve(path)
       if path and not mt then
         return nil, p
       end
+--    log("resolved to " .. mt.address .. ", path " .. p)
       return mt[v](p)
     end
   end
@@ -168,7 +179,7 @@ do
     elseif path:sub(1,1) ~= "/" then
       path = (os.getenv("PWD") or "/") .. path
     end
-    return table.concat(split(path), "/")
+    return "/" .. table.concat(split(path), "/")
   end
 
   function fs.concat(path1, path2, ...)

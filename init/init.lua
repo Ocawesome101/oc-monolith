@@ -1,6 +1,6 @@
 -- ComputOS init --
 
-local _INITVERSION = "InitMe b72a44e (built Sat May 02 01:07:19 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe c251148 (built Sat May 02 20:34:39 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 

@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "ComputOS"
-local _KERNEL_REVISION = "b72a44e"
+local _KERNEL_REVISION = "c251148"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -257,16 +257,17 @@ end
 
 do
   local fs = {}
-
+--local log = component.sandbox.log
   local mounts = {}
 
   local function split(path)
     local segments = {}
-    for seg in path:gmatch("[^;]+") do
+--  log("split " .. path)
+    for seg in path:gmatch("[^/]+") do
       if seg == ".." then
-        segments[#segments] = nil
+        table.remove(segments, #segments)
       else
-        segments[#segments + 1] = seg
+        table.insert(segments, seg)
       end
     end
     return segments
@@ -285,19 +286,27 @@ do
   end
 
   local function resolve(path)
-    path = path or os.getenv("PWD") or "/"
+--  log("resolve " .. path)
     if path == "." then path = os.getenv("PWD") or "/" end
-    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "") .. "/" .. path end
+    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
     local s = split(path)
     for i=1, #s, 1 do
-      local cur = table.concat(s, "/", 1)
+      local cur = table.concat(s, "/", 1, i)
+--    log("check " .. cur .. " for " .. table.concat(s, "/", i))
       if mounts[cur] and mounts[cur].exists(table.concat(s, "/", i)) then
+--      log("found")
         return mounts[cur], table.concat(s, "/", i)
       end
     end
     if mounts["/"].exists(path) then
+--    log("found at rootfs")
       return mounts["/"], path
     end
+    if mounts[path] then
+--    log("found at " .. path)
+      return mounts[path], "/"
+    end
+--  log("no such file or directory")
     return nil, path .. ": no such file or directory"
   end
 
@@ -305,10 +314,12 @@ do
   for k, v in pairs(basic) do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
+--    log("called basic function " .. v .. " with argument " .. tostring(path))
       local mt, p = resolve(path)
       if path and not mt then
         return nil, p
       end
+--    log("resolved to " .. mt.address .. ", path " .. p)
       return mt[v](p)
     end
   end
@@ -423,7 +434,7 @@ do
     elseif path:sub(1,1) ~= "/" then
       path = (os.getenv("PWD") or "/") .. path
     end
-    return table.concat(split(path), "/")
+    return "/" .. table.concat(split(path), "/")
   end
 
   function fs.concat(path1, path2, ...)
@@ -542,11 +553,11 @@ do
     checkArg(1, reboot, "boolean")
     local running = kernel.thread.threads()
     for i=1, #running, 1 do
-      kernel.thread.signal(running[i].pid, kernel.thread.signals.term)
+      kernel.thread.signal(running[i], kernel.thread.signals.term)
     end
     coroutine.yield()
     for i=1, #running, 1 do
-      kernel.thread.signal(running[i].pid, kernel.thread.signals.kill)
+      kernel.thread.signal(running[i], kernel.thread.signals.kill)
     end
     coroutine.yield()
     closeAll()
@@ -609,6 +620,7 @@ sandbox.computer.pullSignal = coroutine.yield()
 do
   kernel.logger.log("initializing scheduler")
   local thread, tasks, sbuf, last, cur = {}, {}, {}, 0, 0
+  local lastKey = math.huge
 
   local function checkDead(thd)
     local p = tasks[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
@@ -886,9 +898,11 @@ do
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(ipc))
         elseif #thd.sig > 0 then
           local nsig = table.remove(thd.sig, 1)
-          ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
           if nsig[3] == thread.signals.kill then
             thd.dead = true
+            ok, p1, p2 = true, nil, "killed"
+          else
+            ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
           end
         elseif sig and #sig > 0 then
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(sig))
@@ -896,7 +910,7 @@ do
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
         --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
-        if (not p1) and p2 then
+        if (not (p1 or ok)) and p2 then
           handleProcessError(thd, p2)
         elseif ok then
           if p2 and type(p2) == "number" then
@@ -912,7 +926,6 @@ do
 
       cleanup()
     end
-    kernel.logger.panic("all tasks died")
   end
 
   kernel.thread = thread
