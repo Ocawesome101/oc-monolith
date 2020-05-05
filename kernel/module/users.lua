@@ -25,7 +25,7 @@ do
     if not u.passwd[uid] then
       return nil, "no such user"
     end
-    return hex(u.sha.sha256(password)) == u.passwd[uid].p
+    return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
 
   function u.login(uid, password)

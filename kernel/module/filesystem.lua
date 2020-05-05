@@ -5,6 +5,12 @@ do
 --local log = component.sandbox.log
   local mounts = {}
 
+  local protected = {
+    "/boot",
+    "/sbin",
+    "/initramfs.bin"
+  }
+
   local function split(path)
     local segments = {}
 --  log("split " .. path)
@@ -30,7 +36,7 @@ do
     return fs.canonical(table.concat(s, "/", 1, #s - 1))
   end
 
-  local function resolve(path)
+  local function resolve(path, noexist)
 --  log("resolve " .. path)
     if path == "." then path = os.getenv("PWD") or "/" end
     if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
@@ -43,7 +49,7 @@ do
         return mounts[cur], table.concat(s, "/", i)
       end
     end
-    if mounts["/"].exists(path) then
+    if mounts["/"].exists(path) or noexist then
 --    log("found at rootfs")
       return mounts["/"], path
     end
@@ -60,7 +66,7 @@ do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
 --    log("called basic function " .. v .. " with argument " .. tostring(path))
-      local mt, p = resolve(path)
+      local mt, p = resolve(path, v == "makeDirectory")
       if path and not mt then
         return nil, p
       end
@@ -109,7 +115,7 @@ do
     for c in m:gmatch(".") do
       mode[c] = true
     end
-    local node, rpath = resolve(path)
+    local node, rpath = resolve(path, true)
     if not node then
       return nil, rpath
     end

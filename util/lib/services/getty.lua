@@ -5,6 +5,10 @@ local component = require("component")
 local computer = require("computer")
 local vt100 = require("vt100")
 local stream = require("stream")
+local config = require("config")
+
+local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua"})
+local login = cfg.start or "/sbin/login.lua"
 
 local getty = {}
 
@@ -64,17 +68,21 @@ function getty.scan()
   if gpu and screen then
     local sr, sw, sc = vt100.session(gpu, screen)
     local ios = stream.new(sr, sw, sc)
-    local ok, err = loadfile("/sbin/login.lua")
+    local ok, err = loadfile(login)
     if not ok then
       error(err)
     end
-    local pid = thread.spawn(ok, "/sbin/login.lua", nil, nil, ios, ios)
+    local pid = thread.spawn(ok, login, nil, nil, ios, ios)
     gpus[gpu].bound = pid
     screens[screen].bound = pid
+    thread.ipc(pid, "components", gpu, screen) -- give the process info about the GPU and screen, useful for things like GUIs
   end
 end
 
 while true do
-  coroutine.yield()
+  local sig, pid, res = coroutine.yield()
+  if sig == "thread_errored" then
+    error(pid .. ": " .. res)
+  end
   getty.scan()
 end

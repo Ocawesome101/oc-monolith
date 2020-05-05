@@ -24,8 +24,11 @@ while true do
     else
       local pid = thread.spawn(ok, "/bin/sh.lua", function(err)out:write("\27[31m" .. err .. "\27[37m\n")end, nil, inp, out)
       repeat
-        local sig, pid = coroutine.yield()
-      until sig == "thread_died" and dpid == pid
+        local sig, dpid, err = coroutine.yield()
+        if sig == "thread_errored" and err then
+          io.write("\27[31m" .. err .. "\27[37m\n")
+        end
+      until sig == "thread_died" or sig == "thread_errored" and dpid == pid
     end
   end
 end

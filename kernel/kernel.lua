@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "ComputOS"
-local _KERNEL_REVISION = "c251148"
+local _KERNEL_REVISION = "9b0c2e9"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -157,7 +157,7 @@ do
     if not u.passwd[uid] then
       return nil, "no such user"
     end
-    return hex(u.sha.sha256(password)) == u.passwd[uid].p
+    return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
 
   function u.login(uid, password)
@@ -260,6 +260,12 @@ do
 --local log = component.sandbox.log
   local mounts = {}
 
+  local protected = {
+    "/boot",
+    "/sbin",
+    "/initramfs.bin"
+  }
+
   local function split(path)
     local segments = {}
 --  log("split " .. path)
@@ -285,7 +291,7 @@ do
     return fs.canonical(table.concat(s, "/", 1, #s - 1))
   end
 
-  local function resolve(path)
+  local function resolve(path, noexist)
 --  log("resolve " .. path)
     if path == "." then path = os.getenv("PWD") or "/" end
     if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
@@ -298,7 +304,7 @@ do
         return mounts[cur], table.concat(s, "/", i)
       end
     end
-    if mounts["/"].exists(path) then
+    if mounts["/"].exists(path) or noexist then
 --    log("found at rootfs")
       return mounts["/"], path
     end
@@ -315,7 +321,7 @@ do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
 --    log("called basic function " .. v .. " with argument " .. tostring(path))
-      local mt, p = resolve(path)
+      local mt, p = resolve(path, v == "makeDirectory")
       if path and not mt then
         return nil, p
       end
@@ -364,7 +370,7 @@ do
     for c in m:gmatch(".") do
       mode[c] = true
     end
-    local node, rpath = resolve(path)
+    local node, rpath = resolve(path, true)
     if not node then
       return nil, rpath
     end
@@ -689,6 +695,8 @@ do
     env = setmetatable(env or {}, {__index = (tasks[cur] and tasks[cur].env) or global_env})
     stdin = stdin or (tasks[cur] and tasks[cur].stdin or {})
     stdout = stdout or (tasks[cur] and tasks[cur].stdout or {})
+    env.STDIN = stdin or env.STDIN
+    env.STDOUT = stdout or env.STDOUT
     priority = priority or math.huge
     local new = {
       coro = coroutine.create( -- the thread itself
@@ -705,8 +713,6 @@ do
       sig = {}, -- signal buffer
       ipc = {}, -- IPC buffer
       env = env, -- environment variables
-      stdin = stdin, -- thread STDIN handle
-      stdout = stdout, -- thread STDOUT handle
       deadline = computer.uptime(), -- signal deadline
       priority = priority, -- thread priority
       uptime = 0, -- thread uptime
@@ -746,26 +752,6 @@ do
       return tasks[cur].env[var] or nil
     else
       return global_env[var] or nil
-    end
-  end
-
-  function thread.stdin(stdin)
-    checkArg(1, stdin, "table", "nil")
-    if tasks[cur] then
-      if stdin then
-        tasks[cur].stdin = stdin
-      end
-      return tasks[cur].stdin
-    end
-  end
-
-  function thread.stdout(stdout)
-    checkArg(1, stdout, "table", "nil")
-    if tasks[cur] then
-      if stdout then
-        tasks[cur].stdout = stdout
-      end
-      return tasks[cur].stdout
     end
   end
 
@@ -824,10 +810,12 @@ do
     local inf = {
       name = t.name,
       owner = t.owner,
-      priority = thd.priority,
-      uptime = thd.uptime,
-      started = thd.started
+      priority = t.priority,
+      parent = t.parent,
+      uptime = t.uptime,
+      started = t.started
     }
+    return inf
   end
 
   function thread.signal(pid, sig)
@@ -873,6 +861,7 @@ do
     while #tasks > 0 do
       local run = {}
       for pid, thd in pairs(tasks) do
+        tasks[pid].uptime = computer.uptime() - thd.started
         if thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0 then
           run[#run + 1] = thd
         end
@@ -925,6 +914,15 @@ do
       end
 
       cleanup()
+
+      if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+        for i=1, 50 do -- invoke GC
+          computer.pullSignal(0)
+        end
+        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+          kernel.logger.panic("out of memory")
+        end
+      end
     end
   end
 

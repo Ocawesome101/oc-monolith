@@ -72,6 +72,8 @@ do
     env = setmetatable(env or {}, {__index = (tasks[cur] and tasks[cur].env) or global_env})
     stdin = stdin or (tasks[cur] and tasks[cur].stdin or {})
     stdout = stdout or (tasks[cur] and tasks[cur].stdout or {})
+    env.STDIN = stdin or env.STDIN
+    env.STDOUT = stdout or env.STDOUT
     priority = priority or math.huge
     local new = {
       coro = coroutine.create( -- the thread itself
@@ -88,8 +90,6 @@ do
       sig = {}, -- signal buffer
       ipc = {}, -- IPC buffer
       env = env, -- environment variables
-      stdin = stdin, -- thread STDIN handle
-      stdout = stdout, -- thread STDOUT handle
       deadline = computer.uptime(), -- signal deadline
       priority = priority, -- thread priority
       uptime = 0, -- thread uptime
@@ -129,26 +129,6 @@ do
       return tasks[cur].env[var] or nil
     else
       return global_env[var] or nil
-    end
-  end
-
-  function thread.stdin(stdin)
-    checkArg(1, stdin, "table", "nil")
-    if tasks[cur] then
-      if stdin then
-        tasks[cur].stdin = stdin
-      end
-      return tasks[cur].stdin
-    end
-  end
-
-  function thread.stdout(stdout)
-    checkArg(1, stdout, "table", "nil")
-    if tasks[cur] then
-      if stdout then
-        tasks[cur].stdout = stdout
-      end
-      return tasks[cur].stdout
     end
   end
 
@@ -207,10 +187,12 @@ do
     local inf = {
       name = t.name,
       owner = t.owner,
-      priority = thd.priority,
-      uptime = thd.uptime,
-      started = thd.started
+      priority = t.priority,
+      parent = t.parent,
+      uptime = t.uptime,
+      started = t.started
     }
+    return inf
   end
 
   function thread.signal(pid, sig)
@@ -256,6 +238,7 @@ do
     while #tasks > 0 do
       local run = {}
       for pid, thd in pairs(tasks) do
+        tasks[pid].uptime = computer.uptime() - thd.started
         if thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0 then
           run[#run + 1] = thd
         end
@@ -308,6 +291,15 @@ do
       end
 
       cleanup()
+
+      if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+        for i=1, 50 do -- invoke GC
+          computer.pullSignal(0)
+        end
+        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+          kernel.logger.panic("out of memory")
+        end
+      end
     end
   end
 

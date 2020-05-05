@@ -13,9 +13,9 @@ do
 
   setmetatable(io, {__index = function(tbl, k)
     if k == "stdin" then
-      return thread.stdin()
+      return os.getenv("STDIN")
     elseif k == "stdout" or k == "stderr" then
-      return thread.stdout()
+      return os.getenv("STDOUT")
     end
   end})
 
@@ -36,7 +36,10 @@ do
     if type(file) == "string" then
       file = io.open(file, "w")
     end
-    return thread.stdout(file)
+    if file then
+      os.setenv("STDOUT", file)
+    end
+    return os.getenv("STDOUT")
   end
 
   function io.input(file)
@@ -44,7 +47,10 @@ do
     if type(file) == "string" then
       file = io.open(file, "r")
     end
-    return thread.stdin(file)
+    if file then
+      os.setenv("STDIN", file)
+    end
+    return os.getenv("STDIN")
   end
 
   function io.popen(file) -- ...ish

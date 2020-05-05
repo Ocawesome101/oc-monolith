@@ -47,6 +47,11 @@ function stream.dummy()
   local function rread(n)
     checkArg(1, n, "number", "nil")
     if n then
+      if n == math.huge then
+        local r = rbuf
+        rbuf = ""
+        return r
+      end
       while #rbuf < n do
         coroutine.yield()
       end
@@ -72,6 +77,11 @@ function stream.dummy()
   local function wread(n)
     checkArg(1, n, "number", "nil")
     if n then
+      if n == math.huge then
+        local r = wbuf
+        wbuf = ""
+        return r
+      end
       while #wbuf < n do
         coroutine.yield()
       end

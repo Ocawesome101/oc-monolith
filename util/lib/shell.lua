@@ -2,6 +2,8 @@
 
 local fs = require("filesystem")
 local text = require("text")
+local stream = require("stream")
+local thread = require("thread")
 --local log = require("component").sandbox.log
 
 local shell = {}
@@ -36,6 +38,61 @@ shell.builtins = {
   end,
   read = function(var)
     os.setenv(var, io.read())
+  end,
+  ps = function(mode)
+    local thd = thread.threads()
+    if not mode then
+      print("PID    | PARENT | OWNER    | NAME")
+    elseif mode == "a" then
+      print("PID    | PARENT | OWNER    | START    | TIME     | NAME")
+    else
+      shell.error("pid", "invalid argument")
+      return shell.codes.argument
+    end
+    for i=1, #thd, 1 do
+      local info, err = thread.info(thd[i])
+      if not info then
+        shell.error("ps", err or "no thread " .. thd[i])
+      else
+        if not mode then
+          print(string.format("%6d | %6d | %8s | %s", thd[i], info.parent, info.owner, info.name))
+        elseif mode == "a" then
+          print(string.format("%6d | %6d | %8s | %8s | %8s | %s", thd[i], info.parent, info.owner, require("time").formatTime(info.started, "s", true), require("time").formatTime(info.uptime, "s", true), info.name))
+        end
+      end
+    end
+  end,
+  kill = function(sig, pid)
+    pid = tonumber(pid) or tonumber(sig)
+    if not pid then
+      shell.error("usage", "kill [-<signal>] <pid>")
+      return shell.codes.argument
+    end
+    if sig:sub(1,1) == "-" then
+      if sig == "-SIGKILL" then
+        sig = thread.signals.kill
+      elseif sig == "-SIGINT" then
+        sig = thread.signals.interrupt
+      elseif sig == "-USR1" then
+        sig = thread.signals.usr1
+      elseif sig == "-USR2" then
+        sig = thread.signals.usr2
+      elseif sig == "-SIGQUIT" then
+        sig = thread.signals.quit
+      elseif sig == "-SIGTERM" then
+        sig = thread.signals.term
+      else
+        shell.error("kill", "signal must be one of: SIGINT, SIGQUIT, SIGTERM, USR1, USR2, SIGKILL")
+        return shell.codes.argument
+      end
+    else
+      sig = thread.signals.kill
+    end
+    local ok, err = thread.signal(pid, sig)
+    if not ok then
+      shell.error("kill", err)
+      return shell.codes.failure
+    end
   end,
   set = function(...)
     local ts = {...}
@@ -118,23 +175,33 @@ shell.builtins = {
     end
   end,
   cat = function(...)
-    if not ... then
-      return 2
-    end
-    for k, v in ipairs({...}) do
-      local file, err = io.open(v, "r")
-      if file then
-        print(file:read("*a"))
-        file:close()
-      else
-        shell.error("cat", err)
-        return 1
+    local args = {...}
+    if #args == 0 then
+      local data = io.read(math.huge)
+      print(data)
+      return 0
+    else
+      for k, v in ipairs(args) do
+        local file, err = io.open(v, "r")
+        if file then
+          print(file:read("*a"))
+          file:close()
+        else
+          shell.error("cat", err)
+          return 1
+        end
       end
     end
   end
 }
 
 shell.builtins["["] = shell.builtins.test
+
+function shell.builtins.builtins()
+  for k, v in pairs(shell.builtins) do
+    print(k)
+  end
+end
 
 shell.extensions = {
   "lua",
@@ -191,11 +258,14 @@ end
 function shell.resolve(path)
   checkArg(1, path, "string")
   local _path = path
-  if path == "." then
+  if _path == "." then
     _path = os.getenv("PWD")
   end
-  if path:sub(1,1) ~= "/" then
-    _path = path .. "/" .. (os.getenv("PWD") or "")
+  if _path:sub(1,1) ~= "/" then
+    if _path:sub(1,2) == "./" then
+      _path = path:sub(3)
+    end
+    _path = _path .. "/" .. (os.getenv("PWD") or "")
   end
   _path = fs.canonical(_path)
   if not fs.exists(_path) then
@@ -218,11 +288,18 @@ function shell.getWorkingDirectory()
   return os.getenv("PWD")
 end
 
-function shell.execute(cmd, ...)
-  checkArg(1, cmd, "string")
+local function split(cmd, spt)
+  local cmds = {}
+  for _cmd in cmd:gmatch(spt) do
+    cmds[#cmds + 1] = _cmd
+  end
+  return cmds
+end
+
+local function execute(cmd, ...)
   local tokens = text.split(shell.vars(table.concat({cmd, ...}, " ")))
   if #tokens == 0 then return end
-  if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]] end
+  if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]]; tokens = text.split(shell.vars(table.concat(tokens, " "))) end
   local path, ftype = shell.resolve(tokens[1])
   local stat, exit
   if path and ftype == "lua" then
@@ -263,6 +340,49 @@ function shell.execute(cmd, ...)
       shell.error(tokens[1], "errored")
     end
     return nil, "command errored"
+  end
+  return true
+end
+
+local function pipe(cmd1, cmd2, ...)
+  local osi, oso = io.input(), io.output()
+  local nio, noi = stream.dummy()
+  local cmds = {cmd1, cmd2, ...}
+  for i=1, #cmds, 1 do
+    if i == #cmds then
+      io.output(oso)
+    else
+      if i ~= 1 then
+        io.input(noi)
+      end
+      io.output(nio)
+      nio, noi = noi, nio
+    end
+    local ok = execute(cmds[i])
+    if not ok then
+      io.input(osi)
+      io.output(oso)
+      return
+    end
+  end
+  return true
+end
+
+function shell.execute(cmd, ...)
+  checkArg(1, cmd, "string")
+  local long = shell.vars(table.concat({cmd, ...}, " "))
+  local set = split(long, "[^;]+")
+  for i=1, #set, 1 do
+    local _cmd = set[i]
+    if _cmd:find("|") then
+      local pipes = split(_cmd, "[^|]+")
+      pipe(table.unpack(pipes))
+    elseif _cmd:find("&&") then
+      local ands = split(_cmd, "[^%b&&]+")
+      cand(table.unpack(ands))
+    else
+      execute(_cmd)
+    end
   end
 end
 
@@ -309,6 +429,10 @@ end
 function shell.unsetAlias(alias)
   checkArg(1, alias, "string")
   aliases[alias] = nil
+end
+
+function shell.exit()
+  error("attempt to exit shell")
 end
 
 return shell

@@ -1,6 +1,6 @@
 -- ComputOS init --
 
-local _INITVERSION = "InitMe c251148 (built Sat May 02 20:34:39 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 9b0c2e9 (built Mon May 04 16:10:51 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 
@@ -114,9 +114,9 @@ do
 
   setmetatable(io, {__index = function(tbl, k)
     if k == "stdin" then
-      return thread.stdin()
+      return os.getenv("STDIN")
     elseif k == "stdout" or k == "stderr" then
-      return thread.stdout()
+      return os.getenv("STDOUT")
     end
   end})
 
@@ -137,7 +137,10 @@ do
     if type(file) == "string" then
       file = io.open(file, "w")
     end
-    return thread.stdout(file)
+    if file then
+      os.setenv("STDOUT", file)
+    end
+    return os.getenv("STDOUT")
   end
 
   function io.input(file)
@@ -145,7 +148,10 @@ do
     if type(file) == "string" then
       file = io.open(file, "r")
     end
-    return thread.stdin(file)
+    if file then
+      os.setenv("STDIN", file)
+    end
+    return os.getenv("STDIN")
   end
 
   function io.popen(file) -- ...ish

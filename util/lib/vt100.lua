@@ -158,14 +158,17 @@ function vt100.session(gpu, scr)
   local vtwrite = vt100.emu(gpu)
   local rbuf, echo = ""
   local kbd = {}
+  local down = {}
+  local lctrl, rctrl, c = 0x1D, 0x9D, 0x2E
   for k, v in pairs(component.invoke(scr, "getKeyboards")) do
     kbd[v] = true
   end
   
   local function key()
     while true do
-      local sig, p1, p2 = coroutine.yield()
+      local sig, p1, p2, p3 = coroutine.yield()
       if sig == "key_down" then
+        down[p3] = true
         if kbd[p1] then
           if p2 == 13 then
             p2 = 10
@@ -184,6 +187,8 @@ function vt100.session(gpu, scr)
             rbuf = rbuf .. string.char(p2)
           end
         end
+      elseif sig == "key_up" then
+        down[p3] = false
       elseif sig == "signal" and p2 == thread.signals.kill then
         echo = true
         buf = ""
@@ -193,15 +198,15 @@ function vt100.session(gpu, scr)
   
   local pid = thread.spawn(key, string.format("ttyd[%s/%s]", gpu.address:sub(1,8), scr:sub(1, 8)))
   
-  local function bread()
-    --checkArg(1, n, "number", "nil")
-    --n = n or math.huge
-    while not rbuf:find("\n") --[[or #rbuf < n]] do
+  local function bread(_, cc)
+    checkArg(1, cc, "boolean", "nil") -- <hack>
+    --if cc then -- AAAAAAAAAAAAAAAAAA
+    --  return ((down[lctrl] or down[rctrl]) and down[c] or) false
+    --end -- </hack>
+    while not rbuf:find("\n") do
       coroutine.yield()
     end
-    --if n == math.huge then
     local n = rbuf:find("\n")
-    --end
     local r = rbuf:sub(1, n)
     rbuf = rbuf:sub(n + 1)
     return r
