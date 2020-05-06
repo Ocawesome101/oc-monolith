@@ -1,10 +1,10 @@
 ## Userland documentation
 
-ComputOS' userland provides a multitude of APIs, many of which are mostly compatible with their OpenOS counterparts and on which I will not go into detail. I do, however, provide several unique APIs.
+Monolith's userland provides a multitude of APIs, many of which are mostly compatible with their OpenOS counterparts and on which I will not go into detail. I do, however, provide several unique APIs.
 
 ### User management
 
-ComputOS provides a `users` API, which is a wrapper around `kernel.users` with some more features such as name\<-\>UID mapping.
+Monolith provides a `users` API, which is a wrapper around `kernel.users` with some more features such as name\<-\>UID mapping.
 
 - `users.login(user:string or number, password:string): boolean or nil, string`
 
@@ -40,9 +40,9 @@ ComputOS provides a `users` API, which is a wrapper around `kernel.users` with s
 
 ### Table protection
 
-ComputOS provides a `protect` function, which effectively makes tables and their metatables completely read-only.
+Monolith provides a `protect` function, which effectively makes tables and their metatables completely read-only.
 
-WARNING: make sure you aren't gonna change your table or your metatable, because it won't work! `setmetatable` and `getmetatable` are wrapped in the kernel to respect the `__ro` flag in a metatable.
+WARNING: `setmetatable` and `getmetatable` are wrapped in the kernel to respect the `__ro` flag in a metatable, making table modification when `mtblro` is true virtually impossible.
 
 Syntax:
 
@@ -52,11 +52,11 @@ Syntax:
 
 ### Crypto
 
-ComputOS provides several crypto algorithms from [philanc's Pure Lua Crypto](https://github.com/philanc/plc), notably sha2, sha3, base64, ec25519, and blake2b, with more possibly coming in the future.
+Monolith provides several crypto algorithms from [philanc's Pure Lua Crypto](https://github.com/philanc/plc), notably sha2, sha3, base64, ec25519, and blake2b, with more possibly coming in the future.
 
 ### Config
 
-ComputOS includes a `config` library, with the following functions:
+Monolith includes a `config` library, with the following functions:
 
 - `config.load(file:string[, defaults:table]): table or nil, string`
 
@@ -69,7 +69,7 @@ ComputOS includes a `config` library, with the following functions:
 
 ### Streams
 
-ComputOS ships with a `stream` library with the following functions:
+Monolith ships with a `stream` library with the following functions:
 
 - `stream.new(read:function, write:function, close:function): table`
 

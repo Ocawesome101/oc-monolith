@@ -1,4 +1,4 @@
--- ComputOS init --
+-- Monolith's init --
 
 local _INITVERSION = "InitMe $[[git rev-parse --short HEAD]] (built $[[date +'%a %b %d %R:%S %Z %Y']] by $[[whoami]]@$[[hostname]])"
 local panic = kernel.logger.panic

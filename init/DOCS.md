@@ -1,6 +1,6 @@
 # InitMe
 
-InitMe is the default ComputOS init system. It provides the `io` and `package` APIs, as well as removing all non-standard-Lua APIs from `_G`.
+InitMe is the default Monolith init system. It provides the `io` and `package` APIs, as well as removing all non-standard-Lua APIs from `_G`.
 
 The `package` library only includes `path`, `loaded`, and `searchpath`; no other features were deemed necessary. It also provides `dofile` and `require` implementations.
 

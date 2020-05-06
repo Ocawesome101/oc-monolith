@@ -1,6 +1,6 @@
 -- rebuild the initramfs --
 
--- ComputOS' initramfs has a similar format to OpenBootLoader's BROFS, differing only in that its file table is twice as large, allowing for 64 files, and that file start is in bytes rather than sectors.
+-- Monolith's initramfs has a similar format to OpenBootLoader's BROFS, differing only in that its file table is twice as large, allowing for 64 files, and that file start is in bytes rather than sectors.
 
 local component = require("component")
 local computer = require("computer")

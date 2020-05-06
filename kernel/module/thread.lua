@@ -224,6 +224,10 @@ do
     return true
   end
 
+  function thread.current()
+    return cur
+  end
+
   thread.signals = {
     interrupt = 2,
     quit      = 3,
@@ -232,6 +236,14 @@ do
     usr2      = 66,
     kill      = 9
   }
+
+  function os.exit(code)
+    checkArg(1, code, "number")
+    thread.signal(thread.current(), thread.signals.kill)
+    if thread.info(thread.current()).parent then
+      thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
+    end
+  end
 
   function thread.start()
     thread.start = nil

@@ -1,10 +1,10 @@
 ## Kernel documentation
 
-This document lays out all APIs provided by the ComputOS kernel, as available to `init`. Note that APIs may differ significantly in userspace, i.e. shell programs.
+This document lays out all APIs provided by the Monolith kernel, as available to `init`. Note that APIs may differ significantly in userspace, i.e. shell programs.
 
 ### The scheduler (`thread`)
 
-ComputOS includes a fairly advanced cooperative scheduler, with smart signal timeouts (i.e. if tgread 1 has a timeout of 14, and thread 2 has a timeout of 6, the scheduler will only pause for up to 6 seconds).
+Monolith includes a fairly advanced cooperative scheduler, with smart signal timeouts (i.e. if tgread 1 has a timeout of 14, and thread 2 has a timeout of 6, the scheduler will only pause for up to 6 seconds).
 
 Signals:
 
@@ -75,7 +75,7 @@ Available functions:
 
 ### Filesystems
 
-The ComputOS kernel provides a generic interface to filesystem devices. This interface is intended to be mostly compatible with the OpenOS implementation, providing all fields of the `filesystem` component with a few additions:
+The Monolith kernel provides a generic interface to filesystem devices. This interface is intended to be mostly compatible with the OpenOS implementation, providing all fields of the `filesystem` component with a few additions:
 
 - `fs.canonical(path:string): string`
 
@@ -109,7 +109,7 @@ Some basic kernel interfaces are provided through the `kernel` table. These incl
 
 - `logger.log(message:string)`
 
-  Logs `message` to the console
+  Logs `message` to the boot console. Should be removed in `init`.
 
 - `logger.panic(reason:string)`
 

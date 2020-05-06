@@ -11,6 +11,12 @@ do
     return nil, "no such compoennt"
   end
 
+  function component.isAvailable(name)
+    checkArg(1, name, "string")
+    local ok, comp = pcall(function()return component[name]end)
+    return ok
+  end
+
   local mt = {
     __index = function(tbl, k)
       local addr = component.list(k, true)()
