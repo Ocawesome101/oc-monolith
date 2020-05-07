@@ -3,6 +3,13 @@
 local _INITVERSION = "InitMe $[[git rev-parse --short HEAD]] (built $[[date +'%a %b %d %R:%S %Z %Y']] by $[[whoami]]@$[[hostname]])"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
+local _log = function()end--component.sandbox.log
+
+--[[local oerr = error
+function _G.error(e, l)
+  _log(debug.traceback(e, l))
+  oerr(e, l)
+end]]
 
 log(_INITVERSION)
 

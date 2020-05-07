@@ -11,20 +11,16 @@ local function internal(tbl, ident, seen)
   for k, v in pairs(tbl) do
     if type(k) == "string" then
       if k:match("[^%w_]") or k:sub(1,1):match("[%d]") then
-        k = string.format("[\"%s\"] = ", k)
+        k = string.format("[\"%s\"]", k)
       end
     elseif type(k) == "number" then
-      if k == last + 1 then
-        k = ""
-      else
-        k = string.format("[%d] = ", k)
-      end
+      k = string.format("[%d]", k)
     else
-      k = string.format("[%s] = ", tostring(k))
+      k = string.format("[%s]", tostring(k))
     end
     if type(v) == "table" then
       if seen[v] then
-        v = "<self>"
+        v = tostring(v)
       else
         v = internal(v, ident + 2, seen)
       end
@@ -34,7 +30,7 @@ local function internal(tbl, ident, seen)
       v = tostring(v)
     end
 
-    r = string.format("%s  %s%s,\n", r, k, v)
+    r = string.format("%s  %s = %s,\n", r, k, v)
   end
 
   r = r .. "}"

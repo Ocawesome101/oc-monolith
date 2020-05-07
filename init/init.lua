@@ -1,8 +1,15 @@
--- ComputOS init --
+-- Monolith's init --
 
-local _INITVERSION = "InitMe 9b0c2e9 (built Mon May 04 16:10:51 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe ea92487 (built Wed May 06 23:57:01 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
+local _log = function()end--component.sandbox.log
+
+--[[local oerr = error
+function _G.error(e, l)
+  _log(debug.traceback(e, l))
+  oerr(e, l)
+end]]
 
 log(_INITVERSION)
 
@@ -35,6 +42,7 @@ do
   local function libError(name, searched)
     local err = "module '%s' not found:\n\tno field package.loaded['%s']"
     err = err .. ("\n\tno file '%s'"):rep(#searched)
+    _log(string.format(err, name, name, table.unpack(searched)))
     error(string.format(err, name, name, table.unpack(searched)))
   end
 
@@ -43,6 +51,7 @@ do
     checkArg(2, path, "string")
     checkArg(3, sep, "string", "nil")
     checkArg(4, rep, "string", "nil")
+    _log("search", path, name)
     sep = "%" .. (sep or ".")
     rep = rep or "/"
     local searched = {}
@@ -50,6 +59,7 @@ do
     for search in path:gmatch("[^;]+") do
       search = search:gsub("%?", name)
       if fs.exists(search) then
+        _log("found", search)
         return search
       end
       searched[#searched + 1] = search
@@ -74,17 +84,22 @@ do
   function _G.require(lib, reload)
     checkArg(1, lib, "string")
     checkArg(2, reload, "boolean", "nil")
+    _log("require", lib, "reload:", reload)
     if loaded[lib] and not reload then
+      _log("returning cached")
       return loaded[lib]
     else
+      _log("searching")
       local ok, searched = package.searchpath(lib, package.path, ".", "/")
       if not ok then
         libError(lib, searched)
       end
       local ok, err = dofile(ok)
       if not ok then
+        _log(string.format("failed loading module '%s':\n%s", lib, err))
         error(string.format("failed loading module '%s':\n%s", lib, err))
       end
+      _log("succeeded - returning", lib)
       loaded[lib] = ok
       return ok
     end
@@ -96,6 +111,7 @@ package.loaded.users = require("users")
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
+package.loaded.modules = kernel.modules
 _G.kernel = nil
 
 
@@ -228,7 +244,7 @@ do
 end
 
 
--- `initsvc` lib --
+-- `initsvc` lib. --
 
 do
   log("InitMe: Initializing initsvc")
@@ -238,11 +254,8 @@ do
   local thread = require("thread")
   local scripts = "/lib/scripts/"
   local services = "/lib/services/"
-  local default = {
-    getty = "service"
-  }
 
-  local cfg = config.load("/etc/initsvc.cfg", default)
+  local cfg = config.load("/etc/initsvc.cfg")
 
   local initsvc = {}
   local svc = {}
@@ -252,13 +265,35 @@ do
     if svc[service] and thread.info(svc[service]) then
       return nil, "service is already running"
     end
-    local ok, err = loadfile(services .. service .. ".lua")
+    local senv = setmetatable({}, {__index=_G})
+    local ok, err = loadfile(services .. service .. ".lua", nil, senv)
     if not ok then
       return nil, err
     end
-    local pid = thread.spawn(ok, service, handler or function()initsvc.start(service)end)
+    --[[pcall(ok) -- this isn't actually supported, heh
+    if senv.start then -- OpenOS-y service
+      osvc[service] = senv
+      thread.spawn(senv.start, service, handler or print)
+    end]]
+    local pid = thread.spawn(ok, service, handler or panic)
     svc[service] = pid
     return true
+  end
+
+  function initsvc.list()
+    local l = {}
+    for _, file in ipairs(fs.list(services)) do
+      local e = {}
+      file = file:gsub("%.lua$", "")
+      if svc[file] then
+        e.running = true
+      else
+        e.running = false
+      end
+      e.name = file
+      l[#l + 1] = e
+    end
+    return l
   end
 
   function initsvc.stop(service)
@@ -266,7 +301,11 @@ do
     if not svc[service] then
       return nil, "service is not running"
     end
-    thread.signal(svc[service], thread.signals.kill)
+    if type(svc[service]) == "table" then
+      pcall(svc[service].stop)
+    else
+      thread.signal(svc[service], thread.signals.kill)
+    end
     svc[service] = nil
     return true
   end
@@ -313,7 +352,7 @@ do
     if stype == "script" then
       local path = scripts .. sname .. ".lua"
       local ok, err = dofile(path)
-      if not ok then
+      if not ok and err then
         panic(err)
       end
     elseif stype == "service" then
@@ -326,6 +365,12 @@ do
   --require("computer").pushSignal("init")
   coroutine.yield(0)
 end
+
+local ok, err = loadfile("/sbin/getty.lua")
+if not ok then
+  panic(err)
+end
+require("thread").spawn(ok, "/sbin/getty.lua", panic)
 
 
 do

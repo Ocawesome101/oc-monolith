@@ -41,7 +41,7 @@ do
     return cuid
   end
 
-  function u.add(oassword, cansudo)
+  function u.add(password, cansudo)
     checkArg(1, password, "string")
     checkArg(2, cansudo, "boolean", "nil")
     if u.uid() ~= 0 then

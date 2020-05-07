@@ -78,3 +78,7 @@ Monolith ships with a `stream` library with the following functions:
 - `stream.dummy(): table, table`
 
   Creates two new inverted false streams. Used in `io.popen`.
+
+### Networking
+
+Monolith includes the GERT (GERTi and GERTe) and Minitel networking protocols.

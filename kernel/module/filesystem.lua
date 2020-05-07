@@ -61,7 +61,7 @@ do
     return nil, path .. ": no such file or directory"
   end
 
-  local basic =  {"makeDirectory", "exists", "isDirectory", "list", "lastModified", "remove", "size", "spaceUsed", "spaceTotal", "isReadOnly", "getLabel"}
+  local basic =  {"makeDirectory", "exists", "isDirectory", "lastModified", "remove", "size", "spaceUsed", "spaceTotal", "isReadOnly", "getLabel"}
   for k, v in pairs(basic) do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
@@ -73,6 +73,16 @@ do
 --    log("resolved to " .. mt.address .. ", path " .. p)
       return mt[v](p)
     end
+  end
+
+  function fs.list(path)
+    checkArg(1, path, "string")
+    local mt, p = resolve(path)
+    if not mt then
+      return nil, p
+    end
+    local files = mt.list(p)
+    return setmetatable(files, {__call = function() local _, tmp = next(files) if tmp then return tmp end end})
   end
 
   local function fread(self, amount)
@@ -271,21 +281,6 @@ do
     mounts[path] = nil
     return true
   end
-
---[[ loading things from the initramfs fstab is just broken. No separate boot drive for now.
-  local fstab = ifs.read("fstab"):sub(1, -2) -- there's some weird char at the end we don't want, and I don't know what it is
-  ifs.close()
-  local fstab, err = load("return " .. fstab, "=initramfs:fstab", "bt", {})
-  if not fstab then
-    kernel.logger.panic(err)
-  end
-  fstab = fstab()
-
-  for i, b in pairs(fstab) do
-    local addr = component.get(b.address)
-    kernel.logger.log("mounting " .. addr .. " at " .. b.path)
-    fs.mount(addr, b.path)
-  end]]
 
   fs.mount(computer.getBootAddress(), "/")
   fs.mount(computer.tmpAddress(), "/tmp")

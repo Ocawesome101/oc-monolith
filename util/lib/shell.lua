@@ -12,7 +12,7 @@ local aliases = {}
 --log("shell builtins")
 shell.builtins = {
   [":"] = function() return 0 end,
-  ["."] = function(path)
+  ["source"] = function(path)
     checkArg(1, path, "string")
     return shell.execute(path)
   end,
@@ -55,9 +55,9 @@ shell.builtins = {
         shell.error("ps", err or "no thread " .. thd[i])
       else
         if not mode then
-          print(string.format("%6d | %6d | %8s | %s", thd[i], info.parent, info.owner, info.name))
+          print(string.format("%6d | %6d | %8s | %s", thd[i], info.parent or 0, info.owner, info.name))
         elseif mode == "a" then
-          print(string.format("%6d | %6d | %8s | %8s | %8s | %s", thd[i], info.parent, info.owner, require("time").formatTime(info.started, "s", true), require("time").formatTime(info.uptime, "s", true), info.name))
+          print(string.format("%6d | %6d | %8s | %8s | %8s | %s", thd[i], info.parent or 0, info.owner, require("time").formatTime(info.started, "s", true), require("time").formatTime(info.uptime, "s", true), info.name))
         end
       end
     end

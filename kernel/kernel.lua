@@ -6,8 +6,8 @@ local flags = ... or {}
 flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
-local _KERNEL_NAME = "ComputOS"
-local _KERNEL_REVISION = "9b0c2e9"
+local _KERNEL_NAME = "Monolith"
+local _KERNEL_REVISION = "ea92487"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -70,6 +70,12 @@ do
     return nil, "no such compoennt"
   end
 
+  function component.isAvailable(name)
+    checkArg(1, name, "string")
+    local ok, comp = pcall(function()return component[name]end)
+    return ok
+  end
+
   local mt = {
     __index = function(tbl, k)
       local addr = component.list(k, true)()
@@ -84,51 +90,7 @@ do
   setmetatable(component, mt)
 end
 
-
--- read-only driver for the initramfs --
-
-local ifs = {}
-
-do
-  kernel.logger.log("loading initramfs.bin")
-  local fs = component.proxy(computer.getBootAddress())
-  local iramfs = fs.open("/initramfs.bin", "r")
-  if not iramfs then
-    kernel.logger.panic("initramfs not found")
-  end
-  local filetable = fs.read(iramfs, 2048)
-  
-  local files = {}
-  for i=1, 2048, 32 do
-    local name, start, size = string.unpack("<c24I4I4", filetable:sub(i, i + 31))
-    if name == "\0" then
-      break
-    end
-    name = name:gsub("\0", "")
-    files[name] = {
-      start= start,
-      size = size
-    }
-  end
-
-  function ifs.read(file)
-    if files[file] then
-      kernel.logger.log("reading " .. file .. " from initramfs")
-      local nptr = fs.seek(iramfs, "set", files[file].start)
-      if not nptr then
-        kernel.logger.panic("invalid initramfs entry: " .. file)
-      end
-      local data = fs.read(iramfs, files[file].size)
-      return data
-    end
-    kernel.logger.panic("no such file: " .. file)
-  end
-
-  function ifs.close()
-    return fs.close(iramfs)
-  end
-end
-
+-- --#include "module/initfs.lua"
 
 -- users --
 
@@ -173,7 +135,7 @@ do
     return cuid
   end
 
-  function u.add(oassword, cansudo)
+  function u.add(password, cansudo)
     checkArg(1, password, "string")
     checkArg(2, cansudo, "boolean", "nil")
     if u.uid() ~= 0 then
@@ -225,6 +187,7 @@ do
   kernel.logger.log("initializing kernel module service")
   local m = {}
   local l = {}
+  kernel.modules = l
   setmetatable(kernel, {__index = l})
 
   function m.load(mod)
@@ -232,7 +195,13 @@ do
     if kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
-    local ok, err = ifs.read(mod)
+    local handle, err = kernel.filesystem.open("/lib/modules/" .. mod .. ".lua", "r")
+    if not handle then
+      return nil, err
+    end
+    local read = handle:read("*a")
+    handle:close()
+    local ok, err = load(read, "=" .. mod, "bt", _G)
     if not ok then
       return nil, err
     end
@@ -316,7 +285,7 @@ do
     return nil, path .. ": no such file or directory"
   end
 
-  local basic =  {"makeDirectory", "exists", "isDirectory", "list", "lastModified", "remove", "size", "spaceUsed", "spaceTotal", "isReadOnly", "getLabel"}
+  local basic =  {"makeDirectory", "exists", "isDirectory", "lastModified", "remove", "size", "spaceUsed", "spaceTotal", "isReadOnly", "getLabel"}
   for k, v in pairs(basic) do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
@@ -328,6 +297,16 @@ do
 --    log("resolved to " .. mt.address .. ", path " .. p)
       return mt[v](p)
     end
+  end
+
+  function fs.list(path)
+    checkArg(1, path, "string")
+    local mt, p = resolve(path)
+    if not mt then
+      return nil, p
+    end
+    local files = mt.list(p)
+    return setmetatable(files, {__call = function() local _, tmp = next(files) if tmp then return tmp end end})
   end
 
   local function fread(self, amount)
@@ -527,21 +506,6 @@ do
     return true
   end
 
---[[ loading things from the initramfs fstab is just broken. No separate boot drive for now.
-  local fstab = ifs.read("fstab"):sub(1, -2) -- there's some weird char at the end we don't want, and I don't know what it is
-  ifs.close()
-  local fstab, err = load("return " .. fstab, "=initramfs:fstab", "bt", {})
-  if not fstab then
-    kernel.logger.panic(err)
-  end
-  fstab = fstab()
-
-  for i, b in pairs(fstab) do
-    local addr = component.get(b.address)
-    kernel.logger.log("mounting " .. addr .. " at " .. b.path)
-    fs.mount(addr, b.path)
-  end]]
-
   fs.mount(computer.getBootAddress(), "/")
   fs.mount(computer.tmpAddress(), "/tmp")
 
@@ -552,21 +516,29 @@ end
 -- computer.shutdown stuff --
 
 do
+  --local log = component.sandbox.log
   local shutdown = computer.shutdown
   local closeAll = kernel.filesystem.closeAll
   kernel.filesystem.closeAll = nil
   function computer.shutdown(reboot)
-    checkArg(1, reboot, "boolean")
+    checkArg(1, reboot, "boolean", "nil")
     local running = kernel.thread.threads()
+    computer.pushSignal("shutdown")
+    --log("shutdown")
+    coroutine.yield()
     for i=1, #running, 1 do
       kernel.thread.signal(running[i], kernel.thread.signals.term)
     end
     coroutine.yield()
-    for i=1, #running, 1 do
-      kernel.thread.signal(running[i], kernel.thread.signals.kill)
-    end
-    coroutine.yield()
+    --log("close all file handles")
     closeAll()
+    -- clear all GPUs
+    --log("clear all the screens")
+    for addr, _ in component.list("gpu") do
+      local w, h = component.invoke(addr, "getResolution")
+      component.invoke(addr, "fill", 1, 1, w, h, " ")
+    end
+    --log("shut down")
     shutdown(reboot)
   end
 end
@@ -705,6 +677,7 @@ do
         end
       ),
       pid = last, -- process/thread ID
+      parent = cur, -- parent thread's PID
       name = name, -- thread name
       handler = handler, -- error handler
       user = kernel.users.uid(), -- current user
@@ -847,6 +820,10 @@ do
     return true
   end
 
+  function thread.current()
+    return cur
+  end
+
   thread.signals = {
     interrupt = 2,
     quit      = 3,
@@ -855,6 +832,14 @@ do
     usr2      = 66,
     kill      = 9
   }
+
+  function os.exit(code)
+    checkArg(1, code, "number")
+    thread.signal(thread.current(), thread.signals.kill)
+    if thread.info(thread.current()).parent then
+      thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
+    end
+  end
 
   function thread.start()
     thread.start = nil

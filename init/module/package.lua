@@ -26,6 +26,7 @@ do
   local function libError(name, searched)
     local err = "module '%s' not found:\n\tno field package.loaded['%s']"
     err = err .. ("\n\tno file '%s'"):rep(#searched)
+    _log(string.format(err, name, name, table.unpack(searched)))
     error(string.format(err, name, name, table.unpack(searched)))
   end
 
@@ -34,6 +35,7 @@ do
     checkArg(2, path, "string")
     checkArg(3, sep, "string", "nil")
     checkArg(4, rep, "string", "nil")
+    _log("search", path, name)
     sep = "%" .. (sep or ".")
     rep = rep or "/"
     local searched = {}
@@ -41,6 +43,7 @@ do
     for search in path:gmatch("[^;]+") do
       search = search:gsub("%?", name)
       if fs.exists(search) then
+        _log("found", search)
         return search
       end
       searched[#searched + 1] = search
@@ -65,17 +68,22 @@ do
   function _G.require(lib, reload)
     checkArg(1, lib, "string")
     checkArg(2, reload, "boolean", "nil")
+    _log("require", lib, "reload:", reload)
     if loaded[lib] and not reload then
+      _log("returning cached")
       return loaded[lib]
     else
+      _log("searching")
       local ok, searched = package.searchpath(lib, package.path, ".", "/")
       if not ok then
         libError(lib, searched)
       end
       local ok, err = dofile(ok)
       if not ok then
+        _log(string.format("failed loading module '%s':\n%s", lib, err))
         error(string.format("failed loading module '%s':\n%s", lib, err))
       end
+      _log("succeeded - returning", lib)
       loaded[lib] = ok
       return ok
     end
@@ -87,4 +95,5 @@ package.loaded.users = require("users")
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
+package.loaded.modules = kernel.modules
 _G.kernel = nil

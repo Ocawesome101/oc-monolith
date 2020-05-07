@@ -28,7 +28,7 @@ sh.execute(".shrc")
 --print("start shell loop")
 while not exit do
 --  print("SHELL LOOP")
-  io.write(sh.prompt(os.getenv("PS1")))
+  io.write("\27[0m" .. sh.prompt(os.getenv("PS1")))
 --  print("READ")
   local cmd = io.read():gsub("\n", "")
   if cmd ~= "" then

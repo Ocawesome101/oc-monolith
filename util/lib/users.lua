@@ -5,6 +5,7 @@ local users = {}
 local protect = require("protect")
 local config = require("config")
 local sha3 = require("sha3")
+local fs = require("filesystem")
 
 local old = kernel.users
 
@@ -50,13 +51,26 @@ function users.add(name, password, cansudo)
   checkArg(2, password, "string")
   checkArg(3, cansudo, "boolean", "nil")
   local uid = old.add(password, cansudo)
-  passwd[uid].n = name
+  old.passwd[uid].n = name
+  old.passwd[uid].h = "/home/" .. name
+  old.passwd[uid].s = "/bin/sh.lua"
+  config.save(old.passwd, "/etc/passwd")
+end
+
+function users.setShell(file)
+  checkArg(1, file, "string")
+  if fs.exists(file) then
+    old.passwd[uid].s = file
+    config.save(old.passwd, "/etc/passwd")
+  end
 end
 
 function users.del(user)
   checkArg(1, user, "string", "number")
   local uid = getuid(user)
-  return old.del(user)
+  local ok, err = old.del(user)
+  config.save(old.passwd, "/etc/passwd")
+  return ok, err
 end
 
 function users.home()
@@ -67,4 +81,6 @@ function users.shell()
   return os.getenv("SHELL")
 end
 
-return protect(users)
+users.sudo = old.sudo
+
+return protect(users, true)

@@ -82,6 +82,7 @@ do
         end
       ),
       pid = last, -- process/thread ID
+      parent = cur, -- parent thread's PID
       name = name, -- thread name
       handler = handler, -- error handler
       user = kernel.users.uid(), -- current user

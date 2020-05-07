@@ -1,4 +1,4 @@
--- `initsvc` lib --
+-- `initsvc` lib. --
 
 do
   log("InitMe: Initializing initsvc")
@@ -8,11 +8,8 @@ do
   local thread = require("thread")
   local scripts = "/lib/scripts/"
   local services = "/lib/services/"
-  local default = {
-    getty = "service"
-  }
 
-  local cfg = config.load("/etc/initsvc.cfg", default)
+  local cfg = config.load("/etc/initsvc.cfg")
 
   local initsvc = {}
   local svc = {}
@@ -22,13 +19,35 @@ do
     if svc[service] and thread.info(svc[service]) then
       return nil, "service is already running"
     end
-    local ok, err = loadfile(services .. service .. ".lua")
+    local senv = setmetatable({}, {__index=_G})
+    local ok, err = loadfile(services .. service .. ".lua", nil, senv)
     if not ok then
       return nil, err
     end
-    local pid = thread.spawn(ok, service, handler or function()initsvc.start(service)end)
+    --[[pcall(ok) -- this isn't actually supported, heh
+    if senv.start then -- OpenOS-y service
+      osvc[service] = senv
+      thread.spawn(senv.start, service, handler or print)
+    end]]
+    local pid = thread.spawn(ok, service, handler or panic)
     svc[service] = pid
     return true
+  end
+
+  function initsvc.list()
+    local l = {}
+    for _, file in ipairs(fs.list(services)) do
+      local e = {}
+      file = file:gsub("%.lua$", "")
+      if svc[file] then
+        e.running = true
+      else
+        e.running = false
+      end
+      e.name = file
+      l[#l + 1] = e
+    end
+    return l
   end
 
   function initsvc.stop(service)
@@ -36,7 +55,11 @@ do
     if not svc[service] then
       return nil, "service is not running"
     end
-    thread.signal(svc[service], thread.signals.kill)
+    if type(svc[service]) == "table" then
+      pcall(svc[service].stop)
+    else
+      thread.signal(svc[service], thread.signals.kill)
+    end
     svc[service] = nil
     return true
   end
@@ -83,7 +106,7 @@ do
     if stype == "script" then
       local path = scripts .. sname .. ".lua"
       local ok, err = dofile(path)
-      if not ok then
+      if not ok and err then
         panic(err)
       end
     elseif stype == "service" then
@@ -96,3 +119,9 @@ do
   --require("computer").pushSignal("init")
   coroutine.yield(0)
 end
+
+local ok, err = loadfile("/sbin/getty.lua")
+if not ok then
+  panic(err)
+end
+require("thread").spawn(ok, "/sbin/getty.lua", panic)

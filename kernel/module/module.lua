@@ -4,6 +4,7 @@ do
   kernel.logger.log("initializing kernel module service")
   local m = {}
   local l = {}
+  kernel.modules = l
   setmetatable(kernel, {__index = l})
 
   function m.load(mod)
@@ -11,7 +12,13 @@ do
     if kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
-    local ok, err = ifs.read(mod)
+    local handle, err = kernel.filesystem.open("/lib/modules/" .. mod .. ".lua", "r")
+    if not handle then
+      return nil, err
+    end
+    local read = handle:read("*a")
+    handle:close()
+    local ok, err = load(read, "=" .. mod, "bt", _G)
     if not ok then
       return nil, err
     end
