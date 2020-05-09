@@ -81,10 +81,10 @@ for i=1, #args, 1 do
     if inf then
       local full = dir .. "/" .. files[i]
       local size = fs.size(full)
-      local isdr = dir:sub(1,1)
+      local isdr = fs.isDirectory(full)
       local isro = fs.isReadOnly(full)
       local yr, mon, day, hr, min = date(fs.lastModified(full))
-      finfo = string.format("\27[37m%s%s %s %s %s %d %d:%d ", (isdr and "d") or "f", (isro and "r-") or "rw", fsize(size), mon, day, yr, hr, min)
+      finfo = string.format("\27[37m%s%s %s %s %s %d %d:%d ", (isdr and "d") or "-", (isro and "r-") or "rw", fsize(size), mon, day, yr, hr, min)
     end
     out = out .. finfo
     if f:sub(-1) == "/" then

@@ -1,228 +1,262 @@
--- VT100 emulator. --
+-- A vt100 emulator because why tf not? Supports as much of the vt100 stuff as I can manage to puzzle out --
+-- Heavily inspired by the PsychOS VT100 emulator.
 
 local component = require("component")
 local thread = require("thread")
-local vt100 = {}
+local vt = {}
 
--- Credit to Izaya, and his PsychOS2, for this function.
-function vt100.emu(gpu) -- takes GPU component proxy *gpu* and returns a function to write to it in a manner like an ANSI terminal
-  local colours = {0x0,0xFF0000,0x00FF00,0xFFFF00,0x0000FF,0xFF00FF,0x00B6FF,0xFFFFFF}
-  local mx, my = gpu.maxResolution()
-  local pc = " "
-  local lc = ""
+function vt.emu(gpu)
+  checkArg(1, gpu, "table")
+  
+  local w, h = gpu.maxResolution()
+  gpu.setResolution(w, h)
+  local cx, cy, w, h = 1, 1, gpu.getResolution()
+  local sx, sy = 1, 1
+  local echo = true
+--  local wrap = true
+  local wbuf = ""
+  local ebuf = ""
   local mode = 0 -- 0 normal, 1 escape, 2 command
-  local lw = true
-  local cx, cy = 1,1
-  local sx, sy = 1,1
-  local cs = ""
-  local bg, fg = 0, 0xFFFFFF
-
- -- setup
-  gpu.setResolution(mx,my)
-  gpu.fill(1,1,mx,my," ")
+  local colors = {
+    0x000000,
+    0xFF0000,
+    0x00FF00,
+    0xFFFF00,
+    0x0000FF,
+    0xFF00FF,
+    0x00FFFF,
+    0xFFFFFF
+  }
+  local fg, bg = 0xFFFFFF, 0x000000
+  
   local function checkCursor()
-    if cx > mx and lw then
-      cx, cy = 1, cy+1
+    if cx > w then
+      cx, cy = 1, cy + 1
     end
-    if cy > my then
-      gpu.copy(1,2,mx,my-1,0,-1)
-      gpu.fill(1,my,mx,1," ")
-      cy=my
+    
+    if cy > h then
+      gpu.copy(1, 1, w, h, 0, -1)
+      gpu.fill(1, h, w, 1, " ")
+      cy = h
     end
+    
     if cy < 1 then cy = 1 end
     if cx < 1 then cx = 1 end
   end
-
-  local function termwrite(s)
-    local wb = ""
-    local lb, ec = nil, nil
-    local function flushwb()
-      while wb:len() > 0 do
-        checkCursor()
-        local wl = wb:sub(1,mx-cx+1)
-        wb = wb:sub(wl:len()+1)
-        gpu.set(cx, cy, wl)
-        cx = cx + wl:len()
-      end
+  
+  local function flush()
+    while #wbuf > 0 do
+      checkCursor()
+      local ln = wbuf:sub(1, w - cx + 1)
+      wbuf = wbuf:sub(#ln + 1)
+      gpu.set(cx, cy, ln)
+      cx = cx + #ln
     end
-    local rs = ""
-    s=s:gsub("\8","\27[D")
-    pc = gpu.get(cx,cy)
+  end
+  
+  local function vtwrite(str)
+    checkArg(1, str, "string")
+    str = str:gsub("\8","\27[D")
+    local resp = ""
+    local _c = gpu.get(cx, cy)
     gpu.setForeground(fg)
     gpu.setBackground(bg)
-    gpu.set(cx,cy,pc)
-    for cc in s:gmatch(".") do
+    gpu.set(cx, cy, _c)
+    for char in str:gmatch(".") do
       if mode == 0 then
-        if cc == "\n" then
-          flushwb()
-          cx,cy = 1, cy+1
-        elseif cc == "\t" then
-          wb=wb..(" "):rep(8*((cx+9)//8))
-        elseif cc == "\27" then
-          flushwb()
+        if char == "\n" then
+          flush()
+          cx, cy = 1, cy + 1
+        elseif char == "\t" then
+          wbuf = wbuf .. (" "):rep(math.max(1, (cx+4) % 8))
+        elseif char == "\27" then
+          flush()
           mode = 1
         else
-          wb = wb .. cc
+          wbuf = wbuf .. char
         end
       elseif mode == 1 then
-        if cc == "[" then
+        if char == "[" then
           mode = 2
         else
+          if char == "D" then
+            gpu.copy(1, 1, w, h, 0, -1)
+            gpu.fill(1, h, w, 1, " ")
+          elseif char == "M" then
+            gpu.copy(1, 1, w, h, 0, 1)
+            gpu.fill(1, 1, w, 1, " ")
+          elseif char == "7" then
+            sx, sy = cx, cy
+          elseif char == "8" then
+            cx, cy = sx, sy
+          end
           mode = 0
         end
       elseif mode == 2 then
-        if cc:match("[%d;]") then
-          cs = cs .. cc
+        if char:match("[%d;]") then
+          ebuf = ebuf .. char
         else
           mode = 0
-          local tA = {}
-          for s in cs:gmatch("%d+") do
-            tA[#tA+1] = tonumber(s)
+          local params = {}
+          for number in ebuf:gmatch("%d+") do
+            params[#params + 1] = tonumber(number)
           end
-          if cc == "H" then
-            cx, cy = tA[1] or 1, tA[2] or 1
-          elseif cc == "A" then
-            cy = cy - (tA[1] or 1)
-          elseif cc == "B" then
-            cy = cy + (tA[1] or 1)
-          elseif cc == "C" then
-            cx = cx + (tA[1] or 1)
-          elseif cc == "D" then
-            cx = cx - (tA[1] or 1)
-          elseif cc == "s" then
+          if char == "H" then
+            cx, cy = math.min(w, params[1] or 1), math.min(h, params[2] or 1)
+          elseif char == "A" then
+            cy = cy - (params[1] or 1)
+          elseif char == "B" then
+            cy = cy + (params[1] or 1)
+          elseif char == "C" then
+            cx = cx + (params[1] or 1)
+          elseif char == "D" then
+            cx = cx - (params[1] or 1)
+          elseif char == "E" then
+            cx, cy = 1, cy + (params[1] or 1)
+          elseif char == "F" then
+            cx, cy = 1, cy - (params[1] or 1)
+          elseif char == "f" then -- identical to H
+            cx, cy = math.min(w, params[1] or 1), math.min(h, params[2] or 1)
+          elseif char == "s" then
             sx, sy = cx, cy
-          elseif cc == "u" then
+          elseif char == "u" then
             cx, cy = sx, sy
-          elseif cc == "n" and tA[1] == 6 then
-            rs = string.format("%s\27[%d;%dR",rs,cx,cy)
-          elseif cc == "K" and tA[1] == 2 then
-            gpu.fill(1,cy,cx,1," ")
-          elseif cc == "K" and tA[1] == 1 then
-            gpu.fill(1,cy,mx,1," ")
-          elseif cc == "K" then
-            gpu.fill(cx,cy,mx,1," ")
-          elseif cc == "J" and tA[1] == 1 then
-            gpu.fill(1,1,mx,cy," ")
-          elseif cc == "J" and tA[1] == 2 then
-            gpu.fill(1,1,mx,my," ")
-            cx, cy = 1, 1
-          elseif cc == "J" then
-            gpu.fill(1,cy,mx,my," ")
-          elseif cc == "m" then
-            for _,num in ipairs(tA) do
-              if num == 0 then
-                fg,bg,ec,lb = 0xFFFFFF,0,true,true
-              elseif num == 7 then
-                local nfg,nbg = bg, fg
-                fg, bg = nfg, nbg
-              elseif num > 29 and num < 38 then
-                fg = colours[num-29]
-              elseif num > 39 and num < 48 then
-                bg = colours[num-39]
-              elseif num == 8 then -- disable local echo
-                ec = false
-              elseif num == 101 then -- disable line mode
-                lb = false
+          elseif char == "n" then 
+            if params[1] == 6 then
+              resp = string.format("%s\27[%d;%dR", resp, cx, cy)
+            elseif params[1] == 5 then
+              resp = string.format("%s\27[%dn", resp, (gpu and gpu.getScreen() and 0) or 3)
+            end
+          elseif char == "c" then -- not really necessary, may remove
+            resp = string.format("%s\27[?1ocansi0c", resp)
+          elseif char == "K" then
+            if params[1] == 1 then
+              gpu.fill(1, cy, cx, 1, " ")
+            elseif params[1] == 2 then
+              gpu.fill(cx, cy, mx, 1, " ")
+            elseif not params[1] or params[1] == 0 then
+              gpu.fill(1, cy, mx, 1, " ")
+            end
+          elseif char == "J" then
+            if params[1] == 1 then
+              gpu.fill(1, 1, w, cy, " ")
+            elseif params[1] == 2 then
+              gpu.fill(1, 1, w, h, " ")
+              cx, cy = 1, 1
+            elseif not params[1] or params[1] == 0 then
+              gpu.fill(1, cy, mx, my, " ")
+            end
+          elseif char == "S" then
+            gpu.copy(1, 1, w, h, 0, -1)
+            gpu.fill(1, h, w, 1, " ")
+          elseif char == "T" then
+            gpu.copy(1, 1, w, h, 0, 1)
+            gpu.fill(1, 1, w, 1, " ")
+          elseif char == "m" then
+            if #params == 0 then
+              echo = true
+              fg = 0xFFFFFF
+              bg = 0x000000
+            end
+            for i=1, #params, 1 do
+              local n = params[i]
+              if n == 8 then
+                echo = false
+              elseif n == 28 then
+                echo = true
+              elseif n == 0 then
+                echo = true
+                fg = 0xFFFFFF
+                bg = 0x000000
+              elseif n == 7 or n == 27 then
+                fg, bg = bg, fg
+              elseif n > 29 and n < 38 then
+                fg = colors[n - 29]
+              elseif n > 39 and n < 48 then
+                bg = colors[n - 39]
               end
             end
             gpu.setForeground(fg)
             gpu.setBackground(bg)
           end
-          cs = ""
+          ebuf = ""
           checkCursor()
         end
       end
     end
-    flushwb()
+    flush()
     checkCursor()
-    pc = gpu.get(cx,cy)
+    local char = gpu.get(cx, cy)
     gpu.setForeground(bg)
     gpu.setBackground(fg)
-    gpu.set(cx,cy,pc)
+    gpu.set(cx, cy, char)
     gpu.setForeground(fg)
     gpu.setBackground(bg)
-    return rs, lb, ec
+    return resp, echo
   end
-
-  return termwrite
+  return vtwrite
 end
 
-function vt100.session(gpu, scr)
-  checkArg(1, gpu, "table", "string")
-  checkArg(2, scr, "string")
+-- Create a session with i/o and everything. Returns read, write, and close functions 
+function vt.session(gpu, screen)
+  checkArg(1, gpu, "string", "table")
+  checkArg(2, screen, "string")
   if type(gpu) == "string" then
-    gpu = component.proxy(component.get(gpu))
+    gpu = component.proxy(gpu)
   end
-  scr = component.get(scr)
-  gpu.bind(scr)
-  local vtwrite = vt100.emu(gpu)
-  local rbuf, echo = ""
-  local kbd = {}
-  local down = {}
-  local lctrl, rctrl, c = 0x1D, 0x9D, 0x2E
-  for k, v in pairs(component.invoke(scr, "getKeyboards")) do
-    kbd[v] = true
+  gpu.bind(screen)
+  
+  local write = vt.emu(gpu)
+  local keyboards = {}
+  for _, addr in pairs(component.invoke(screen, "getKeyboards")) do
+    keyboards[addr] = true
   end
   
-  local function key()
+  local buf, echo = "", true
+  local function proc()
     while true do
-      local sig, p1, p2, p3 = coroutine.yield()
-      if sig == "key_down" then
-        down[p3] = true
-        if kbd[p1] then
-          if p2 == 13 then
-            p2 = 10
+      local sig, kba, chr = coroutine.yield()
+      if sig == "key_down" and keyboards[kba] then
+        if chr == 13 then chr = 10 end
+        if chr == 8 then
+          if buf ~= "" then
+            if echo then write("\8 \8") end
+            buf = buf:sub(1, -2)
           end
-          if p2 == 8 then
-            if #rbuf > 0 then
-              if echo then
-                vtwrite("\8 \8")
-              end
-              rbuf = rbuf:sub(1, -2)
-            end
-          elseif p2 == 10 or (p2 > 31 and p2 < 127) then
-            if echo then
-              vtwrite(string.char(p2))
-            end
-            rbuf = rbuf .. string.char(p2)
-          end
+        elseif chr > 0 then
+          if echo then write(string.char(chr)) end
+          buf = buf .. string.char(chr)
         end
-      elseif sig == "key_up" then
-        down[p3] = false
-      elseif sig == "signal" and p2 == thread.signals.kill then
-        echo = true
-        buf = ""
       end
     end
   end
+  local pid = thread.spawn(proc, string.format("tty(%s:%s)", gpu.address:sub(1, 8), screen:sub(1, 8)))
   
-  local pid = thread.spawn(key, string.format("ttyd[%s/%s]", gpu.address:sub(1,8), scr:sub(1, 8)))
-  
-  local function bread(_, cc)
-    checkArg(1, cc, "boolean", "nil") -- <hack>
-    --if cc then -- AAAAAAAAAAAAAAAAAA
-    --  return ((down[lctrl] or down[rctrl]) and down[c] or) false
-    --end -- </hack>
-    while not rbuf:find("\n") do
+  local function sread()
+    while not buf:find("\n") do
       coroutine.yield()
     end
-    local n = rbuf:find("\n")
-    local r = rbuf:sub(1, n)
-    rbuf = rbuf:sub(n + 1)
-    return r
+    local n = buf:find("\n")
+    local ret = buf:sub(1, n)
+    buf = buf:sub(n + 1)
+    return ret
   end
   
-  local function bwrite(str)
-    local rs, _, ec = vtwrite(str)
-    if ec ~= nil then echo = ec end
-    return rs
+  local function swrite(str)
+    checkArg(1, str, "string")
+    local response, localEcho = write(str)
+    if localEcho ~= nil then
+      echo = localEcho
+    end
+    return response
   end
   
-  local function bclose()
-    thread.signal(pid, thread.signals.kill)
+  local function sclose()
+    os.kill(pid)
+    io.write("\27[2J\27[H")
   end
   
-  return bread, bwrite, bclose
+  return sread, swrite, sclose
 end
 
-return vt100
+return vt

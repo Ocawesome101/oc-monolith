@@ -12,6 +12,9 @@ local function loadfile(file, mode, env)
   end
   local data = handle:read("*a")
   handle:close()
+  if data:sub(1,1) == "#" then -- crude shebang detection
+    data = "--" .. data
+  end
   return load(data, "=" .. file, mode, env)
 end
 

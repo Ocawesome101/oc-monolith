@@ -22,7 +22,7 @@ while true do
     if not ok then
       out:write("\27[31m" .. err .. "\27[37m\n")
     else
-      local pid = thread.spawn(ok, "/bin/sh.lua", function(err)out:write("\27[31m" .. err .. "\27[37m\n")end, nil, inp, out)
+      local pid = thread.spawn(ok, shell, function(err)out:write("\27[31m" .. err .. "\27[37m\n")end, nil, inp, out)
       repeat
         local sig, dpid, err = coroutine.yield()
         if sig == "thread_errored" and err then

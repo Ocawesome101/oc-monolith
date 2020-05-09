@@ -96,4 +96,5 @@ package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
+package.loaded.kinfo = kernel.info
 _G.kernel = nil

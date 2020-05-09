@@ -1,4 +1,3 @@
 -- spawn processes --
 
-local args = {...}
-print(pcall(loadfile(args[1])))
+print(pcall(loadfile(({require("shell").parse(...)})[1][1])))

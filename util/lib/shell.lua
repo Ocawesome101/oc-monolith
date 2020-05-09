@@ -303,7 +303,7 @@ local function execute(cmd, ...)
   local path, ftype = shell.resolve(tokens[1])
   local stat, exit
   if path and ftype == "lua" then
-    local ok, err = loadfile(path)
+    local ok, err = loadfile(path, nil, setmetatable({arg = table.pack(table.unpack(tokens, 2))}, {__index=_G}))
     if not ok then
       shell.error(tokens[1], err)
     else

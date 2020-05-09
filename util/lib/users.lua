@@ -50,9 +50,13 @@ function users.add(name, password, cansudo)
   checkArg(1, name, "string")
   checkArg(2, password, "string")
   checkArg(3, cansudo, "boolean", "nil")
-  local uid = old.add(password, cansudo)
+  local uid, err = old.add(password, cansudo)
+  if not uid then
+    return nil, err
+  end
   old.passwd[uid].n = name
   old.passwd[uid].h = "/home/" .. name
+  fs.makeDirectory(old.passwd[uid].h)
   old.passwd[uid].s = "/bin/sh.lua"
   config.save(old.passwd, "/etc/passwd")
 end

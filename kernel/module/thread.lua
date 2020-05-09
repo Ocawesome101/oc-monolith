@@ -16,7 +16,7 @@ do
   local function getMinTimeout()
     local min = math.huge
     for pid, thd in pairs(tasks) do
-      if computer.uptime() - thd.deadline < min then
+      if thd.deadline - computer.uptime() < min then
         min = computer.uptime() - thd.deadline
       end
       if min <= 0 then
@@ -202,6 +202,9 @@ do
     if not tasks[pid] then
       return nil, "no such thread"
     end
+    if tasks[pid].owner ~= tasks[cur].user and tasks[cur].user ~= 0 then
+      return nil, "permission denied"
+    end
     local msg = {
       "signal",
       cur,
@@ -244,6 +247,10 @@ do
     if thread.info(thread.current()).parent then
       thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
     end
+  end
+
+  function thread.kill(pid, sig)
+    return thread.signal(pid, sig or thread.signals.term)
   end
 
   function thread.start()

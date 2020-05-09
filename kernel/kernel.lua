@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "ea92487"
+local _KERNEL_REVISION = "a06371a"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -15,6 +15,12 @@ _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_R
 
 _G.kernel = {}
 
+kernel.info = {
+  name          = _KERNEL_NAME,
+  revision      = _KERNEL_REVISION,
+  builder       = _KERNEL_BUILDER,
+  compiler      = _KERNEL_COMPILER
+}
 
 -- bootlogger --
 
@@ -165,6 +171,9 @@ do
     checkArg(1, func, "function")
     checkArg(2, uid, "number")
     checkArg(3, password, "string")
+    if not u.passwd[u.uid()].c then
+      return nil, "user is not allowed to sudo"
+    end
     if hex(u.sha.sha256(password)) == u.passwd[u.uid()].p then
       local uuid = u.uid
       function u.uid()
@@ -417,9 +426,11 @@ do
     if path == "." then
       path = os.getenv("PWD") or "/"
     elseif path:sub(1,1) ~= "/" then
-      path = (os.getenv("PWD") or "/") .. path
+      path = (os.getenv("PWD") or "/") .. "/" .. path
     end
-    return "/" .. table.concat(split(path), "/")
+    local p = "/" .. table.concat(split(path), "/")
+    component.sandbox.log(p)
+    return p
   end
 
   function fs.concat(path1, path2, ...)
@@ -611,7 +622,7 @@ do
   local function getMinTimeout()
     local min = math.huge
     for pid, thd in pairs(tasks) do
-      if computer.uptime() - thd.deadline < min then
+      if thd.deadline - computer.uptime() < min then
         min = computer.uptime() - thd.deadline
       end
       if min <= 0 then
@@ -797,6 +808,9 @@ do
     if not tasks[pid] then
       return nil, "no such thread"
     end
+    if tasks[pid].owner ~= tasks[cur].user and tasks[cur].user ~= 0 then
+      return nil, "permission denied"
+    end
     local msg = {
       "signal",
       cur,
@@ -839,6 +853,10 @@ do
     if thread.info(thread.current()).parent then
       thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
     end
+  end
+
+  function thread.kill(pid, sig)
+    return thread.signal(pid, sig or thread.signals.term)
   end
 
   function thread.start()
@@ -929,6 +947,9 @@ local function loadfile(file, mode, env)
   end
   local data = handle:read("*a")
   handle:close()
+  if data:sub(1,1) == "#" then -- crude shebang detection
+    data = "--" .. data
+  end
   return load(data, "=" .. file, mode, env)
 end
 

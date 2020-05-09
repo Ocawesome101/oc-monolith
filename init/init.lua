@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe ea92487 (built Wed May 06 23:57:01 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe a06371a (built Sat May 09 16:45:06 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 local _log = function()end--component.sandbox.log
@@ -112,6 +112,7 @@ package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
+package.loaded.kinfo = kernel.info
 _G.kernel = nil
 
 

@@ -44,8 +44,7 @@ local function execute(action, param, param2)
   end
 end
 
-usage = [[usermgr (c) 2020 Ocawesome101 under the MIT license.
-available commands:
+usage = [[available commands:
   help:                 display this help
   exit:                 exit interactive mode
   add [user] [cansudo]: add a user - requires root
@@ -58,6 +57,7 @@ end
 
 if #args == 0 then -- enter interactive mode
   interactive = true
+  print("usermgr (c) 2020 Ocawesome101 under the MIT license.")
   while interactive do
     io.write("usermgr> ")
     local cmd = require("text").split(io.read():gsub("\n",""))

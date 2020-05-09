@@ -15,6 +15,12 @@ _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_R
 
 _G.kernel = {}
 
+kernel.info = {
+  name          = _KERNEL_NAME,
+  revision      = _KERNEL_REVISION,
+  builder       = _KERNEL_BUILDER,
+  compiler      = _KERNEL_COMPILER
+}
 --#include "module/logger.lua"
 --#include "module/component.lua"
 -- --#include "module/initfs.lua"

@@ -71,6 +71,9 @@ do
     checkArg(1, func, "function")
     checkArg(2, uid, "number")
     checkArg(3, password, "string")
+    if not u.passwd[u.uid()].c then
+      return nil, "user is not allowed to sudo"
+    end
     if hex(u.sha.sha256(password)) == u.passwd[u.uid()].p then
       local uuid = u.uid
       function u.uid()

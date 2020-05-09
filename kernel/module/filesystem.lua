@@ -193,9 +193,11 @@ do
     if path == "." then
       path = os.getenv("PWD") or "/"
     elseif path:sub(1,1) ~= "/" then
-      path = (os.getenv("PWD") or "/") .. path
+      path = (os.getenv("PWD") or "/") .. "/" .. path
     end
-    return "/" .. table.concat(split(path), "/")
+    local p = "/" .. table.concat(split(path), "/")
+    component.sandbox.log(p)
+    return p
   end
 
   function fs.concat(path1, path2, ...)

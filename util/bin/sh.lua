@@ -13,6 +13,10 @@ function shell.exit()
 end]]
 --local log = require("component").sandbox.log
 --log("shell started")
+if not require("filesystem").exists(os.getenv("HOME")) then
+  shell.error("warning", "home directory does not exist")
+  os.setenv("HOME", "/")
+end
 
 os.setenv("PWD", os.getenv("HOME"))
 os.setenv("PS1", os.getenv("PS1") or "\\w\\$ ")
