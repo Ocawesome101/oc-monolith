@@ -196,7 +196,7 @@ do
       path = (os.getenv("PWD") or "/") .. "/" .. path
     end
     local p = "/" .. table.concat(split(path), "/")
-    component.sandbox.log(p)
+    --component.sandbox.log(p)
     return p
   end
 

@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "a06371a"
+local _KERNEL_REVISION = "4a816fd"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -36,6 +36,7 @@ do
     gpu.bind(screen)
     w, h = gpu.maxResolution()
     gpu.setResolution(w, h)
+    gpu.fill(1, 1, w, h, " ")
     function kernel.logger.log(msg)
       msg = string.format("[%3.3f] %s", computer.uptime() - _START, tostring(msg))
       if y == h then
@@ -429,7 +430,7 @@ do
       path = (os.getenv("PWD") or "/") .. "/" .. path
     end
     local p = "/" .. table.concat(split(path), "/")
-    component.sandbox.log(p)
+    --component.sandbox.log(p)
     return p
   end
 
