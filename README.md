@@ -62,9 +62,8 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] `kinfo`
   - [ ] SH
     - [X] Base
+    - [X] Builtins
     - [ ] Basic commands
-      - [ ] ps
-      - [ ] 
   - [ ] MonoUI
     - [ ] Base
     - [ ] Window management
