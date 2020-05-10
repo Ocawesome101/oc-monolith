@@ -288,6 +288,11 @@ do
     return true
   end
 
+  function fs.get(path)
+    checkArg(1, path, "string")
+    return resolve(path)
+  end
+
   fs.mount(computer.getBootAddress(), "/")
   fs.mount(computer.tmpAddress(), "/tmp")
 

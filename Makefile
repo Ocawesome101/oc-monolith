@@ -10,3 +10,6 @@ all:
 	$(MAKE) -C util
 	cp -r util/* build
 	rm -f build/Makefile
+
+release: all
+	find build | cpio -o > release.cpio
