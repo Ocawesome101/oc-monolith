@@ -270,7 +270,7 @@ do
 
   function fs.mounts()
     local m = {}
-    for path, proxy in pairs(mts) do
+    for path, proxy in pairs(mounts) do
       m[path] = proxy.address
     end
     return m
@@ -280,6 +280,9 @@ do
     checkArg(1, path, "string")
     if not mounts[path] then
       return nil, "no filesystem mounted at " .. path
+    end
+    if path == "/" then
+      return nil, "cannot unmount /"
     end
     mounts[path] = nil
     return true

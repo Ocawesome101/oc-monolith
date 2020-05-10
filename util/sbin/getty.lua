@@ -13,6 +13,7 @@ local login = cfg.start or "/sbin/login.lua"
 local getty = {}
 
 local gpus, screens, dinfo = {}, {}, {}
+local streams = {}
 
 local function nextGPU(res)
   local match = {}

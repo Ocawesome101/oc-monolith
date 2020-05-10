@@ -7,8 +7,8 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "fa70b5a"
-local _KERNEL_BUILDER = "ocawesome101@windowsisbad"
+local _KERNEL_REVISION = "8502511"
+local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
@@ -504,7 +504,7 @@ do
 
   function fs.mounts()
     local m = {}
-    for path, proxy in pairs(mts) do
+    for path, proxy in pairs(mounts) do
       m[path] = proxy.address
     end
     return m
@@ -514,6 +514,9 @@ do
     checkArg(1, path, "string")
     if not mounts[path] then
       return nil, "no filesystem mounted at " .. path
+    end
+    if path == "/" then
+      return nil, "cannot unmount /"
     end
     mounts[path] = nil
     return true

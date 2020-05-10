@@ -8,46 +8,32 @@ cp.recurse = false
 
 function cp.copy(...)
   local args = {...}
-  for _, path in ipairs(args) do
-    args[_] = fs.canonical(path)
+  local to = fs.canonical(args[#args])
+  if #args > 2 and fs.exists(to) and not fs.isDirectory(to) then
+    error("cannot copy multiple files to one file")
   end
-  local to = table.remove(args, #args)
-  if not fs.exists(to) then
-    if #args > 1 then
-      fs.makeDirectory(to)
-    end
-  end
-  for i=1, #args, 1 do
-    local path = args[i]
+  args[#args] = nil
+  for i, path in ipairs(args) do
     if cp.verbose then
-      if fs.isDirectory(to) then
-        print(string.format("%s -> %s", path, fs.concat(to, fs.name(path))))
-      else
-        print(string.format("%s -> %s", path, to))
-      end
+      print(string.format("%s -> %s", path, to))
     end
-    if not fs.isDirectory(path) then
-      if fs.isDirectory(to) then
-        fs.copy(path, fs.concat(to, fs.name(path)))
-      elseif #args == 1 then
-        fs.copy(path, to)
-      else
-        error("multiple sources cannot be copied to one file")
-      end
-    elseif not cp.recurse then
-      print(string.format("cp: -r not specified: skipping %s"))
-    else
-      if fs.isDirectory(to) then
-        fs.makeDirectory(to .. fs.name(path))
-        for file in fs.list(path) do
-          local from = fs.concat(path, file)
-          cp.copy(from, to)
+    local cpath = fs.canonical(path)
+    if fs.isDirectory(cpath) and cp.recurse then
+      if fs.exists(to) then
+        fs.makeDirectory(fs.concat(to, path))
+        for file in fs.list(cpath) do
+          cp.copy(fs.concat(cpath, file), fs.concat(to, path, file))
         end
-      elseif #args == 1 then
-        fs.copy(path, to)
       else
-        error("multiple sources cannot be copied to one file")
+        fs.makeDirectory(to)
+        for file in fs.list(cpath) do
+          cp.copy(fs.concat(cpath, file), fs.concat(to, file))
+        end
       end
+    elseif fs.isDirectory(cpath) then
+      print("cp: -r not specified: skipping " .. path)
+    else
+      fs.copy(cpath, to)
     end
   end
 end

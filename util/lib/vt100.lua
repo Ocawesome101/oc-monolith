@@ -2,6 +2,7 @@
 -- Heavily inspired by the PsychOS VT100 emulator.
 
 local component = require("component")
+local computer = require("computer")
 local thread = require("thread")
 local vt = {}
 
@@ -13,6 +14,8 @@ function vt.emu(gpu)
   local cx, cy, w, h = 1, 1, gpu.getResolution()
   local sx, sy = 1, 1
   local echo = true
+  local show = true
+  local crs = 0.5
 --  local wrap = true
   local wbuf = ""
   local ebuf = ""
@@ -129,6 +132,8 @@ function vt.emu(gpu)
             end
           elseif char == "c" then -- not really necessary, may remove
             resp = string.format("%s\27[?1ocansi0c", resp)
+          elseif char == "Z" then
+            cto = params[1] or 0.6
           elseif char == "K" then
             if params[1] == 1 then
               gpu.fill(1, cy, cx, 1, " ")
@@ -168,6 +173,10 @@ function vt.emu(gpu)
                 echo = true
                 fg = 0xFFFFFF
                 bg = 0x000000
+              elseif n == 9 then
+                show = not show
+              elseif n == 29 then
+                show = true
               elseif n == 7 or n == 27 then
                 fg, bg = bg, fg
               elseif n > 29 and n < 38 then
@@ -186,13 +195,15 @@ function vt.emu(gpu)
     end
     flush()
     checkCursor()
-    local char = gpu.get(cx, cy)
-    gpu.setForeground(bg)
-    gpu.setBackground(fg)
-    gpu.set(cx, cy, char)
-    gpu.setForeground(fg)
-    gpu.setBackground(bg)
-    return resp, echo
+    if show then
+      local char = gpu.get(cx, cy)
+      gpu.setForeground(bg)
+      gpu.setBackground(fg)
+      gpu.set(cx, cy, char)
+      gpu.setForeground(fg)
+      gpu.setBackground(bg)
+    end
+    return resp, echo, crs
   end
   return vtwrite
 end
@@ -212,11 +223,12 @@ function vt.session(gpu, screen)
     keyboards[addr] = true
   end
   
-  local buf, echo = "", true
+  local buf, echo, last--[[, cto]] = "", true, computer.uptime()--, 0.7
   local function proc()
     while true do
-      local sig, kba, chr = coroutine.yield()
+      local sig, kba, chr = coroutine.yield(cto)
       if sig == "key_down" and keyboards[kba] then
+--        write("\27[29m")
         if chr == 13 then chr = 10 end
         if chr == 8 then
           if buf ~= "" then
@@ -227,6 +239,10 @@ function vt.session(gpu, screen)
           if echo then write(string.char(chr)) end
           buf = buf .. string.char(chr)
         end
+        --[[last = computer.uptime()
+      elseif computer.uptime() - last >= cto then
+        write("\27[9m")
+        last = computer.uptime()]]
       end
     end
   end
@@ -244,10 +260,11 @@ function vt.session(gpu, screen)
   
   local function swrite(str)
     checkArg(1, str, "string")
-    local response, localEcho = write(str)
+    local response, localEcho, crto = write(str)
     if localEcho ~= nil then
       echo = localEcho
     end
+--    if crto then cto = crto end
     return response
   end
   
