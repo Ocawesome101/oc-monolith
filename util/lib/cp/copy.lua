@@ -41,7 +41,7 @@ function cp.copy(...)
         fs.makeDirectory(to .. fs.name(path))
         for file in fs.list(path) do
           local from = fs.concat(path, file)
-          copy(from, to)
+          cp.copy(from, to)
         end
       elseif #args == 1 then
         fs.copy(path, to)

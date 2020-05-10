@@ -27,7 +27,7 @@ do
   function fs.name(path)
     checkArg(1, path, "string")
     local s = split(path)
-    return s[#s]
+    return s[#s] or "/"
   end
 
   function fs.path(path)
@@ -253,6 +253,7 @@ do
     checkArg(2, path, "string")
     checkArg(2, ro, "boolean", "nil")
     --path = fs.canonical(path)
+    if path ~= "/" and not fs.exists(path) then fs.makeDirectory(path) end
     if type(fsp) == "string" then
       fsp = component.proxy(fsp)
     end

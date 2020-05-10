@@ -17,13 +17,15 @@ log(_INITVERSION)
 --#include "module/io.lua"
 --#include "module/initsvc.lua"
 
-do
+--[[do
   local component = require("component")
   local computer  = require("computer")
   for a, t in component.list() do
     computer.pushSignal("component_added", a, t)
   end
-end
+end]]
+
+_G._BOOT = require("computer").uptime() - _START
 
 while true do
   coroutine.yield()

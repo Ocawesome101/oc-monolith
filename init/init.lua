@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 4a816fd (built Sat May 09 19:58:29 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe fa70b5a (built Sat May 09 21:13:44 EDT 2020 by ocawesome101@windowsisbad)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 local _log = function()end--component.sandbox.log
@@ -374,13 +374,15 @@ end
 require("thread").spawn(ok, "/sbin/getty.lua", panic)
 
 
-do
+--[[do
   local component = require("component")
   local computer  = require("computer")
   for a, t in component.list() do
     computer.pushSignal("component_added", a, t)
   end
-end
+end]]
+
+_G._BOOT = require("computer").uptime() - _START
 
 while true do
   coroutine.yield()

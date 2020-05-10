@@ -222,7 +222,7 @@ function shell.error(cmd, err)
   checkArg(1, cmd, "string")
   checkArg(2, err, "string")
 --log("SHELL ERROR:", cmd, err)
-  print(string.format("\27[31msh: %s: %s\27[37m", cmd, err))
+  print(string.format("\27[31msh: %s: %s\27[37m", cmd, --[[debug.traceback(]]err--[[)]]))
   return 1
 end
 

@@ -44,4 +44,4 @@ for k, v in pairs(_G) do
 end
 
 sandbox._G = sandbox
-sandbox.computer.pullSignal = coroutine.yield()
+sandbox.computer.pullSignal = coroutine.yield

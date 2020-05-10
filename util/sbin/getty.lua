@@ -64,25 +64,33 @@ function getty.scan()
     end
   end
 
-  local gpu, screen = nextGPU(), nextScreen()
-  if gpu and screen then
-    local sr, sw, sc = vt100.session(gpu, screen)
-    local ios = stream.new(sr, sw, sc)
-    local ok, err = loadfile(login)
-    if not ok then
-      error(err)
+  while true do
+    local gpu, screen = nextGPU(), nextScreen()
+    if gpu and screen then
+      local sr, sw, sc = vt100.session(gpu, screen)
+      local ios = stream.new(sr, sw, sc)
+      local ok, err = loadfile(login)
+      if not ok then
+        error(err)
+      end
+      local pid = thread.spawn(ok, login, nil, nil, ios, ios)
+      gpus[gpu].bound = pid
+      screens[screen].bound = pid
+    else
+      break
     end
-    local pid = thread.spawn(ok, login, nil, nil, ios, ios)
-    gpus[gpu].bound = pid
-    screens[screen].bound = pid
-    thread.ipc(pid, "components", gpu, screen) -- give the process info about the GPU and screen, useful for things like GUIs
+--    thread.ipc(pid, "components", gpu, screen) -- give the process info about the GPU and screen, useful for things like GUIs
   end
 end
+
+getty.scan()
 
 while true do
   local sig, pid, res = coroutine.yield()
   if sig == "thread_errored" then
     error(pid .. ": " .. res)
   end
-  getty.scan()
+  if sig == "component_added" or sig == "component_removed" then
+    getty.scan()
+  end
 end

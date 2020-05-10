@@ -1,6 +1,6 @@
 -- The core --
 
-local _START = computer.uptime()
+_G._START = computer.uptime()
 
 local flags = ... or {}
 flags.init = flags.init or "/sbin/init.lua"

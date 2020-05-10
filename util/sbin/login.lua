@@ -8,6 +8,7 @@ local inp = io.input()
 out:write("\27[2J\27[1;1H\27[0m")
 while true do
   out:write((os.getenv("HOSTNAME") or "localhost") .. " login: ")
+--  print("LOGIN READ")
   local uname = inp:read():gsub("\n", "")
   out:write("password: \27[8m")
   local pwd = inp:read():gsub("\n", "")

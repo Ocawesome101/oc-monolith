@@ -1,14 +1,14 @@
 -- The core --
 
-local _START = computer.uptime()
+_G._START = computer.uptime()
 
 local flags = ... or {}
 flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "4a816fd"
-local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
+local _KERNEL_REVISION = "fa70b5a"
+local _KERNEL_BUILDER = "ocawesome101@windowsisbad"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
@@ -261,7 +261,7 @@ do
   function fs.name(path)
     checkArg(1, path, "string")
     local s = split(path)
-    return s[#s]
+    return s[#s] or "/"
   end
 
   function fs.path(path)
@@ -487,6 +487,7 @@ do
     checkArg(2, path, "string")
     checkArg(2, ro, "boolean", "nil")
     --path = fs.canonical(path)
+    if path ~= "/" and not fs.exists(path) then fs.makeDirectory(path) end
     if type(fsp) == "string" then
       fsp = component.proxy(fsp)
     end
@@ -602,7 +603,7 @@ for k, v in pairs(_G) do
 end
 
 sandbox._G = sandbox
-sandbox.computer.pullSignal = coroutine.yield()
+sandbox.computer.pullSignal = coroutine.yield
 
 
 -- big fancy scheduler --
