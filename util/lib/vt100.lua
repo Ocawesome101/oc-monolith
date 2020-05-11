@@ -14,8 +14,7 @@ function vt.emu(gpu)
   local cx, cy, w, h = 1, 1, gpu.getResolution()
   local sx, sy = 1, 1
   local echo = true
-  local raw = false
-  local crs = 0.5
+  local dhist = false
 --  local wrap = true
   local wbuf = ""
   local ebuf = ""
@@ -160,6 +159,7 @@ function vt.emu(gpu)
           elseif char == "m" then
             if #params == 0 then
               echo = true
+              hist = false
               fg = 0xFFFFFF
               bg = 0x000000
             end
@@ -171,13 +171,13 @@ function vt.emu(gpu)
                 echo = true
               elseif n == 0 then
                 echo = true
-                raw = false
+                hist = false
                 fg = 0xFFFFFF
                 bg = 0x000000
               elseif n == 9 then
-                raw = false
-              elseif n == 29 then
-                raw = true
+                dhist = false
+              elseif n == 19 then
+                dhist = true
               elseif n == 7 or n == 27 then
                 fg, bg = bg, fg
               elseif n > 29 and n < 38 then
@@ -202,7 +202,7 @@ function vt.emu(gpu)
     gpu.set(cx, cy, char)
     gpu.setForeground(fg)
     gpu.setBackground(bg)
-    return resp, echo, raw
+    return resp, echo, dhist
   end
   return vtwrite
 end
@@ -222,12 +222,11 @@ function vt.session(gpu, screen)
     keyboards[addr] = true
   end
   
-  local buf, echo, last, akb, cpt = "", true, computer.uptime(), {}, true
+  local buf, echo, last, hist, hp, dh = "", true, computer.uptime(), {}, 1, false
   local function proc()
     while true do
       local sig, kba, chr, cod = coroutine.yield(cto)
       if sig == "key_down" and keyboards[kba] then
---        write("\27[29m")
         if chr == 13 then chr = 10 end
         if chr == 8 then
           if buf ~= "" then
@@ -238,55 +237,61 @@ function vt.session(gpu, screen)
           if echo then write(string.char(chr)) end
           buf = buf .. string.char(chr)
         elseif chr == 0 then
-          local c
           if cod == 200 then
-            c = "A"
+            if dh then
+              if hp > 1 then hp = hp - 1 end
+              local nbuf = hist[hp] or ""
+              write(("\8 \8"):rep(#buf))
+              write(nbuf)
+              buf = nbuf
+            else
+              write("^[[A")
+            end
           elseif cod == 208 then
-            c = "B"
-          elseif cod == 205 then
+            if dh then
+              if hp <= #hist then hp = hp + 1 end
+              local nbuf = (hist[hp] or ""):gsub("\n", "")
+              write(("\8 \8"):rep(#buf))
+              write(nbuf)
+              buf = nbuf
+            else
+              write("^[[B")
+            end
+          --[[elseif cod == 205 then
             c = "C"
           elseif cod == 203 then
-            c = "D"
+            c = "D"]]
           end
-          if c then
+          --[[if c then
             local p = string.format("\27[%s", c)
             if cpt then
               akb[#akb + 1] = p
             elseif echo then
               write(p)
             end
-          end
+          end]]
         end
-        --[[last = computer.uptime()
-      elseif computer.uptime() - last >= cto then
-        write("\27[9m")
-        last = computer.uptime()]]
       end
     end
   end
   local pid = thread.spawn(proc, string.format("tty(%s:%s)", gpu.address:sub(1, 8), screen:sub(1, 8)))
   
   local function sread()
-    if #akb > 0 then
-      return table.remove(akb, 1)
-    end
     while not buf:find("\n") do
       coroutine.yield()
     end
     local n = buf:find("\n")
-    local ret = buf:sub(1, n)
+    local ret = buf:sub(1, n - 1)
     buf = buf:sub(n + 1)
+    if dh then hist[#hist + 1] = ret hp = #hist + 1 end
     return ret
   end
   
   local function swrite(str)
     checkArg(1, str, "string")
-    local response, localEcho, crto = write(str)
-    if localEcho ~= nil then
-      echo = localEcho
-    end
-    if ctro then cpt = crto end
---    if crto then cto = crto end
+    local response, localEcho, doh = write(str)
+    if localEcho ~= nil then echo = localEcho end
+    if doh ~= nil then dh = doh end
     return response
   end
   
