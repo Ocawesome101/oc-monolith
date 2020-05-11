@@ -6,6 +6,9 @@ local cp = {}
 cp.verbose = false
 cp.recurse = false
 
+local rootfs = fs.get("/")
+local seen = {}
+
 function cp.copy(...)
   local args = {...}
   local to = fs.canonical(args[#args])
@@ -18,10 +21,15 @@ function cp.copy(...)
       print(string.format("%s -> %s", path, to))
     end
     local cpath = fs.canonical(path)
+    if fs.get(cpath) ~= rootfs then
+      print("cp: refusing to leave the rootfs: not recursing to " .. cpath)
+      return
+    end
     if fs.isDirectory(cpath) and cp.recurse then
       if fs.exists(to) then
         fs.makeDirectory(fs.concat(to, path))
         for file in fs.list(cpath) do
+          seen[fs.concat(path, file)] = true
           cp.copy(fs.concat(cpath, file), fs.concat(to, path, file))
         end
       else

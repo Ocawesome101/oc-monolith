@@ -1,7 +1,7 @@
 -- cp --
 
 local shell = require("shell")
-local cp = require("cp.copy")
+local cp = require("cp.copy", true)
 
 local args, opts = shell.parse(...)
 

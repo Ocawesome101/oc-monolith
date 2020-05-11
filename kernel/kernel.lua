@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "b30d1b8"
+local _KERNEL_REVISION = "d6e7a5c"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -276,11 +276,11 @@ do
     if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
     local s = split(path)
     for i=1, #s, 1 do
-      local cur = table.concat(s, "/", 1, i)
---    log("check " .. cur .. " for " .. table.concat(s, "/", i))
-      if mounts[cur] and mounts[cur].exists(table.concat(s, "/", i)) then
---      log("found")
-        return mounts[cur], table.concat(s, "/", i)
+      local cur = "/" .. table.concat(s, "/", 1, i)
+      local try = "/" .. table.concat(s, "/", i + 1)
+      if mounts[cur] and (mounts[cur].exists(try) or noexist) then
+        --component.sandbox.log("found", try, "on mount", cur, mounts[cur].address)
+        return mounts[cur], "/" .. try
       end
     end
     if mounts[path] then
@@ -314,7 +314,8 @@ do
       return nil, p
     end
     local files = mt.list(p)
-    return setmetatable(files, {__call = function() local _, tmp = next(files) if tmp then return tmp end end})
+    local i = 0
+    return setmetatable(files, {__call = function() i=i+1 return files[i] or nil end})
   end
 
   local function fread(self, amount)
