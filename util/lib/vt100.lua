@@ -14,7 +14,7 @@ function vt.emu(gpu)
   local cx, cy, w, h = 1, 1, gpu.getResolution()
   local sx, sy = 1, 1
   local echo = true
-  local show = true
+  local raw = false
   local crs = 0.5
 --  local wrap = true
   local wbuf = ""
@@ -171,12 +171,13 @@ function vt.emu(gpu)
                 echo = true
               elseif n == 0 then
                 echo = true
+                raw = false
                 fg = 0xFFFFFF
                 bg = 0x000000
               elseif n == 9 then
-                show = not show
+                raw = false
               elseif n == 29 then
-                show = true
+                raw = true
               elseif n == 7 or n == 27 then
                 fg, bg = bg, fg
               elseif n > 29 and n < 38 then
@@ -203,7 +204,7 @@ function vt.emu(gpu)
       gpu.setForeground(fg)
       gpu.setBackground(bg)
     end
-    return resp, echo, crs
+    return resp, echo, raw
   end
   return vtwrite
 end
@@ -223,10 +224,10 @@ function vt.session(gpu, screen)
     keyboards[addr] = true
   end
   
-  local buf, echo, last--[[, cto]] = "", true, computer.uptime()--, 0.7
+  local buf, echo, last, akb, cpt = "", true, computer.uptime(), {}, true
   local function proc()
     while true do
-      local sig, kba, chr = coroutine.yield(cto)
+      local sig, kba, chr, cod = coroutine.yield(cto)
       if sig == "key_down" and keyboards[kba] then
 --        write("\27[29m")
         if chr == 13 then chr = 10 end
@@ -238,6 +239,25 @@ function vt.session(gpu, screen)
         elseif chr > 0 then
           if echo then write(string.char(chr)) end
           buf = buf .. string.char(chr)
+        elseif chr == 0 then
+          local c
+          if cod == 200 then
+            c = "A"
+          elseif cod == 208 then
+            c = "B"
+          elseif cod == 205 then
+            c = "C"
+          elseif cod == 203 then
+            c = "D"
+          end
+          if c then
+            local p = string.format("\27[%s", c)
+            if cpt then
+              akb[#akb + 1] = p
+            elseif echo then
+              write(p)
+            end
+          end
         end
         --[[last = computer.uptime()
       elseif computer.uptime() - last >= cto then
@@ -249,6 +269,9 @@ function vt.session(gpu, screen)
   local pid = thread.spawn(proc, string.format("tty(%s:%s)", gpu.address:sub(1, 8), screen:sub(1, 8)))
   
   local function sread()
+    if #akb > 0 then
+      return table.remove(akb, 1)
+    end
     while not buf:find("\n") do
       coroutine.yield()
     end
@@ -264,6 +287,7 @@ function vt.session(gpu, screen)
     if localEcho ~= nil then
       echo = localEcho
     end
+    if ctro then cpt = crto end
 --    if crto then cto = crto end
     return response
   end

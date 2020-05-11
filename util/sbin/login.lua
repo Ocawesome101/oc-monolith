@@ -30,6 +30,7 @@ while true do
           io.write("\27[31m" .. err .. "\27[37m\n")
         end
       until sig == "thread_died" or sig == "thread_errored" and dpid == pid
+      out:write("\27[2J\27[1;1H\27[0m") -- reset screen attributes
     end
   end
 end

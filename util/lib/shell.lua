@@ -62,7 +62,7 @@ shell.builtins = {
       end
     end
   end,
-  kill = function(sig, pid)
+  kill = function(sig, pid, ...)
     pid = tonumber(pid) or tonumber(sig)
     if not pid then
       shell.error("usage", "kill [-<signal>] <pid>")
@@ -298,11 +298,12 @@ end
 
 local function execute(cmd, ...)
   local tokens = text.split(shell.vars(table.concat({cmd, ...}, " ")))
-  if #tokens == 0 then return end
+  if #tokens == 0 then --[[print("no tokens")]] return end
   if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]]; tokens = text.split(shell.vars(table.concat(tokens, " "))) end
   local path, ftype = shell.resolve(tokens[1])
   local stat, exit
   if path and ftype == "lua" then
+    --[[print("exec lua", path)]]
     local ok, err = loadfile(path, nil, setmetatable({arg = table.pack(table.unpack(tokens, 2))}, {__index=_G}))
     if not ok then
       shell.error(tokens[1], err)
@@ -381,6 +382,7 @@ function shell.execute(cmd, ...)
       local ands = split(_cmd, "[^%b&&]+")
       cand(table.unpack(ands))
     else
+      --[[print("EXECUTEME")]]
       execute(_cmd)
     end
   end

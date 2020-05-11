@@ -23,7 +23,7 @@ local function nextGPU(res)
     end
   end
 
-  return match[res] or match[8000] or match[800] or match[200]
+  return match[res] or match[8000] or match[2000] or match[800]
 end
 
 local function nextScreen(res)
@@ -34,7 +34,7 @@ local function nextScreen(res)
     end
   end
 
-  return match[res] or match[8000] or match[800] or match[200]
+  return match[res] or match[8000] or match[2000] or match[800]
 end
 
 function getty.scan()
@@ -80,7 +80,6 @@ function getty.scan()
     else
       break
     end
---    thread.ipc(pid, "components", gpu, screen) -- give the process info about the GPU and screen, useful for things like GUIs
   end
 end
 

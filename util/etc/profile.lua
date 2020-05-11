@@ -9,6 +9,7 @@ os.setenv("HOME", users.home() or os.getenv("HOME") or "/")
 
 shell.setAlias("reboot", "shutdown -r")
 shell.setAlias("poweroff", "shutdown -P")
+shell.setAlias("logout", "exit")
 shell.setAlias("ll", "ls -l")
 shell.setAlias("la", "ls -a")
 shell.setAlias("lh", "ls -lh")
