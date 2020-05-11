@@ -196,14 +196,12 @@ function vt.emu(gpu)
     end
     flush()
     checkCursor()
-    if show then
-      local char = gpu.get(cx, cy)
-      gpu.setForeground(bg)
-      gpu.setBackground(fg)
-      gpu.set(cx, cy, char)
-      gpu.setForeground(fg)
-      gpu.setBackground(bg)
-    end
+    local char = gpu.get(cx, cy)
+    gpu.setForeground(bg)
+    gpu.setBackground(fg)
+    gpu.set(cx, cy, char)
+    gpu.setForeground(fg)
+    gpu.setBackground(bg)
     return resp, echo, raw
   end
   return vtwrite
