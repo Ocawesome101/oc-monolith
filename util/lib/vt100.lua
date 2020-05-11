@@ -283,7 +283,8 @@ function vt.session(gpu, screen)
     local n = buf:find("\n")
     local ret = buf:sub(1, n - 1)
     buf = buf:sub(n + 1)
-    if dh then hist[#hist + 1] = ret hp = #hist + 1 end
+    if dh then hist[#hist + 1] = ret hp = #hist + 1
+      if #hist > 16 then table.remove(hist, 1) end end
     return ret
   end
   

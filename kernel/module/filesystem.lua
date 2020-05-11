@@ -49,13 +49,11 @@ do
         return mounts[cur], table.concat(s, "/", i)
       end
     end
-    if mounts["/"].exists(path) or noexist then
---    log("found at rootfs")
-      return mounts["/"], path
-    end
     if mounts[path] then
---    log("found at " .. path)
       return mounts[path], "/"
+    end
+    if mounts["/"].exists(path) or noexist then
+      return mounts["/"], path
     end
 --  log("no such file or directory")
     return nil, path .. ": no such file or directory"
