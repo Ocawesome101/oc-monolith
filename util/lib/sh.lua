@@ -47,10 +47,10 @@ function sh.execute(file)
   if not handle then
     return nil, err
   end
-  for line in file:lines() do
+  for line in handle:lines("l") do
     shell.execute(line)
   end
-  file:close()
+  handle:close()
 end
 
 return sh

@@ -20,7 +20,7 @@ end
 
 os.setenv("PWD", os.getenv("HOME"))
 os.setenv("PS1", os.getenv("PS1") or "\\w\\$ ")
-sh.execute(".shrc")
+local ok, err = pcall(sh.execute, ".shrc")
 
 while not exit do
   io.write("\27[0m\27[19m" .. sh.prompt(os.getenv("PS1")))

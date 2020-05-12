@@ -258,6 +258,9 @@ end
 function shell.resolve(path)
   checkArg(1, path, "string")
   local _path = path
+  if _path:sub(1,1) == "/" and fs.exists(_path) then
+    return path, path:match("[%g]%.(%g+)") or "lua"
+  end
   if _path == "." then
     _path = os.getenv("PWD")
   end
@@ -298,7 +301,7 @@ end
 
 local function execute(cmd, ...)
   local tokens = text.tokenize(shell.vars(table.concat({cmd, ...}, " ")))
-  if #tokens == 0 then --[[print("no tokens")]] return end
+  if #tokens == 0 then return end
   if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]]; tokens = text.tokenize(shell.vars(table.concat(tokens, " "))) end
   local path, ftype = shell.resolve(tokens[1])
   local stat, exit
@@ -374,17 +377,7 @@ function shell.execute(cmd, ...)
   local long = shell.vars(table.concat({cmd, ...}, " "))
   local set = split(long, "[^;]+")
   for i=1, #set, 1 do
-    local _cmd = set[i]
-    if _cmd:find("|") then
-      local pipes = split(_cmd, "[^|]+")
-      pipe(table.unpack(pipes))
-    elseif _cmd:find("&&") then
-      local ands = split(_cmd, "[^%b&&]+")
-      cand(table.unpack(ands))
-    else
-      --[[print("EXECUTEME")]]
-      execute(_cmd)
-    end
+    execute(set[i])
   end
 end
 

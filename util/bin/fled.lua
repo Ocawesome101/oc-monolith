@@ -95,7 +95,7 @@ end
 
 local function bnew(n)
   local nb = #buf + 1
-  buf[nb] = {scroll = 0, vscroll = 0, buf = {}, lang = n:match("[%g]%.(%g+)") or "txt", name = n}
+  buf[nb] = {scroll = 0, vscroll = 0, buf = {}, lang = (n or ""):match("[%g]%.(%g+)") or "txt", name = n}
   return nb, buf[nb].lang
 end
 
@@ -154,17 +154,34 @@ local function binst(b, l)
   end
 end
 
+local help = [[FLED - Fullscreen Lua EDitor (c) 2020 Ocawesome101 under the MIT license.
+Commands:
+  o | open <file>       Open <file> for editing. <file> must exist in your filesystem.
+  n | new  [name]       Create a new buffer with filename [name]. If no [name] is provided you will be prompted when saving.
+  w        [file]       Save the current buffer to a file. If no [file] is provided and the buffer has no name you will be prompted.
+  b        <num>        Selects buffer <num> as the current.
+  bl                    Lists all loaded buffers.
+  db       <num>        Delete buffer <num>.
+  i        [line]       Insert into the current buffer at [line], or line 1.
+  q                     Quit. Do not save any buffers.
+  wq                    Quit. Save all open buffers.
+  l                     Prints the number of lines in the current buffer.
+  sc       [line]       Scroll to line [line], or line 1. [line] will be the top line of the screen.]]
 local exit = false
 local funcs = {
+  help = function()return help end,
+  h = function()return help end,
   open = fload,
   o = fload,
-  n = function(n)return bnew(n)end,
+  new = bnew,
+  n = bnew,
   w = function(a)return fsave(cur,a)end,
   b = function(n)if not buf[tonumber(n)]then return nil, "no such buffer" end cur = n return true end,
   bl = blist,
+  db = function(n)n=tonumber(n)if not n then return nil, "too few arguments" end if not buf[n] then return nil, "no such buffer" end buf[n] = nil return true end,
   i = function(n)return binst(cur,n)end,
   q = function()exit = true end,
-  l = function()return #buf[cur].buf end,
+  l = function()if buf[cur] then return #buf[cur].buf end return nil, "no buffer selected" end,
   sc = function(l) --[[scroll]] l = tonumber(l) or 1 if l > #buf[cur].buf then return nil, "no such line" end buf[cur].scroll = l bdraw(cur) end,
   wq = function()for id, b in pairs(buf) do fsave(id) end exit = true end
 }
