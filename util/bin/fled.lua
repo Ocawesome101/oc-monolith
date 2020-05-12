@@ -26,9 +26,9 @@ local function lineread(line, y)
   return io.read()
 end
 
--- built-in (broken) highlighting for Lua, naturally
+--[[ built-in (broken) highlighting for Lua
 local luaKeywords = {
-  ["function"]  = 33,
+  ["function"]  = 94,
   ["while"]     = 93,
   ["do"]        = 93,
   ["end"]       = 93,
@@ -39,6 +39,16 @@ local luaKeywords = {
   ["local"]     = 93
 }
 
+local function escape(s) -- escape pattern chars from string
+  local r = ""
+  for char in s:gmatch(".") do
+    if char:match("[%^%$%(%)%%%.%[%]%*%+%-%?]") then
+      r = r .. "%"
+    end
+    r = r .. char
+  end
+  return r
+end
 -- vt100-based syntax highlighting functions
 local langs = {
   txt = function(l) return l end,
@@ -49,12 +59,12 @@ local langs = {
       rt = rt:gsub(kw, string.format("\27[%dm%s\27[37m", col, kw))
     end
     -- match strings
-    for match in rt:gmatch([[(["'][%g ]+["'])]]) do
-      rt = rt:gsub(match:gsub("\27[(%d+;l(%d+)H", ""), "\27[91m" .. match .. "\27[37m")
+    for match in rt:gmatch([[(["'][%g ]+["'])]]--[[) do
+      rt = rt:gsub(escape(match), "\27[91m" .. match .. "\27[37m")
     end
     return rt
   end
-}
+}]]
 
 local function split(w)
   local W = {}
@@ -73,7 +83,7 @@ local function fload(f)
     b[#b+1] = line .. "\n"
   end
   handle:close()
-  buf[nb] = {scroll = 0, vscroll = 0, buf = b, name = f}
+  buf[nb] = {scroll = 0, vscroll = 0, buf = b, name = f, lang = f:match("[%g]%.(%g+)")}
   return nb
 end
 
@@ -125,10 +135,10 @@ local function bdraw(b)
   local b = buf[b]
   local s = b.scroll
   local n = #b.buf
-  local hl = langs[b.lang] or langs["txt"]
+  --local hl = langs[b.lang] or langs["txt"]
   for i=1, h - 1, 1 do
     if b.buf[i+s] then
-      ndraw(i, hl(b.buf[i+s]), i+s, b.vscroll)
+      ndraw(i, b.buf[i+s], i+s, b.vscroll)
     else
       tdraw(i)
     end
@@ -166,6 +176,7 @@ Commands:
   q                     Quit. Do not save any buffers.
   wq                    Quit. Save all open buffers.
   l                     Prints the number of lines in the current buffer.
+  dl       [line]       Delete line ([line] or 1) from the current buffer.
   sc       [line]       Scroll to line [line], or line 1. [line] will be the top line of the screen.]]
 local exit = false
 local funcs = {
@@ -176,13 +187,14 @@ local funcs = {
   new = bnew,
   n = bnew,
   w = function(a)return fsave(cur,a)end,
-  b = function(n)if not buf[tonumber(n)]then return nil, "no such buffer" end cur = n return true end,
+  b = function(n)if not buf[tonumber(n)]then return nil, "no such buffer" end cur = n bdraw(cur) return true end,
   bl = blist,
   db = function(n)n=tonumber(n)if not n then return nil, "too few arguments" end if not buf[n] then return nil, "no such buffer" end buf[n] = nil return true end,
   i = function(n)return binst(cur,n)end,
   q = function()exit = true end,
-  l = function()if buf[cur] then return #buf[cur].buf end return nil, "no buffer selected" end,
-  sc = function(l) --[[scroll]] l = tonumber(l) or 1 if l > #buf[cur].buf then return nil, "no such line" end buf[cur].scroll = l bdraw(cur) end,
+  l = function()if buf[cur] then print(#buf[cur].buf) return end return nil, "no buffer selected" end,
+  dl = function(n)n=tonumber(n)or 1 if buf[cur] and buf[cur].buf[n] then table.remove(buf[cur].buf, n) end end,
+  sc = function(l) --[[scroll]] l = tonumber(l) or 1 if not buf[cur] then return nil, cur .. " has no buffer" end if l > #buf[cur].buf then return nil, "no such line" end buf[cur].scroll = l bdraw(cur) end,
   wq = function()for id, b in pairs(buf) do fsave(id) end exit = true end
 }
 

@@ -5,7 +5,7 @@ local thread = require("thread")
 
 local out = io.output()
 local inp = io.input()
-out:write("\27[2J\27[1;1H\27[0;37m")
+out:write("\27[2J\27[1;1H\27[0;37m" .. _OSVERSION .. "\n\n")
 while true do
   out:write((os.getenv("HOSTNAME") or "localhost") .. " login: ")
 --  print("LOGIN READ")

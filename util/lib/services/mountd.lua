@@ -3,8 +3,17 @@
 local fs = require("filesystem")
 local component = require("component")
 
+local function isMounted(ad)
+  for k, v in pairs(fs.mounts()) do
+    if v == ad then return true end
+  end
+  return false
+end
+
 for addr, _ in component.list("filesystem") do
-  fs.mount(addr, "/mnt/" .. addr:sub(1,3))
+  if not isMounted(addr) then
+    fs.mount(addr, "/mnt/" .. addr:sub(1,3))
+  end
 end
 
 while true do
