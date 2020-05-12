@@ -2,6 +2,7 @@
 
 local shell = require("shell")
 local component = require("component")
+local computer = require("computer")
 local fs = require("filesystem")
 local config = require("config")
 
@@ -14,6 +15,8 @@ local help = [[install (c) 2020 Ocawesome101 under the MIT license.
 usage:
     install --from=<from> --to=<to>
 or: install <from> <to>]]
+
+if opts.h or opts.help then print(help) return 0 end
 
 if type(from) ~= "string" or type(to) ~= "string" then
   return shell.codes.argument
@@ -39,12 +42,35 @@ end
 fs.makeDirectory(to)
 local check = fs.concat(from, ".install")
 local prop = fs.concat(from, ".prop")
-
+local reboot = false
 local ok, err
 if fs.exists(check) then
   ok, err = xpcall(assert(loadfile(check, "bt", ienv)), debug.traceback)
 elseif fs.exists(prop) then
   local cfg = config.load(prop)
-  ok, err = xpcall(shell.execute, debug.traceback, "cp -rvi ")
+  ok, err = xpcall(shell.execute, debug.traceback, "cp -rv --skip=" .. from .. "/.prop ", from, to)
+  if cfg.setboot then
+    computer.setBootAddress(fs.get(to).address)
+  end
+  if cfg.label and cfg.setlabel then
+    fs.get(to).setLabel(label)
+  end
+  if cfg.reboot then
+    reboot = true
+  end
 else
+  ok, err = xpcall(shell.execute, debug.traceback, "cp -rv --skip=" .. from .. "/.prop", from, to)
+end
+
+if not ok and err then
+  shell.error("install", err)
+  return shell.codes.failure
+end
+
+if reboot then
+  io.write("Reboot now? [Y/n]: ")
+  local inp = io.read()
+  if inp:sub(1,1):lower() ~= "n" then
+    computer.shutdown(true)
+  end
 end

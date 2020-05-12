@@ -53,8 +53,9 @@ do
     return os.getenv("STDIN")
   end
 
-  function io.popen(file) -- ...ish
+  function io.popen(file, ...) -- ...ish
     checkArg(1, file, "string")
+    local args = {...}
     local ok, err = loadfile(file)
     if not ok then
       return nil, err
@@ -67,7 +68,7 @@ do
       uio = nil
       return true
     end
-    local pid = thread.spawn(ok, file, function(e)thdio:write(e)end, nil, thdio, thdio)
+    local pid = thread.spawn(function()ok(table.unpack(args))end, file, function(e)thdio:write(e)end, nil, thdio, thdio)
     return uio, pid
   end
 

@@ -21,6 +21,16 @@ function vt.emu(gpu)
   local mode = 0 -- 0 normal, 1 escape, 2 command
   local colors = {
     0x000000,
+    0xDD0000,
+    0x00DD00,
+    0x0000DD,
+    0xDDDD00,
+    0xDD00DD,
+    0x00DDDD,
+    0xDDDDDD
+  }
+  local bright = {
+    0x111111,
     0xFF0000,
     0x00FF00,
     0xFFFF00,
@@ -104,7 +114,7 @@ function vt.emu(gpu)
             params[#params + 1] = tonumber(number)
           end
           if char == "H" then
-            cx, cy = math.min(w, params[1] or 1), math.min(h, params[2] or 1)
+            cx, cy = math.min(w, params[2] or 1), math.min(h, params[1] or 1)
           elseif char == "A" then
             cy = cy - (params[1] or 1)
           elseif char == "B" then
@@ -118,7 +128,7 @@ function vt.emu(gpu)
           elseif char == "F" then
             cx, cy = 1, cy - (params[1] or 1)
           elseif char == "f" then -- identical to H
-            cx, cy = math.min(w, params[1] or 1), math.min(h, params[2] or 1)
+            cx, cy = math.min(w, params[2] or 1), math.min(h, params[1] or 1)
           elseif char == "s" then
             sx, sy = cx, cy
           elseif char == "u" then
@@ -137,9 +147,9 @@ function vt.emu(gpu)
             if params[1] == 1 then
               gpu.fill(1, cy, cx, 1, " ")
             elseif params[1] == 2 then
-              gpu.fill(cx, cy, mx, 1, " ")
+              gpu.fill(cx, cy, w, 1, " ")
             elseif not params[1] or params[1] == 0 then
-              gpu.fill(1, cy, mx, 1, " ")
+              gpu.fill(1, cy, w, 1, " ")
             end
           elseif char == "J" then
             if params[1] == 1 then
@@ -184,6 +194,10 @@ function vt.emu(gpu)
                 fg = colors[n - 29]
               elseif n > 39 and n < 48 then
                 bg = colors[n - 39]
+              elseif n > 89 and n < 98 then
+                fg = bright[n - 89]
+              elseif n > 99 and n < 108 then
+                bg = bright[n - 99]
               end
             end
             gpu.setForeground(fg)
@@ -245,7 +259,8 @@ function vt.session(gpu, screen)
               write(nbuf)
               buf = nbuf
             else
-              write("^[[A")
+              write("^[A")
+              buf = buf .. "\27[A\n"
             end
           elseif cod == 208 then
             if dh then
@@ -255,7 +270,8 @@ function vt.session(gpu, screen)
               write(nbuf)
               buf = nbuf
             else
-              write("^[[B")
+              write("^[B")
+              buf = buf .. "\27[B\n"
             end
           --[[elseif cod == 205 then
             c = "C"

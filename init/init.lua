@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe d6e7a5c (built Mon May 11 13:56:54 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 89e0253 (built Tue May 12 13:04:35 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 local _log = function()end--component.sandbox.log
@@ -171,8 +171,9 @@ do
     return os.getenv("STDIN")
   end
 
-  function io.popen(file) -- ...ish
+  function io.popen(file, ...) -- ...ish
     checkArg(1, file, "string")
+    local args = {...}
     local ok, err = loadfile(file)
     if not ok then
       return nil, err
@@ -185,7 +186,7 @@ do
       uio = nil
       return true
     end
-    local pid = thread.spawn(ok, file, function(e)thdio:write(e)end, nil, thdio, thdio)
+    local pid = thread.spawn(function()ok(table.unpack(args))end, file, function(e)thdio:write(e)end, nil, thdio, thdio)
     return uio, pid
   end
 

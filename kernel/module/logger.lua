@@ -12,6 +12,7 @@ do
     gpu.bind(screen)
     w, h = gpu.maxResolution()
     gpu.setResolution(w, h)
+    gpu.setForeground(0xDDDDDD)
     gpu.fill(1, 1, w, h, " ")
     function kernel.logger.log(msg)
       msg = string.format("[%3.3f] %s", computer.uptime() - _START, tostring(msg))

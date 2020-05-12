@@ -34,12 +34,19 @@ function text.tokenize(str)
   return words
 end
 
--- text.split is present in the OpenOS API, but not documented on the wiki. I'm going to leave it as a tokenize alias for now.
+-- text.split is present in the OpenOS API, but not documented on the wiki.
+function text.split(str, sep)
+  checkArg(1, str, "string")
+  checkArg(2, sep, "string", "nil")
+  local pattern = string.format("[^%s]+", sep)
+  local words = {}
+  for word in str:gmatch(pattern) do
+    words[#words + 1] = word
+  end
+  return words
+end
 
-text.split = text.tokenize
-
--- There may be minor incompatibilities or inconsistencies in my code vs. OpenOS'.
-
+-- There may be minor incompatibilities or inconsistencies in my code vs. OpenOS's.
 function text.detab(str, width)
   checkArg(1, str, "string")
   checkArg(2, width, "number", "nil")

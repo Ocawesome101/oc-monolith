@@ -8,9 +8,11 @@ cp.recurse = false
 
 local rootfs = fs.get("/")
 local seen = {}
+local opts = {}
 
 function cp.copy(...)
   local args = {...}
+  if type(args[1]) == "table" then opts = table.remove(args, 1) end
   local to = fs.canonical(args[#args])
   if #args > 2 and fs.exists(to) and not fs.isDirectory(to) then
     error("cannot copy multiple files to one file")
@@ -24,6 +26,13 @@ function cp.copy(...)
     if fs.get(cpath) ~= rootfs then
       print("cp: refusing to leave the rootfs: not recursing to " .. cpath)
       return
+    end
+    for a, _ in pairs(opts.skip) do
+      if cpath:find(a) == 1 then
+        print("cp: skipping " .. cpath)
+        return
+      end
+      --print("cp: not skipping " .. cpath .. " for " .. a)
     end
     if fs.isDirectory(cpath) and cp.recurse then
       if fs.exists(to) then

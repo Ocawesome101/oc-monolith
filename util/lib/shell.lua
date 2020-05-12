@@ -177,7 +177,7 @@ shell.builtins = {
   cat = function(...)
     local args = {...}
     if #args == 0 then
-      local data = io.read(math.huge)
+      local data = io.read()
       print(data)
       return 0
     else
@@ -297,9 +297,9 @@ local function split(cmd, spt)
 end
 
 local function execute(cmd, ...)
-  local tokens = text.split(shell.vars(table.concat({cmd, ...}, " ")))
+  local tokens = text.tokenize(shell.vars(table.concat({cmd, ...}, " ")))
   if #tokens == 0 then --[[print("no tokens")]] return end
-  if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]]; tokens = text.split(shell.vars(table.concat(tokens, " "))) end
+  if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]]; tokens = text.tokenize(shell.vars(table.concat(tokens, " "))) end
   local path, ftype = shell.resolve(tokens[1])
   local stat, exit
   if path and ftype == "lua" then
@@ -400,7 +400,7 @@ function shell.parse(...)
     local p = params[i]
     if p:sub(1,2) == "--" then -- "long" option
       local o = p:sub(3)
-      local op, vl = o:match("([%w]+)=([%w/]+)")
+      local op, vl = o:match("([%w]+)=([%w/,:]+)") -- I amaze myself with these patterns sometimes
       if op and vl then
         opts[op] = vl or true
       else

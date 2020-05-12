@@ -4,7 +4,7 @@ local shell = require("shell")
 local fs = require("filesystem")
 
 local colors = {
-  dir = 34,
+  dir = 33,
   exec = 32,
   file = 37,
 }
@@ -75,6 +75,7 @@ for i=1, #args, 1 do
     dir = fs.path(dir)
   end
   local out = ""
+  table.sort(files)
   for i=1, #files, 1 do
     local f = files[i]
     local finfo = ""
