@@ -20,6 +20,7 @@ while true do
   line = line:gsub("%#", "\27[93m")
   line = line:gsub("%?", "\27[95m")
   line = line:gsub("%@", "\27[92m")
+  line = line:gsub("%^", "\27[94m")
   outh:write(line .. "\n")
 end
 

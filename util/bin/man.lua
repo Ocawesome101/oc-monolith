@@ -5,7 +5,7 @@ local fs = require("filesystem")
 
 local args, opts = shell.parse(...)
 
-if #args == 0 then
+if #args == 0 or tonumber(args[1]) then
   print("What manual page do you want?\nFor example, try 'man man'.")
   return 0
 end
@@ -24,6 +24,8 @@ local sects = {
 
 if opts.section then
   sects = {"." .. opts.section}
+elseif tonumber(args[1]) then
+  sects = {"." .. table.remove(args, 1)}
 end
 
 local function search(page)

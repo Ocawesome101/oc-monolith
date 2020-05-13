@@ -1,0 +1,25 @@
+*NAME&
+        kill (shell builtin) - kill processes
+
+*SYNOPSIS
+        kill ?pid
+        *kill& [@-SIGKILL&|@-SIGTERM&|@-SIGINT&|@-SIGQUIT&|@-USR1&|@-USR2&] ?PID&
+
+*DESCRIPTION
+        kill& is a shell builtin used to signal processes.  For an overview of available signals, see *signals&(*2&).
+
+*EXAMPLES
+        kill @-SIGKILL ?5&
+            Sends signal @SIGKILL& to process ?5&.
+
+        *kill ?5&
+            Performs the same action as the above example.
+
+        *kill @-USR1& ?12&
+            Sends signal @USR1& to process ?12&.
+
+*COPYRIGHT
+        Monolith System Interfaces& (c) 2020 Ocawesome101 under the MIT License.
+
+*SEE ALSO
+        signals&(*2&), *thread&(*2&)

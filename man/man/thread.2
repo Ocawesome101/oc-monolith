@@ -1,0 +1,58 @@
+*NAME
+        thread - system thread management
+
+*DESCRIPTION
+        thread& provides thread management for the Monolith kernel.  In addition to a few functions, *thread& also provides a table of predefined *signals&(*2&), not to be confused with the signals returned from *computer.pullSignal&(*2&).
+
+*SIGNALS
+        thread_died&(*pid&:#number&)
+                Queued on the death of a thread.
+
+        *thread_errored&(*pid&:#number&, *reason&:~string&)
+                Queued when a thread errors.
+
+        *ipc&(*from&:#number&, ...)
+                This signal is thread-local, and sent on IPC communication.
+
+        *signal&(*from&:#number&, *signal&:^number&)
+                This signal is thread-local. Sent on signal reception.
+
+*METHODS
+        spawn&(*func&:^function&, *name&:~string&[, *handler&:^function&[, *env&:@table&[, *stdin&:@table&[, *stdout&:@table&]]]]): #number& or *nil&, ~string&
+                Spawns a thread from function ^func& named ~name&.  If ^handler& is specified, it will be called if the thread errors.  @env& may be used to predefine environment variables.  @stdin& and @stdout& default to the parent (i.e., current) thread's stdio, but if specified will override the thread's standard input and/or output.
+
+        *threads&(): @table&
+                Returns a table of running PIDs.
+
+        *info&(*pid&:#number&): @table& or *nil&, ~string&
+                Returns a table of information about the specified thread, or *nil& and an error message.
+
+                Information tables are formatted as such:
+
+                    {
+                      *name& = ~string&,
+                      *owner& = #number&,
+                      *priority& = #number&,
+                      *parent& = #number&,
+                      *uptime& = #number&,
+                      *started& = #number&
+                    }
+
+        *ipc&(*pid&:#number&, ...): ?boolean& or *nil&, ~string&
+                Sends an IPC event to thread #pid&.
+
+        *signal&(*pid&:#number&, *signal&:#number&): ?boolean& or *nil&, ~string&
+                Sends signal #signal& to thread #pid&.
+
+        *kill&(*pid&:#number&): ?boolean& or *nil&, ~string&
+                Alias for *signal&(*pid&, *signals.kill&)
+
+*NOTES&
+        Thread stdio inheriting is fragile.
+
+*COPYRIGHT
+        Monolith Kernel Interfaces& (c) 2020 Ocawesome101 under the MIT license.
+
+*SEE ALSO
+        computer&(*2&), *ps&(*1&), *kill&(*1&)
+

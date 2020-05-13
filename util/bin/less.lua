@@ -46,7 +46,7 @@ while true do
       scroll = scroll - 1
     end
   elseif esc == "\27[B" then
-    if scroll + h < screen then
+    if scroll + h <= screen then
       scroll = scroll + 1
     end
   elseif esc == "q" then
