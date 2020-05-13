@@ -1,7 +1,7 @@
 #!/bin/bash
-# Automated manual page generation in lieu of a Makefile
+# Automated manual page generation in lieu of a proper Makefile
 
-set -x
+echo "Generating man-page documentation...."
 set -e
 
 for file in $(find man -type f); do

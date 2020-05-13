@@ -1,0 +1,26 @@
+*NAME&
+        cp - copy files and directories
+
+*SYNOPSIS
+        cp& [-*rv&] ?SOURCE& ?DEST
+
+        *cp& [--skip=@FILE1&[@FILE2&[,...]]] ?SOURCE& ... ?DIRECTORY
+
+*DESCRIPTION&
+        Copy ?SOURCE& to ?DEST&, or multiple ?SOURCE&(s) to ?DIRECTORY&.  *cp& will usually refuse to leave the root filesystem while recursing.
+
+*OPTIONS
+        -r&, *--recurse&
+                recurse into directories
+
+        *-v&, *--verbose&
+                be verbose
+
+        *--skip&=?FILE1&,?FILE2&,...
+                skip all files whose absolute path starts with any of ?FILE1&, ?FILE2&, etc.  Paths are delimited by a comma (,)
+
+*COPYRIGHT&
+        Copyright (c) 2020 Ocawesome101 under the MIT license.
+
+*SEE ALSO
+        mv&(*1&), *cp.copy&(*1&), *filesystem&(*2&)

@@ -1,0 +1,36 @@
+*NAME&
+        svc - manage background services
+
+*SYNOPSIS
+        svc ?list
+        *svc enable-&<*script&|*service&> ?service
+        *svc disable ?service
+        *svc start&|*stop ?service
+
+*DESCRIPTION
+        svc& is the default service management tool for the *InitMe&(*1&) init system shipped with Monolith. It supports enabling and disabling of both scripts and services, as well as starting and stopping.
+
+*OPTIONS
+        enable-script ?script&
+                Enables startup script ?script&. Scripts are run once on startup.
+
+        *enable-service ?service&
+                Enables service ?service& to be started on boot. Services are expected to run in the background and provide functions through IPC or other means, similar to event listeners.
+
+        *disable ?service&
+                Disables script or service ?service&.
+
+        *start ?service&
+                Starts the background service ?service&.
+
+        *stop ?service&
+                Stops the background service ?service&, if it is running.
+
+*NOTES&
+        Due to a limitation with the current InitMe configuration scheme, a script and a service cannot both have the same name and be simultaneously enabled.
+
+*BUGS&
+        Stopping services kills the shell, for reasons unknown.
+
+*COPYRIGHT
+        svc& copyright (c) 2020 Ocawesome101 under the MIT license.

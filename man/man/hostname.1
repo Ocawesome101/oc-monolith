@@ -1,0 +1,23 @@
+*NAME&
+        hostname - show or set system hostname
+
+*SYNOPSIS
+        hostname& [?name&]
+
+*DESCRIPTION
+        hostname& is a simple command-line utility used to show or set the hostname of the Monolith system.
+
+        If ?name& is specified, and the executing user has the proper permissions, the system hostname will be set. If ?name& is specified, but the current user does not have the proper permissions, *hostname& will throw an error. If ?name& is not specified, the system hostname will be printed to standard output.
+
+*EXAMPLES
+        hostname&
+            Displays the system's hostname.
+
+        *hostname ?mono&
+            Sets the system's hostname to ?mono&.
+
+*COPYRIGHT
+        hostname& is copyright (c) 2020 Ocawesome101 under the MIT license.
+
+*SEE ALSO
+        minitel&(*3&), *GERTi&(*3&)

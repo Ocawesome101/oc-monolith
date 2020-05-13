@@ -1,0 +1,58 @@
+*NAME&
+        FLED - Fullscreen Lua EDitor
+
+*SYNOPSIS
+        fled
+
+        fled& ?file&
+
+*DESCRIPTION
+        fled& is the default text editor of the Monolith system, superseding *ed&(*1&).  *fled& is a visual text editor inspired by the real-world editor #vim& while also remaining similar to *ed&.  Perhaps the most appealing attribute of *fled& is its ability to easily switch between multiple loaded buffers in just a few keystrokes.
+
+        Upon launching *fled&, you will be presented with a black screen, with a red ~:& prompt in the bottom left-hand corner, similar to *less&(*1&).  This prompt will accept certain commands, listed here.  Note that the short form is usually preferred.
+
+        Options mandatory for long commands are mandatory for short commands too.
+
+        *h&, *help&
+                Print the built-in command list, and brief descriptions.
+
+        *o&, *open& ?file&
+                Open and load file ?file& from the filesystem into a buffer.  ?file& must exist in the filesystem.
+
+        *n&, *new& [?name&]
+                Create a new, empty buffer, optionally assigning its name as ?name&.  If ?name& is not specified, the user will be prompted on saving the buffer.
+
+        *w&, *save& [?file&]
+                Save the currently selected buffer to ?file& or, if ?file& is not specified, to the buffer's name.  Failing this, the user will be prompted for a filename.
+        *b& ?buffer&
+                Set the current buffer to ?buffer&.
+
+        *bl&
+                Prints a list of all currently loaded buffers, in the format "~id.& #name".
+
+        *db& ?buffer&
+                Delete loaded buffer ?buffer&.
+
+        *l&
+                Prints the length (in lines) of the current buffer.
+
+        *dl& [?line&]
+                Removes ?line& from the current buffer.  ?line& defaults to 1.
+
+        *i& [?line&]
+                Enter insert mode at ?line&.  If ?line& is not specified, it will default to 1.
+
+        *sc& [?line&]
+                Scrolls the current buffer so that line ?line&, or line 1, is at the top of the screen.  Scroll is stored at runtime on a per-buffer basis, but is not saved externally.
+
+        *q&
+                Quit *FLED& without saving.  ~WARNING: This command will not save ANY buffers, nor does it prompt before exiting!&
+
+        *wq&
+                Saves all buffers, then quits *FLED&.
+
+*COPYRIGHT&
+        FLED is copyright (c) 2020 Ocawesome101 under the MIT license.
+
+*SEE ALSO
+        ed&(*1&)

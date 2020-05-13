@@ -11,12 +11,29 @@ if #args == 0 then
 end
 
 local less = assert(loadfile("/bin/less.lua"))
-local manpath = os.getenv("MAN_PATH") or "/usr/man:/usr/local/man:/usr/share/man"
-os.setenv("MAN_PATH", manpath)
+local manpath = os.getenv("MANPATH") or "/usr/man:/usr/local/man:/usr/share/man"
+os.setenv("MANPATH", manpath)
+
+local sects = {
+  ".1",
+  ".3",
+  ".4",
+  ".2",
+  ".5"
+}
+
+if opts.section then
+  sects = {"." .. opts.section}
+end
 
 local function search(page)
   for path in manpath:gmatch("[^:]+") do
     local try = path .. "/" .. page
+    for _, sect in pairs(sects) do
+      if fs.exists(try .. sect) then
+        return try .. sect
+      end
+    end
     if fs.exists(try) then
       return try
     end

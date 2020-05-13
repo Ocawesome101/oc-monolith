@@ -126,7 +126,7 @@ local function ndraw(y,l,n,v)
 end
 
 local function tdraw(y)
-  io.write(string.format("\27[%d;1H\27[2K\27[93m~\27[37m", y))
+  io.write(string.format("\27[%d;1H\27[2K\27[93m   ~\27[37m", y))
 end
 
 local function bdraw(b)
@@ -147,11 +147,11 @@ local function bdraw(b)
 end
 
 local function binst(b, l)
-  b,l=tonumber(b),tonumber(l) or 0
+  b,l=tonumber(b),tonumber(l) or 1
   if not buf[b] then return nil, "no such buffer" end
   bdraw(b)
   local _b=buf[b]
-  local c = l + 1
+  local c = l
   while true do
     local ln = lineread(c, c - _b.scroll)
     if ln == "." or line == ".\n" then break end
@@ -186,7 +186,8 @@ local funcs = {
   o = fload,
   new = bnew,
   n = bnew,
-  w = function(a)return fsave(cur,a)end,
+  save = function(f)return fsave(cur,d)end,
+  w = function(f)return fsave(cur,f)end,
   b = function(n)if not buf[tonumber(n)]then return nil, "no such buffer" end cur = n bdraw(cur) return true end,
   bl = blist,
   db = function(n)n=tonumber(n)if not n then return nil, "too few arguments" end if not buf[n] then return nil, "no such buffer" end buf[n] = nil return true end,
@@ -195,15 +196,17 @@ local funcs = {
   l = function()if buf[cur] then print(#buf[cur].buf) return end return nil, "no buffer selected" end,
   dl = function(n)n=tonumber(n)or 1 if buf[cur] and buf[cur].buf[n] then table.remove(buf[cur].buf, n) end end,
   sc = function(l) --[[scroll]] l = tonumber(l) or 1 if not buf[cur] then return nil, cur .. " has no buffer" end if l > #buf[cur].buf then return nil, "no such line" end buf[cur].scroll = l bdraw(cur) end,
-  wq = function()for id, b in pairs(buf) do fsave(id) end exit = true end
+  wq = function()for id, b in pairs(buf) do fsave(id) end exit = true end,
+  ["\27[B"] = function()if buf[cur] then buf[cur].scroll = buf[cur].scroll + 1 end bdraw() end,
+  ["\27[A"] = function()if buf[cur] and buf[cur].scroll > 0 then buf[cur].scroll = buf[cur].scroll - 1 bdraw() end end
 }
 
 io.write("\27[2J")
 
 if args[1] then cur = fload(args[1]) bdraw(cur) end
 while not exit do
-  local cmd = promptread()
-  if cmd ~= "\n" then
+  local cmd = promptread():gsub("\n", "")
+  if cmd ~= "" then
     local c = split(cmd)
     if c[1] then
       local ok, err, msg = xpcall(funcs[c[1]], debug.traceback, table.unpack(c, 2))
