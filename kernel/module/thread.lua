@@ -74,6 +74,8 @@ do
     stdout = stdout or (tasks[cur] and tasks[cur].stdout or {})
     env.STDIN = stdin or env.STDIN
     env.STDOUT = stdout or env.STDOUT
+    env.OUTPUT = stdout or env.OUTPUT or env.STDOUT
+    env.INPUT = stdin or env.INPUT or env.STDIN
     priority = priority or math.huge
     local new = {
       coro = coroutine.create( -- the thread itself
@@ -295,8 +297,9 @@ do
         else
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
-        --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
+        kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
         if (not (p1 or ok)) and p2 then
+          --component.sandbox.log("thread error", thd.name, ok, p1, p2)
           handleProcessError(thd, p2)
         elseif ok then
           if p2 and type(p2) == "number" then
@@ -308,18 +311,19 @@ do
           end
           thd.uptime = computer.uptime() - thd.started
         end
+
+        -- this might reduce performance, we shall see
+        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+          for i=1, 50 do -- invoke GC
+            computer.pullSignal(0)
+          end
+          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+            kernel.logger.panic("out of memory")
+          end
+        end
       end
 
       cleanup()
-
-      if computer.freeMemory() < 1024 then -- oh no, we're out of memory
-        for i=1, 50 do -- invoke GC
-          computer.pullSignal(0)
-        end
-        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
-          kernel.logger.panic("out of memory")
-        end
-      end
     end
   end
 

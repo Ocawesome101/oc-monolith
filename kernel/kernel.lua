@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "726379e"
+local _KERNEL_REVISION = "819315e"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -38,7 +38,7 @@ do
     gpu.setResolution(w, h)
     gpu.setForeground(0xDDDDDD)
     gpu.fill(1, 1, w, h, " ")
-    function kernel.logger.log(msg)
+    local function log(msg)
       msg = string.format("[%3.3f] %s", computer.uptime() - _START, tostring(msg))
       if y == h then
         gpu.copy(1, 2, w, h, 0, -1)
@@ -47,6 +47,11 @@ do
         y = y + 1
       end
       gpu.set(1, y, msg)
+    end
+    function kernel.logger.log(msg)
+      for line in msg:gmatch("[^\n]+") do
+        log(line)
+      end
     end
   end
 end
@@ -690,6 +695,8 @@ do
     stdout = stdout or (tasks[cur] and tasks[cur].stdout or {})
     env.STDIN = stdin or env.STDIN
     env.STDOUT = stdout or env.STDOUT
+    env.OUTPUT = stdout or env.OUTPUT or env.STDOUT
+    env.INPUT = stdin or env.INPUT or env.STDIN
     priority = priority or math.huge
     local new = {
       coro = coroutine.create( -- the thread itself
@@ -911,8 +918,9 @@ do
         else
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
-        --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
+        kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
         if (not (p1 or ok)) and p2 then
+          --component.sandbox.log("thread error", thd.name, ok, p1, p2)
           handleProcessError(thd, p2)
         elseif ok then
           if p2 and type(p2) == "number" then
@@ -924,18 +932,19 @@ do
           end
           thd.uptime = computer.uptime() - thd.started
         end
+
+        -- this might reduce performance, we shall see
+        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+          for i=1, 50 do -- invoke GC
+            computer.pullSignal(0)
+          end
+          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+            kernel.logger.panic("out of memory")
+          end
+        end
       end
 
       cleanup()
-
-      if computer.freeMemory() < 1024 then -- oh no, we're out of memory
-        for i=1, 50 do -- invoke GC
-          computer.pullSignal(0)
-        end
-        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
-          kernel.logger.panic("out of memory")
-        end
-      end
     end
   end
 

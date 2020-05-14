@@ -135,7 +135,7 @@ function vt.emu(gpu)
             cx, cy = sx, sy
           elseif char == "n" then 
             if params[1] == 6 then
-              resp = string.format("%s\27[%d;%dR", resp, cx, cy)
+              resp = string.format("%s\27[%d;%dR", resp, cy, cx)
             elseif params[1] == 5 then
               resp = string.format("%s\27[%dn", resp, (gpu and gpu.getScreen() and 0) or 3)
             end
@@ -221,7 +221,8 @@ function vt.emu(gpu)
   return vtwrite
 end
 
--- Create a session with i/o and everything. Returns read, write, and close functions 
+-- Create a session with i/o and everything. Returns read, write, and close functions.
+-- This function is deprecated.
 function vt.session(gpu, screen)
   checkArg(1, gpu, "string", "table")
   checkArg(2, screen, "string")

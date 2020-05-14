@@ -37,9 +37,9 @@ do
       file = io.open(file, "w")
     end
     if file then
-      os.setenv("STDOUT", file)
+      os.setenv("OUTPUT", file)
     end
-    return os.getenv("STDOUT")
+    return os.getenv("OUTPUT")
   end
 
   function io.input(file)
@@ -48,28 +48,9 @@ do
       file = io.open(file, "r")
     end
     if file then
-      os.setenv("STDIN", file)
+      os.setenv("INPUT", file)
     end
-    return os.getenv("STDIN")
-  end
-
-  function io.popen(file, ...) -- ...ish
-    checkArg(1, file, "string")
-    local args = {...}
-    local ok, err = loadfile(file)
-    if not ok then
-      return nil, err
-    end
-    local thdio, uio = stream.dummy()
-    local pid
-    function thdio:close()
-      thread.signal(pid, thread.signals.kill)
-      thdio = nil
-      uio = nil
-      return true
-    end
-    local pid = thread.spawn(function()ok(table.unpack(args))end, file, function(e)thdio:write(e)end, nil, thdio, thdio)
-    return uio, pid
+    return os.getenv("INPUT")
   end
 
   function io.lines(file, ...)
@@ -123,6 +104,6 @@ do
     for k, v in ipairs(args) do
       tp = tp .. tostring(v) .. "\n"
     end
-    return io.write(tp)
+    return io.stdout:write(tp)
   end
 end

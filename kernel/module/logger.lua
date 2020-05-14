@@ -14,7 +14,7 @@ do
     gpu.setResolution(w, h)
     gpu.setForeground(0xDDDDDD)
     gpu.fill(1, 1, w, h, " ")
-    function kernel.logger.log(msg)
+    local function log(msg)
       msg = string.format("[%3.3f] %s", computer.uptime() - _START, tostring(msg))
       if y == h then
         gpu.copy(1, 2, w, h, 0, -1)
@@ -23,6 +23,11 @@ do
         y = y + 1
       end
       gpu.set(1, y, msg)
+    end
+    function kernel.logger.log(msg)
+      for line in msg:gmatch("[^\n]+") do
+        log(line)
+      end
     end
   end
 end

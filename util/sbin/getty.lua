@@ -4,6 +4,7 @@ local thread = require("thread")
 local component = require("component")
 local computer = require("computer")
 local vt100 = require("vt100")
+local readline = require("readline")
 local stream = require("stream")
 local config = require("config")
 
@@ -37,6 +38,16 @@ local function nextScreen(res)
   return match[res] or match[8000] or match[2000] or match[800]
 end
 
+local function makeStream(gpu, screen)
+  readline.addscreen(screen, gpu) -- register with readline so it listens for stuff
+  local write = vt100.emu(component.proxy(gpu))
+  local read = readline.readline
+  local close = function()end
+  component.sandbox.log("create IO stream", read, write, close)
+  write("\27[2J")
+  return stream.new(read, write, close, {screen = screen, gpu = component.proxy(gpu)})
+end
+
 function getty.scan()
   dinfo = computer.getDeviceInfo()
   for addr, _ in component.list("gpu") do
@@ -68,8 +79,8 @@ function getty.scan()
   while true do
     local gpu, screen = nextGPU(), nextScreen()
     if gpu and screen then
-      local sr, sw, sc = vt100.session(gpu, screen)
-      local ios = stream.new(sr, sw, sc)
+      --local sr, sw, sc = vt100.session(gpu, screen)
+      local ios = makeStream(gpu, screen)--stream.new(sr, sw, sc)]]
       local ok, err = loadfile(login)
       if not ok then
         error(err)
