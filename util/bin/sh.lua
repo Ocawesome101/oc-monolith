@@ -3,6 +3,7 @@
 -- reload shell and sh, else things break badly for unknown reasons
 local shell = require("shell", true)
 local sh = require("sh", true)
+local readline = require("readline").readline
 
 dofile("/etc/profile.lua")
 local exit = false
@@ -22,9 +23,9 @@ os.setenv("PWD", os.getenv("HOME"))
 os.setenv("PS1", os.getenv("PS1") or "\\w\\$ ")
 local ok, err = pcall(sh.execute, ".shrc")
 
+local history = {}
 while not exit do
-  io.write("\27[0m\27[19m" .. sh.prompt(os.getenv("PS1")))
-  local cmd = io.read():gsub("\n", "")
+  local cmd = readline({prompt = "\27[0m\27[19m" .. sh.prompt(os.getenv("PS1")), history = history}):gsub("\n", "")
   io.write("\27[9m") -- non-standard escape to disable history recording (very hacky)
   if cmd ~= "" then
     pcall(function()shell.execute(cmd)end)

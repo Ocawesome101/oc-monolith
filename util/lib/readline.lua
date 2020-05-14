@@ -32,7 +32,7 @@ local function listener()
     local signal, keyboard, character, keycode = coroutine.yield()
     if signal == "key_down" and buffers[keyboard] then
       local screen = buffers[keyboard]
-      if character == 13 then character = 10 end -- if enter, just write a newline
+      --if character == 13 or keycode == 28 then character = 10 end -- if enter, just write a newline
       local concat = string.char(character)
       if character == 0 then
         concat = replacements[keycode]
@@ -73,7 +73,7 @@ function rl.readlinebasic(screen, n)
   end
   local buf = buffers[screen]
   while #buf.buffer < n or (not n and not buf.buffer:find("\n")) do
-    print("RLBY")
+    --print("RLBY")
     coroutine.yield()
   end
   local n = n or buf.buffer:find("\n")
@@ -103,7 +103,8 @@ function rl.readline(prompt, opts)
   local history = opts.history or {}
   local ent = #history + 1
   local prompt = prompt or opts.prompt
-  local arrows = opts.arrows or true
+  local arrows = opts.arrows or opts.arrow
+  if arrows == nil then arrows = true end
   local buffer = ""
   local pos = 1
   if not buffers[screen] then
@@ -114,7 +115,7 @@ function rl.readline(prompt, opts)
   local y, x = resp:match("\27%[(%d+);(%d+)R")
   local w, h = io.output().gpu.getResolution() -- :^)
   local sy = tonumber(y) or 1
-  prompt = prompt or (" "):rep(tonumber(x) or 1)
+  prompt = prompt or ("\27[C"):rep((tonumber(x) or 1) - 1)
   local function redraw()
     local write = buffer
     if pwchar then write = pwchar:rep(#buffer) end
@@ -126,37 +127,41 @@ function rl.readline(prompt, opts)
     redraw()
     local char, err = rl.readlinebasic(screen, 1)
     --coroutine.yield()
-    if char == "\27" and arrows then -- ANSI escape start
-      local esc = rl.readlinebasic(io.output().screen, 2)
-      if esc == "[A" then
-        if ent > 1 then
-          ent = ent - 1
-          buf = history[ent] or ""
+    if char == "\27" then
+      if arrows then -- ANSI escape start
+        local esc = rl.readlinebasic(io.output().screen, 2)
+        if esc == "[A" then
+          if ent > 1 then
+            ent = ent - 1
+            buffer = history[ent] or ""
+          end
+        elseif esc == "[B" then
+          if ent <= #history then
+            ent = ent + 1
+            buffer = history[ent] or ""
+          end
+        elseif esc == "[C" then
+          if pos > 1 then
+            pos = pos - 1
+          end
+        elseif esc == "[D" then
+          if pos <= #buffer then
+            pos = pos + 1
+          end
         end
-      elseif esc == "[B" then
-        if ent <= #history then
-          ent = ent + 1
-          buf = history[ent] or ""
-        end
-      elseif esc == "[C" then
-        if pos > 1 then
-          pos = pos - 1
-        end
-      elseif esc == "[D" then
-        if pos <= #buffer then
-          pos = pos + 1
-        end
+      else
+        buffer = buffer .. "^"
       end
     elseif char == "\8" then
-      buffer = buffer:sub(1, #buffer - pos - 1) .. buffer:sub(1, #buffer - pos + 1)
-    elseif char == "\n" then
-      break
+      buffer = buffer:sub(1, (#buffer - pos)) .. buffer:sub((#buffer - pos) + 2)
+    elseif char == "\13" or char == "\10" or char == "\n" then
+      table.insert(history, buffer)
+      if not opts.notrail then buffer = buffer .. "\n" redraw() end
+      return buffer, history
     else
-      buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub(1, (#buffer - pos) + 2)
+      buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub((#buffer - pos) + 2)
     end
   end
-  table.insert(history, buffer)
-  return buffer
 end
 
 return rl

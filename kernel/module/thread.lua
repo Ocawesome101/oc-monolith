@@ -297,7 +297,7 @@ do
         else
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
-        kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
+        --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
         if (not (p1 or ok)) and p2 then
           --component.sandbox.log("thread error", thd.name, ok, p1, p2)
           handleProcessError(thd, p2)
