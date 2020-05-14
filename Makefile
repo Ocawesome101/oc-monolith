@@ -14,3 +14,4 @@ all:
 
 release: all
 	find build | cpio -o > release.cpio
+	lua5.3 lzssit.lua

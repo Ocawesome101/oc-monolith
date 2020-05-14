@@ -115,11 +115,11 @@ function rl.readline(prompt, opts)
   local y, x = resp:match("\27%[(%d+);(%d+)R")
   local w, h = io.output().gpu.getResolution() -- :^)
   local sy = tonumber(y) or 1
-  prompt = prompt or ("\27[C"):rep((tonumber(x) or 1) - 1)
+  prompt = prompt or ("\27[C"):rep((tonumber(x) or 1))
   local function redraw()
     local write = buffer
     if pwchar then write = pwchar:rep(#buffer) end
-    io.write(string.format("\27[%d;%dH%s%s ", sy, 1, prompt, write))
+    io.write(string.format("\27[%d;%dH%s%s \27[2K", sy, 1, prompt, write))
     --local span = math.max(1, math.ceil(#prompt + #buffer / w))
     io.write(string.rep("\8", pos)) -- move the cursor to where it should be
   end

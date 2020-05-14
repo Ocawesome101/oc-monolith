@@ -6,7 +6,7 @@ local args = {...}
 local rsp = io.write("\27[2J\27[1000;1000HScreen resolution: \27[6n")
 local w,h 
 if _OSVERSION and package.loaded.kinfo then -- we on monolith bois
-  w, h = rsp:match("\27%[(%d+);(%d+)R")
+  w, h = io.output().gpu.getResolution() -- tee hee hee --rsp:match("\27%[(%d+);(%d+)R")
 else
   h, w = io.read():match("\27%[(%d+);(%d+)R")
 end

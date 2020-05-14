@@ -1,0 +1,209 @@
+-- install Monolith --
+-- requires an LZSS library --
+
+local CPIO = "https://raw.githubusercontent.com/ocawesome101/oc-monolith/master/release.cpio.lzss"
+local ARCPATH = "/tmp/monolith.cpio.lzss"
+local MOUNT = "/mnt/install/"
+local EXTPATH = "/mnt/install/rootfs.cpio"
+
+-- pretty requires
+local serialization = require("serialization")
+local component    = require("component")
+local computer    = require("computer")
+local internet   = require("internet")
+local lzss      = require("lzss")
+local sha      = require("sha3")
+local fs      = require("filesystem")
+
+local ask = {}
+local fsl = component.list("filesystem")
+local blacklist = {[computer.getBootAddress()] = true, [computer.tmpAddress()] = true}
+for fsa, _ in fs do
+  if not blacklist[fsa] then
+    ask[#ask + 1] = fsa
+  end
+end
+
+-- uncpio credit to AdorableCatgirl, slightly modified
+local function uncpio(file, dest)
+  checkArg(1, file, "string")
+  checkArg(2, dest, "string")
+  local dir = dest
+  local file = io.open(args[1], "rb")
+
+  local dent = {
+    magic = 0,
+    dev = 0,
+    ino = 0,
+    mode = 0,
+    uid = 0,
+    gid = 0,
+    nlink = 0,
+    rdev = 0,
+    mtime = 0,
+    namesize = 0,
+    filesize = 0,
+  }
+
+  local function readint(amt, rev)
+    local tmp = 0
+    for i=(rev and amt) or 1, (rev and 1) or amt, (rev and -1) or 1 do
+      tmp = tmp | (file:read(1):byte() << ((i-1)*8))
+    end
+    return tmp
+  end
+
+  local function fwrite()
+    local _dir = dent.name:match("(.+)/.*%.?.+")
+    if (_dir) then
+      filesystem.makeDirectory(dir.."/".._dir)
+    end
+    local hand = io.open(dir.."/"..dent.name, "w")
+    hand:write(file:read(dent.filesize))
+    hand:close()
+  end
+
+  while true do
+    dent.magic = readint(2)
+    local rev = false
+    if (dent.magic ~= tonumber("070707", 8)) then rev = true end
+    dent.dev = readint(2)
+    dent.ino = readint(2)
+    dent.mode = readint(2)
+    dent.uid = readint(2)
+    dent.gid = readint(2)
+    dent.nlink = readint(2)
+    dent.rdev = readint(2)
+    dent.mtime = (readint(2) << 16) | readint(2)
+    dent.namesize = readint(2)
+    dent.filesize = (readint(2) << 16) | readint(2)
+    local name = file:read(dent.namesize):sub(1, dent.namesize-1)
+    if (name == "TRAILER!!!") then break end
+    dent.name = name
+    print(name)
+    if (dent.namesize % 2 ~= 0) then
+      file:seek("cur", 1)
+    end
+    if (dent.mode & 32768 ~= 0) then
+      fwrite()
+    end
+    if (dent.filesize % 2 ~= 0) then
+      file:seek("cur", 1)
+    end
+  end
+end
+
+local function unlzss(file, dest)
+  local IN, err = io.open(file)
+  if not IN then error(err) end
+  local data = IN:read("*a")
+  IN:close()
+  local OUT, err = io.open(dest, "w")
+  if not OUT then error(err) end
+  OUT:write(lzss.decompress(data))
+  OUT:close()
+end
+
+local function menu(opts)
+  print("\27[2JPlease choose one:")
+  for k, v in ipairs(opts) do
+    print(string.format("\27[%dH. %s", k, v))
+  end
+  local n
+  repeat
+    print("Enter a number.")
+    io.write("> ")
+    n = io.read():gsub("\n", "")
+  until tonumber(n)
+  return opts[tonumber(n)]
+end
+
+local function prompt(msg)
+  local inp = ""
+  repeat
+    inp = io.read():gsub("\n", "")
+  until inp ~= ""
+  return inp
+end
+
+local function download(url, file)
+  local handle, err = internet.request(url)
+  if not handle then error(err) end
+  local out = io.open(file, "w")
+  if not out then error(err) end
+  for chunk in handle do out:write(chunk) end
+  out:close()
+end
+
+print("Make sure your TMPFS is COMPLETELY empty!")
+fsl[#fsl + 1] = "Quit"
+local ifs = menu(fsl)
+if ifs == "Quit" then return 0 end
+
+fs.mount(ifs, MOUNT)
+print("Mounted install fs at " .. MOUNT)
+
+print("Downloading " .. CPIO .. " as " .. ARCPATH)
+download(CPIO, ARCPATH)
+
+print("Decompressing archive to " .. EXTPATH)
+unlzss(ARCPATH, EXTPATH)
+
+print("Extracting CPIO to " .. MOUNT)
+uncpio(EXTPATH, MOUNT)
+
+print("Cleaning up installation files...")
+fs.remove(EXTPATH)
+fs.remove(ARCPATH)
+
+print("Now that the system has been installed, you should set up a user.")
+
+print("\27[8mWARNING: if you can see this message, your terminal does NOT have support for hidden text input.\27[0m")
+
+local rootpass = prompt("root password: \27[8;30;40m")
+
+io.write("\27[0m")
+local name = prompt("username: ")
+
+local password = prompt("password: \27[8;30;40m")
+local passwd = fs.concat(MOUNT, "/etc/passwd")
+
+local function tohex(str)
+  local r = ""
+  for char in str:gmatch(".") do
+    r = r .. string.format("%02x", char:byte())
+  end
+  return r
+end
+
+-- remove special chars from a string
+local function strip(str)
+  local special = "[^%w%-_]"
+  return str:gsub(special, "_")
+end
+
+local tpasswd = {
+  [0] = {
+    u = 0,
+    c = true,
+    n = "root",
+    h = "/root",
+    p = tohex(sha3.sha256(rootpass))
+  },
+  [1] = {
+    u = 1,
+    c = true,
+    n = name,
+    h = "/home/" .. strip(name),
+    p = tohex(sha3.sha256(password))
+  }
+}
+
+print("\27[0mAdding user to /etc/passwd")
+
+local handle, err = io.open(passwd, "w")
+if not handle then error("failed opening etc/passwd: " .. err) end
+handle:write(serialization.serialize(tpasswd))
+handle:close()
+
+print("Done!")

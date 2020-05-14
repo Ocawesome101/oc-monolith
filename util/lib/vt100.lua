@@ -184,10 +184,11 @@ function vt.emu(gpu)
                 hist = false
                 fg = 0xFFFFFF
                 bg = 0x000000
-              elseif n == 9 then
+              -- this is no longer necessary
+              --[[elseif n == 9 then
                 dhist = false
               elseif n == 19 then
-                dhist = true
+                dhist = true]]
               elseif n == 7 or n == 27 then
                 fg, bg = bg, fg
               elseif n > 29 and n < 38 then
@@ -216,7 +217,7 @@ function vt.emu(gpu)
     gpu.set(cx, cy, char)
     gpu.setForeground(fg)
     gpu.setBackground(bg)
-    return resp, echo, dhist
+    return resp, echo--, dhist
   end
   return vtwrite
 end
@@ -226,6 +227,7 @@ end
 function vt.session(gpu, screen)
   checkArg(1, gpu, "string", "table")
   checkArg(2, screen, "string")
+  error("vt100.session is deprecated and should not be used")
   if type(gpu) == "string" then
     gpu = component.proxy(gpu)
   end
