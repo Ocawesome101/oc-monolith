@@ -13,5 +13,5 @@ all:
 	$(MAKE) -C man
 
 release: all
-	find build | cpio -o > release.cpio
+	cd build && find ./* | cpio -o > ../release.cpio && cd ..
 	lua5.3 lzssit.lua
