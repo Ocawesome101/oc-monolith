@@ -2,13 +2,13 @@
 
 local shell = require("shell")
 local users = require("users")
+local readl = require("readline").readline
 
 local args, opts = shell.parse(...)
 
 local function getPasswordInput()
   local read = ""
-  io.write("password: \27[8m")
-  read = io.read():gsub("\n", "")
+  read = readl("password: ", {pwchar = "*"}):gsub("\n", "")
   io.write("\27[m\n")
   return read
 end
@@ -60,7 +60,7 @@ if #args == 0 then -- enter interactive mode
   print("usermgr (c) 2020 Ocawesome101 under the MIT license.")
   while interactive do
     io.write("usermgr> ")
-    local cmd = require("text").split(io.read():gsub("\n",""))
+    local cmd = require("text").tokenize(io.read():gsub("\n",""))
     local ok, err = execute(table.unpack(cmd))
     if not ok and err then
       shell.error("usermgr", err)

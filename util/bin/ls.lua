@@ -3,6 +3,8 @@
 local shell = require("shell")
 local fs = require("filesystem")
 
+local w, h = io.output().gpu.getResolution()
+
 local colors = {
   dir = 34,
   exec = 32,
@@ -100,7 +102,7 @@ for i=1, #args, 1 do
       out = out .. color(colors.file)
     end
     if f:sub(1,1) ~= "." or all then
-      out = out .. f .. ((i <= #files and (not inf and (" "):rep(longest - #f + 2)) or "\n") or "")
+      out = out .. f .. ((i <= #files and (not inf and (" "):rep(--[[longest - #f + ]]2)) or "\n") or "")
     end
   end
   print(out .. color(37))

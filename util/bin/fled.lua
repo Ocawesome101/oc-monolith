@@ -35,8 +35,7 @@ local function promptread()
 end
 
 local function lineread(line, y)
-  io.write(string.format("\27[%d;1H\27[91m%4d \27[37m", y, line))
-  return io.read()
+  return readline(string.format("\27[%d;1H\27[91m%4d \27[37m", y, line), opts)
 end
 
 --[[ built-in (broken) highlighting for Lua

@@ -15,6 +15,7 @@ log(_INITVERSION)
 
 --#include "module/package.lua"
 --#include "module/io.lua"
+--#include "module/os.lua"
 --#include "module/initsvc.lua"
 
 --[[do

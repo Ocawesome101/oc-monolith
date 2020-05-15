@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 42ae6ca (built Fri May 15 15:45:15 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 8c1322f (built Fri May 15 17:38:56 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 local _log = function()end--component.sandbox.log
@@ -223,6 +223,23 @@ do
       tp = tp .. tostring(v) .. "\t"
     end
     return io.stdout:write(tp .. "\n")
+  end
+end
+
+
+-- os --
+
+do
+  local computer = computer or require("computer")
+
+  function os.sleep(t)
+    checkArg(1, t, "number", "nil")
+    t = t or 0
+    local m = computer.uptime() + t
+    repeat
+      coroutine.yield(m - computer.uptime())
+    until computer.uptime() >= m
+    return true
   end
 end
 
