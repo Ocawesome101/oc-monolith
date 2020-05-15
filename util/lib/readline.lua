@@ -42,6 +42,9 @@ local function listener()
     elseif signal == "key_up" and buffers[keyboard] then
       local screen = buffers[keyboard]
       buffers[screen].down[keycode] = false
+    elseif signal == "clipboard" and buffers[keyboard] then
+      local screen = buffers[keyboard]
+      buffers[screen].buffer = buffers[screen].buffer .. character
     end
   end
 end

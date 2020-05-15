@@ -43,7 +43,7 @@ local function makeStream(gpu, screen)
   local write = vt100.emu(component.proxy(gpu))
   local read = readline.readline
   local close = function()end
-  component.sandbox.log("create IO stream", read, write, close)
+  --component.sandbox.log("create IO stream", read, write, close)
   write("\27[2J")
   return stream.new(read, write, close, {screen = screen, gpu = component.proxy(gpu)})
 end

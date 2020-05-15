@@ -154,7 +154,7 @@ local function binst(b, l)
   local c = l
   while true do
     local ln = lineread(c, c - _b.scroll)
-    if ln == "." or line == ".\n" then break end
+    if ln:sub(1,1) == "." then break end
     table.insert(_b.buf,c,ln)
     c=c+1
     local bot = bdraw(b)
@@ -168,7 +168,7 @@ local help = [[FLED - Fullscreen Lua EDitor (c) 2020 Ocawesome101 under the MIT 
 Commands:
   o | open <file>       Open <file> for editing. <file> must exist in your filesystem.
   n | new  [name]       Create a new buffer with filename [name]. If no [name] is provided you will be prompted when saving.
-  w        [file]       Save the current buffer to a file. If no [file] is provided and the buffer has no name you will be prompted.
+  w | save [file]       Save the current buffer to a file. If no [file] is provided and the buffer has no name you will be prompted.
   b        <num>        Selects buffer <num> as the current.
   bl                    Lists all loaded buffers.
   db       <num>        Delete buffer <num>.
@@ -186,7 +186,7 @@ local funcs = {
   o = fload,
   new = bnew,
   n = bnew,
-  save = function(f)return fsave(cur,d)end,
+  save = function(f)return fsave(cur,f)end,
   w = function(f)return fsave(cur,f)end,
   b = function(n)if not buf[tonumber(n)]then return nil, "no such buffer" end cur = n bdraw(cur) return true end,
   bl = blist,

@@ -1,8 +1,11 @@
 -- less --
 
 local shell = require("shell")
+local readline = require("readline").readline
 
 local args, opts = shell.parse(...)
+
+--error("less is broken currently, sorry :/")
 
 if #args == 0 then
   return shell.codes.argument
@@ -10,7 +13,7 @@ end
 
 local handle = assert(io.open(args[1], "r"))
 
-local w, h = io.write("\27[1000;1000H\27[6n\27[2J"):match("\27%[(%d+);(%d+)R")
+local h, w = io.write("\27[1000;1000H\27[6n\27[2J"):match("\27%[(%d+);(%d+)R")
 w, h = tonumber(w), tonumber(h)
 local lines = {}
 local screen = 0
@@ -40,12 +43,12 @@ end
 
 while true do
   redraw()
-  local esc = io.read():gsub("\n", "")
-  if esc == "\27[A" then
+  local esc = readline(": "):gsub("\n", "")
+  if esc == "\27[A" or esc == "w" then
     if scroll > 0 then
       scroll = scroll - 1
     end
-  elseif esc == "\27[B" then
+  elseif esc == "\27[B" or esc == "s" then
     if scroll + h <= screen then
       scroll = scroll + 1
     end
