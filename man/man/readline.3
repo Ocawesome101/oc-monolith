@@ -4,4 +4,9 @@
 *SYNOPSIS
         local readline = require("readline")
 
-        readline& ( [ *prompt& = ~string&, *n& = #number& ], @{& [ *history& = @table&, *arrows& = ?boolean&, *pwchar& = ~string&, *prompt& = ~string& ] @}& )
+        readline& ( [ *prompt&:~string&, *n&:#number& ], @{& [ *history& = @table&, *arrows& = ?boolean&, *notrail& = ?boolean& *pwchar& = ~string&, *prompt& = ~string& ] @}& )
+
+*DESCRIPTION
+        readline& will read a line from the terminal and return it, using *prompt& as a prompt.  If *promt& is not provided, no prompt is issued. If *notrail& is specified, the line returned has the final newline removed so only the text of the line remains.
+
+        *readline& offers editing capabilities while the user is entering the line.  By default, the line editing commands are similar to those of emacs.
