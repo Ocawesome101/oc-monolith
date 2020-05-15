@@ -170,8 +170,8 @@ function vt.emu(gpu)
             if #params == 0 then
               echo = true
               hist = false
-              fg = 0xFFFFFF
-              bg = 0x000000
+              fg = colors[8]
+              bg = colors[1]
             end
             for i=1, #params, 1 do
               local n = params[i]
@@ -182,8 +182,8 @@ function vt.emu(gpu)
               elseif n == 0 then
                 echo = true
                 hist = false
-                fg = 0xFFFFFF
-                bg = 0x000000
+                fg = colors[8]
+                bg = colors[1]
               -- this is no longer necessary
               --[[elseif n == 9 then
                 dhist = false

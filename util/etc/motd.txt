@@ -1,0 +1,8 @@
+This is the Monolith system. Welcome.
+
+To see what programs are available to run, type `ls /bin`. To run a program, simply type its name.
+For documentation on programs or APIs, consult the appropriate manual pages with `man`.
+
+Please report any bugs to https://github.com/ocawesome101/oc-monolith.
+
+You can change this message by editing /etc/motd.txt.

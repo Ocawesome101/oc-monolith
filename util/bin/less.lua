@@ -43,7 +43,8 @@ end
 
 while true do
   redraw()
-  local esc = readline(": "):gsub("\n", "")
+  local esc = readline(1)
+  if esc == "\27" then esc = esc .. readline(2) end
   if esc == "\27[A" or esc == "w" then
     if scroll > 0 then
       scroll = scroll - 1

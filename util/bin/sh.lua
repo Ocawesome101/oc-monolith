@@ -23,6 +23,12 @@ os.setenv("PWD", os.getenv("HOME"))
 os.setenv("PS1", os.getenv("PS1") or "\\w\\$ ")
 local ok, err = pcall(sh.execute, ".shrc")
 
+local handle, err = io.open("/etc/motd.txt")
+if handle then
+  io.write(handle:read("*a"))
+  handle:close()
+end
+
 local history = {}
 while not exit do
   local cmd = readline({prompt = "\27[0m" .. sh.prompt(os.getenv("PS1")), history = history}):gsub("\n", "")

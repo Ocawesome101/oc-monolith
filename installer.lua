@@ -2,7 +2,7 @@
 -- requires an LZSS library --
 
 local CPIO = "https://raw.githubusercontent.com/ocawesome101/oc-monolith/master/release.cpio.lzss"
-local ARCPATH = "/tmp/monolith.cpio.lzss"
+local ARCPATH = "/mnt/monolith.cpio.lzss"
 local MOUNT = "/mnt/install/"
 local EXTPATH = "/mnt/install/rootfs.cpio"
 
