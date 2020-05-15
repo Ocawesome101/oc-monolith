@@ -7,7 +7,7 @@ local sh = {}
 
 local psrep = {
   ["\\w"] = function()
-    return os.getenv("PWD") or "/"
+    return (os.getenv("PWD") and os.getenv("PWD"):gsub("^" .. os.getenv("HOME") .. "?", "~")) or "/"
   end,
   ["\\W"] = function()
     return fs.name(os.getenv("PWD") or "/") or ""

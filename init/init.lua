@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe c625ded (built Fri May 15 00:39:22 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 42ae6ca (built Fri May 15 15:45:15 EDT 2020 by ocawesome101@manjaro-pbp)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 local _log = function()end--component.sandbox.log
@@ -220,9 +220,9 @@ do
     local args = {...}
     local tp = ""
     for k, v in ipairs(args) do
-      tp = tp .. tostring(v) .. "\n"
+      tp = tp .. tostring(v) .. "\t"
     end
-    return io.stdout:write(tp)
+    return io.stdout:write(tp .. "\n")
   end
 end
 

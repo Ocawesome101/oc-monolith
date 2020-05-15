@@ -4,7 +4,7 @@ local shell = require("shell")
 local fs = require("filesystem")
 
 local colors = {
-  dir = 33,
+  dir = 34,
   exec = 32,
   file = 37,
 }
@@ -75,7 +75,11 @@ for i=1, #args, 1 do
     dir = fs.path(dir)
   end
   local out = ""
+  local longest = 0
   table.sort(files)
+  for i=1, #files, 1 do
+    if #files[i] > longest then longest = #files[i] end
+  end
   for i=1, #files, 1 do
     local f = files[i]
     local finfo = ""
@@ -96,7 +100,7 @@ for i=1, #args, 1 do
       out = out .. color(colors.file)
     end
     if f:sub(1,1) ~= "." or all then
-      out = out .. f .. ((i < #files and "\n") or "")
+      out = out .. f .. ((i <= #files and (not inf and (" "):rep(longest - #f + 2)) or "\n") or "")
     end
   end
   print(out .. color(37))

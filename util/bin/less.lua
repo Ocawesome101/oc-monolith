@@ -29,7 +29,7 @@ local function drawLine(y, txt)
   return math.max(1, math.ceil(#txt / w))
 end
 
-local function redraw()
+local function redraw(a)
   io.write("\27[2J")
   local y = 1
   local n = 1
@@ -37,12 +37,18 @@ local function redraw()
     y = y + drawLine(y, lines[n + scroll] or "")
     n = n + 1
   end
-  drawLine(h, "\27[2K:")
+  if scroll + h >= screen then
+    drawLine(h, "\27[2K\27[30;47m(END)\27[37;40m")
+  else
+    drawLine(h, "\27[2K"..a..":")
+  end
   --io.write(string.format("\27[%d;%dH%5d/%5d", w - 11, h, h + scroll, screen))
 end
 
+local fname = (not opts.noshow and not opts.n and args[1]) or ""
 while true do
-  redraw()
+  redraw(fname)
+  fname = ""
   local esc = readline(1)
   if esc == "\27" then esc = esc .. readline(2) end
   if esc == "\27[A" or esc == "w" then
@@ -52,6 +58,18 @@ while true do
   elseif esc == "\27[B" or esc == "s" then
     if scroll + h <= screen then
       scroll = scroll + 1
+    end
+  elseif esc == " " or esc == "\27[6" then
+    if scroll + h*2 <= screen then
+      scroll = scroll + h
+    else
+      scroll = screen - h
+    end
+  elseif esc == "\27[5" then -- pageup
+    if scroll >= h then
+      scroll = scroll - h
+    else
+      scroll = 0
     end
   elseif esc == "q" then
     io.write("\27[2J")

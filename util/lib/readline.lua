@@ -12,10 +12,12 @@ local buffers = {}
 end})]]
 
 local replacements = {
-  [200] = "\27[A",
-  [203] = "\27[D",
-  [205] = "\27[C",
-  [208] = "\27[B"
+  [200] = "\27[A", -- up
+  [201] = "\27[5", -- page up
+  [203] = "\27[D", -- left
+  [205] = "\27[C", -- right
+  [208] = "\27[B", -- down
+  [209] = "\27[6"  -- page down
 }
 
 -- setup the metatable for convenience
@@ -67,7 +69,7 @@ function rl.addscreen(screen, gpu)
   return true
 end
 
--- basic readline function
+-- basic readline function similar to the original vt100.session one
 function rl.readlinebasic(screen, n)
   checkArg(1, screen, "string")
   checkArg(1, n, "number", "nil")
@@ -106,10 +108,35 @@ function rl.readline(prompt, opts)
   local history = opts.history or {}
   local ent = #history + 1
   local prompt = prompt or opts.prompt
-  local arrows = opts.arrows or opts.arrow
+  local arrows = opts.arrows
   if arrows == nil then arrows = true end
-  local buffer = ""
   local pos = 1
+  local buffer = ""
+  local acts = opts.acts or opts.actions or 
+    {
+      up = function()
+        if ent > 1 then
+          ent = ent - 1
+          buffer = history[ent] or ""
+        end
+      end,
+      down = function()
+        if ent <= #history then
+          ent = ent + 1
+          buffer = history[ent] or ""
+        end
+      end,
+      left = function()
+        if pos <= #buffer then
+          pos = pos + 1
+        end
+      end,
+      right = function()
+        if pos > 1 then
+          pos = pos - 1
+        end
+      end
+    }
   if not buffers[screen] then
     rl.addscreen(screen, io.output().gpu)
   end
@@ -132,25 +159,15 @@ function rl.readline(prompt, opts)
     --coroutine.yield()
     if char == "\27" then
       if arrows then -- ANSI escape start
-        local esc = rl.readlinebasic(io.output().screen, 2)
-        if esc == "[A" then
-          if ent > 1 then
-            ent = ent - 1
-            buffer = history[ent] or ""
-          end
-        elseif esc == "[B" then
-          if ent <= #history then
-            ent = ent + 1
-            buffer = history[ent] or ""
-          end
+        local esc = rl.readlinebasic(screen, 2)
+        if esc == "[A" and acts.up then
+          pcall(acts.up)
+        elseif esc == "[B" and acts.down then
+          pcall(acts.down)
         elseif esc == "[C" then
-          if pos > 1 then
-            pos = pos - 1
-          end
+          pcall(acts.right)
         elseif esc == "[D" then
-          if pos <= #buffer then
-            pos = pos + 1
-          end
+          pcall(acts.left)
         end
       else
         buffer = buffer .. "^"
@@ -167,4 +184,5 @@ function rl.readline(prompt, opts)
   end
 end
 
-return rl
+-- we don't need readlinebasic
+return { readline = rl.readline, addscreen = rl.addscreen, buffersize = rl.buffersize }

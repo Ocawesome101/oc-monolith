@@ -1,24 +1,37 @@
-#!/usr/bin/env lua5.3
 -- FLED: Fullscreen Lua EDitor --
 
 local args = {...}
 
-local rsp = io.write("\27[2J\27[1000;1000HScreen resolution: \27[6n")
-local w,h 
-if _OSVERSION and package.loaded.kinfo then -- we on monolith bois
-  w, h = io.output().gpu.getResolution() -- tee hee hee --rsp:match("\27%[(%d+);(%d+)R")
-else
-  h, w = io.read():match("\27%[(%d+);(%d+)R")
-end
+local w, h = io.output().gpu.getResolution() -- tee hee hee --rsp:match("\27%[(%d+);(%d+)R")
 w = tonumber(w)
 h = tonumber(h)
+
+local readline = require("readline").readline
 
 local buf = {}
 local cur = 1
 
+local opts = {
+  arrows = {
+    up = function()
+      if buf[cur] then
+        if buf[cur].scroll > 0 then
+          buf[cur].scroll = buf[cur].scroll - 1
+        end
+      end
+    end,
+    down = function()
+      if buf[cur] then
+        if buf[cur].scroll <= #buf[cur].buffer - (h - 2) then
+          buf[cur].scroll = buf[cur].scroll + 1
+        end
+      end
+    end
+  }
+}
+
 local function promptread()
-  io.write(string.format("\27[%d;1H\27[91m:\27[37m", h))
-  return io.read()
+  return readline(string.format("\27[%d;1H\27[91m:\27[37m", h), opts)
 end
 
 local function lineread(line, y)

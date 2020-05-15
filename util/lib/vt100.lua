@@ -4,8 +4,15 @@
 local component = require("component")
 local computer = require("computer")
 local thread = require("thread")
+local config = require("config")
 local vt = {}
 
+local cfg
+function vt.reload()
+  cfg = config.load("/etc/vtcolors.cfg")
+end
+
+vt.reload()
 function vt.emu(gpu)
   checkArg(1, gpu, "table")
   
@@ -19,7 +26,7 @@ function vt.emu(gpu)
   local wbuf = ""
   local ebuf = ""
   local mode = 0 -- 0 normal, 1 escape, 2 command
-  local colors = {
+  local colors = cfg.normal or {
     0x000000,
     0xDD0000,
     0x00DD00,
@@ -29,7 +36,7 @@ function vt.emu(gpu)
     0x00DDDD,
     0xDDDDDD
   }
-  local bright = {
+  local bright = cfg.bright or {
     0x111111,
     0xFF0000,
     0x00FF00,

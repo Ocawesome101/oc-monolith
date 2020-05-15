@@ -102,8 +102,8 @@ do
     local args = {...}
     local tp = ""
     for k, v in ipairs(args) do
-      tp = tp .. tostring(v) .. "\n"
+      tp = tp .. tostring(v) .. "\t"
     end
-    return io.stdout:write(tp)
+    return io.stdout:write(tp .. "\n")
   end
 end
