@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 216bc5b (built Fri May 15 21:05:14 EDT 2020 by ocawesome101@windowsisbad)"
+local _INITVERSION = "InitMe d964b85 (built Fri May 15 21:08:24 EDT 2020 by ocawesome101@windowsisbad)"
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 local _log = function()end--component.sandbox.log
