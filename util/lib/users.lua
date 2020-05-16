@@ -24,6 +24,14 @@ local function getuid(name)
   return -1
 end
 
+function users.getname(uid)
+  checkArg(1, uid, "number")
+  if old.passwd[uid] then
+    return old.passwd[uid].name
+  end
+  return "UID: " .. tostring(uid)
+end
+
 function users.login(user, password)
   checkArg(1, user, "string", "number")
   checkArg(2, password, "string")

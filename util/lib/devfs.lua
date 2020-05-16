@@ -146,7 +146,7 @@ function fsc.exists(file)
   return true
 end
 
-function fsc.list(path)
+function fsc.list(file)
   checkArg(1, file, "string")
   local ok, err = find(file)
   if not ok then return nil, err end

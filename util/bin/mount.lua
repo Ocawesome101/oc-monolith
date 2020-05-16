@@ -14,8 +14,8 @@ local rw = (opts.r and opts.w) or opts.rw or true
 if #args < 2 then
   local mounts = fs.mounts()
   for k, v in pairs(mounts) do
-    local ro = (component.invoke(v, "isReadOnly") and "ro") or "rw"
-    print(string.format("%s on %s (%s) \"%s\"", v:sub(1,8), k, ro, (component.invoke(v, "getLabel")) or ""))
+    local ro = (fs.get(k).isReadOnly() and "ro") or "rw"
+    print(string.format("%s on %s (%s) \"%s\"", v:sub(1,8), k, ro, (fs.get(k).getLabel()) or ""))
   end
   return
 else

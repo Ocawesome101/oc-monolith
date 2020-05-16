@@ -184,7 +184,10 @@ shell.builtins = {
       for k, v in ipairs(args) do
         local file, err = io.open(v, "r")
         if file then
-          print(file:read("*a"))
+          repeat
+            local chunk = file:read(2048)
+            io.write(chunk or "")
+          until not chunk
           file:close()
         else
           shell.error("cat", err)

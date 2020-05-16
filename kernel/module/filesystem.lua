@@ -41,12 +41,12 @@ do
     if path == "." then path = os.getenv("PWD") or "/" end
     if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
     local s = split(path)
-    for i=1, #s, 1 do
+    for i=#s, 1, -1 do
       local cur = "/" .. table.concat(s, "/", 1, i)
       local try = "/" .. table.concat(s, "/", i + 1)
       if mounts[cur] and (mounts[cur].exists(try) or noexist) then
         --component.sandbox.log("found", try, "on mount", cur, mounts[cur].address)
-        return mounts[cur], "/" .. try
+        return mounts[cur], try
       end
     end
     if mounts[path] then
@@ -79,7 +79,7 @@ do
     if not mt then
       return nil, p
     end
-    local files = mt.list(p)
+    local files = mt.list(p or "/")
     local i = 0
     return setmetatable(files, {__call = function() i=i+1 return files[i] or nil end})
   end
