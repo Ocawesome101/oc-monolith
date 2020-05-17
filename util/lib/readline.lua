@@ -180,7 +180,9 @@ function rl.readline(prompt, opts)
       buffer = buffer .. ""
     elseif char == "\13" or char == "\10" or char == "\n" then
       table.insert(history, buffer)
-      if not opts.notrail then buffer = buffer .. "\n" redraw() end
+      buffer = buffer .. "\n"
+      redraw()
+      if opts.notrail then buffer = buffer:sub(1, -2) end
       return buffer, history
     else
       buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub((#buffer - pos) + 2)

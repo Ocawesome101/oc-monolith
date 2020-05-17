@@ -4,6 +4,7 @@
 local shell = require("shell", true)
 local sh = require("sh", true)
 local readline = require("readline").readline
+local thread = require("thread")
 
 dofile("/etc/profile.lua")
 local exit = false
@@ -31,8 +32,13 @@ end
 
 local history = {}
 while not exit do
-  local cmd = readline({prompt = "\27[0m" .. sh.prompt(os.getenv("PS1")), history = history}):gsub("\n", "")
+  local cmd = readline({prompt = "\27[0m" .. sh.prompt(os.getenv("PS1")), history = history, notrail = true})
   if cmd ~= "" then
-    pcall(function()shell.execute(cmd)end)
+    local ok, err = xpcall(shell.execute, debug.traceback, cmd)
+    --thread.spawn(function()ok, err = xpcall(shell.execute, debug.traceback, cmd)end, cmd, function(e)shell.error(cmd, e) end)
+    --coroutine.yield()
+    if not ok and err then
+      shell.error("sh", err)
+    end
   end
 end

@@ -22,9 +22,10 @@ function env.os.exit()
   exit = true
 end
 
+local history = {}
 io.write("\27[37m" .. _VERSION .. " Copyright (C) 1994-2018 Lua.org, PUC-Rio\n")
 while not exit do
-  local run = readline(env._PROMPT)
+  local run = readline(env._PROMPT, {history = history})
   local exec, reason
   if run:sub(1,1) == "=" then
     exec, reason = load("return " .. run:sub(1,2), "=stdin", "t", env)

@@ -70,8 +70,8 @@ do
     checkArg(7, priority, "number", "nil")
     last = last + 1
     env = setmetatable(env or {}, {__index = (tasks[cur] and tasks[cur].env) or global_env})
-    stdin = stdin or (tasks[cur] and tasks[cur].stdin or {})
-    stdout = stdout or (tasks[cur] and tasks[cur].stdout or {})
+    stdin = stdin or (tasks[cur] and tasks[cur].stdin)
+    stdout = stdout or (tasks[cur] and tasks[cur].stdout)
     env.STDIN = stdin or env.STDIN
     env.STDOUT = stdout or env.STDOUT
     env.OUTPUT = stdout or env.OUTPUT or env.STDOUT
@@ -83,24 +83,25 @@ do
           return xpcall(func, debug.traceback)
         end
       ),
-      pid = last, -- process/thread ID
-      parent = cur, -- parent thread's PID
-      name = name, -- thread name
-      handler = handler, -- error handler
-      user = kernel.users.uid(), -- current user
-      users = {}, -- user history
-      owner = kernel.users.uid(), -- thread owner
-      sig = {}, -- signal buffer
-      ipc = {}, -- IPC buffer
-      env = env, -- environment variables
-      deadline = computer.uptime(), -- signal deadline
-      priority = priority, -- thread priority
-      uptime = 0, -- thread uptime
-      started = computer.uptime() -- time of thread creation
+      pid = last,                       -- process/thread ID
+      parent = cur,                     -- parent thread's PID
+      name = name,                      -- thread name
+      handler = handler,                -- error handler
+      user = kernel.users.uid(),        -- current user
+      users = {},                       -- user history
+      owner = kernel.users.uid(),       -- thread owner
+      sig = {},                         -- signal buffer
+      ipc = {},                         -- IPC buffer
+      env = env,                        -- environment variables
+      deadline = computer.uptime(),     -- signal deadline
+      priority = priority,              -- thread priority
+      uptime = 0,                       -- thread uptime
+      started = computer.uptime()       -- time of thread creation
     }
     if not new.env.PWD then
       new.env.PWD = "/"
     end
+    setmetatable(new, {__index = tasks[cur] or {}})
     tasks[last] = new
     return last
   end

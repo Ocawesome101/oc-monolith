@@ -29,7 +29,8 @@ while true do
         if sig == "thread_errored" and err then
           io.write("\27[31m" .. err .. "\27[37m\n")
         end
-      until sig == "thread_died" or sig == "thread_errored" and dpid == pid
+      until sig == "thread_died" or sig == "thread_errored" and dpid == pid and not thread.info(pid)
+      os.sleep(10)
       out:write("\27[2J\27[1;1H\27[0m") -- reset screen attributes
     end
   end
