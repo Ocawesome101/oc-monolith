@@ -168,11 +168,15 @@ local seen = {}
 function devfs.addComponent(addr)
   checkArg(1, addr, "string")
   local t = component.type(addr)
+  --component.sandbox.log("search adapter", t)
   local adapter = require("devfs.adapters." .. t)
+  --component.sandbox.log("got adapter", t)
   local inst = adapter.instance(addr)
+  --component.sandbox.log(o, inst)
   seen[t] = seen[t] or 0
-  vfs.children[t..seen[t]] = {read = inst.read, write = inst.write, isDirectory = false}
-  vfs.children.components.children[addr] = {read = inst.read, write = inst.write, isDirectory = false, nodename = t..seen[t]}
+  local n = adapter.name or t
+  vfs.children[n..seen[t]] = (inst.isDirectory and inst) or {read = inst.read, write = inst.write, isDirectory = false}
+  vfs.children.components.children[addr:sub(1,3)] = (inst.isDirectory and inst) or {read = inst.read, write = inst.write, isDirectory = false, nodename = n..seen[t]}
   seen[t] = seen[t]+1
   return true
 end
@@ -180,8 +184,8 @@ end
 function devfs.removeComponent(addr)
   checkArg(1, addr, "string")
   local c = vfs.children.component.children
-  if c[addr] then
-    vfs.children[c[addr].nodename] = nil
+  if c[addr:sub(1,3)] then
+    vfs.children[c[addr:sub(1,3)].nodename] = nil
     c[addr] = nil
   end
 end

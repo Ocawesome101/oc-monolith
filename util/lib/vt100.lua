@@ -165,7 +165,7 @@ function vt.emu(gpu)
               gpu.fill(1, 1, w, h, " ")
               cx, cy = 1, 1
             elseif not params[1] or params[1] == 0 then
-              gpu.fill(1, cy, mx, my, " ")
+              gpu.fill(1, cy, w, h, " ")
             end
           elseif char == "S" then
             gpu.copy(1, 1, w, h, 0, -1)

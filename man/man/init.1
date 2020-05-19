@@ -1,0 +1,13 @@
+*NAME&
+        InitMe, init - Monolith userspace initialization
+
+*DESCRIPTION
+        InitMe& is *Monolith&(*5&)'s default init system.  It initializes the @io&, @package&, and @initsvc& libraries and cleans up the global environment.  For more detail on what APIs are provided to the *init& process, see *init&(*5&).
+
+        *InitMe& reads configuration from #/etc/initsvc.cfg&, which holds a Lua table specifying scripts and services to execute.  These should *not& be order-dependent.
+
+*COPYRIGHT
+        Monolith System Interfaces& (c) 2020 Ocawesome101 under the MIT license.
+
+*SEE ALSO
+        init&(*5&), *initsvc&(*2&)
