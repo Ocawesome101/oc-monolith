@@ -5,11 +5,6 @@ local thread = require("thread")
 local rl = {}
 
 local buffers = {}
---[[setmetatable(buffers, {__index = function(tbl, k)
-  local n = {keyboards = {}, down = {}, buffer = ""}
-  buffers[k] = n
-  return n
-end})]]
 
 local replacements = {
   [200] = "\27[A", -- up
@@ -18,6 +13,14 @@ local replacements = {
   [205] = "\27[C", -- right
   [208] = "\27[B", -- down
   [209] = "\27[6"  -- page down
+}
+
+-- needed modifier keys for readline
+local keys = {
+  lcontrol = 0x1D,
+  rcontrol = 0x9D,
+  lshift   = 0x2A,
+  rshift   = 0x36
 }
 
 -- setup the metatable for convenience
@@ -111,7 +114,7 @@ function rl.readline(prompt, opts)
   local arrows = opts.arrows
   if arrows == nil then arrows = true end
   local pos = 1
-  local buffer = ""
+  local buffer = opts.default or ""
   local acts = opts.acts or opts.actions or 
     {
       up = function()
@@ -126,12 +129,18 @@ function rl.readline(prompt, opts)
           buffer = history[ent] or ""
         end
       end,
-      left = function()
+      left = function(ctrl)
+        if ctrl then
+          pos = #buffer
+        end
         if pos <= #buffer then
           pos = pos + 1
         end
       end,
-      right = function()
+      right = function(ctrl)
+        if ctrl then
+          pos = 1
+        end
         if pos > 1 then
           pos = pos - 1
         end
@@ -165,9 +174,9 @@ function rl.readline(prompt, opts)
         elseif esc == "[B" and acts.down then
           pcall(acts.down)
         elseif esc == "[C" then
-          pcall(acts.right)
+          pcall(acts.right, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
         elseif esc == "[D" then
-          pcall(acts.left)
+          pcall(acts.left, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
         end
       else
         buffer = buffer .. "^"
@@ -183,6 +192,12 @@ function rl.readline(prompt, opts)
       io.write("\n")
       if not opts.notrail then buffer = buffer .. "\n" end
       return buffer, history
+    elseif buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol] then
+      if char == "a" then
+        pos = #buffer
+      elseif char == "b" then
+        pos = 1
+      end
     else
       buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub((#buffer - pos) + 2)
     end

@@ -1,6 +1,7 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 65082f2 (built Tue May 19 01:32:40 EDT 2020 by ocawesome101@mpbp-sd)"
+local _INITVERSION = "InitMe 8238134 (built Fri May 22 16:43:11 EDT 2020 by ocawesome101@manjaro-pbp)"
+local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
 local _log = function()end--component.sandbox.log
@@ -217,10 +218,12 @@ do
   end
 
   function _G.print(...)
-    local args = {...}
+    local args = table.pack(...)
     local tp = ""
-    for k, v in ipairs(args) do
-      tp = tp .. tostring(v) .. "\t"
+    local n = args.n
+    for i=1, n, 1 do
+      local k, v = i, args[i]
+      tp = tp .. tostring(v) .. (k < n and "\t" or "")
     end
     return io.stdout:write(tp .. "\n")
   end
@@ -240,6 +243,20 @@ do
       coroutine.yield(m - computer.uptime())
     until computer.uptime() >= m
     return true
+  end
+end
+
+
+log("Running scripts out of /lib/init/....")
+
+local files = kernel.filesystem.list("/lib/init/")
+table.sort(files)
+for k, v in ipairs(files) do
+  log(v)
+  local full = kernel.filesystem.concat("/lib/init", v)
+  local ok, err = loadfile(full)
+  if not ok then
+    panic(err)
   end
 end
 

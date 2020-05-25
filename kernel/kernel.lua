@@ -7,8 +7,8 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "65082f2"
-local _KERNEL_BUILDER = "ocawesome101@mpbp-sd"
+local _KERNEL_REVISION = "8238134"
+local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
@@ -21,6 +21,11 @@ kernel.info = {
   builder       = _KERNEL_BUILDER,
   compiler      = _KERNEL_COMPILER
 }
+
+if computer.setArchitecture then
+  computer.setArchitecture("Lua 5.3")
+end
+
 
 -- bootlogger --
 
@@ -572,9 +577,9 @@ end
 
 -- userspace sandbox and some security features --
 
-kernel.logger.log("wrapping setmetatable,getmetatable for security")
+kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
 
-local smt, gmt = setmetatable, getmetatable
+local smt, gmt, typ = setmetatable, getmetatable, type
 
 function _G.setmetatable(tbl, mt)
   checkArg(1, tbl, "table")
@@ -599,6 +604,14 @@ function _G.getmetatable(tbl)
   else
     return mt
   end
+end
+
+function _G.type(obj)
+  local t = typ(obj)
+  if t == "table" and getmetatable(obj) and getmetatable(obj).__type then
+    return getmetatable(obj).__type
+  end
+  return t
 end
 
 kernel.logger.log("setting up userspace sandbox")
@@ -669,7 +682,7 @@ do
 
   local function getHandler(thd)
     local p = tasks[thd.parent] or {handler = kernel.logger.panic}
-    return thd.handler or p.handler or getHandler(p)
+    return thd.handler or p.handler or getHandler(p) or kernel.logger.panic
   end
 
   local function handleProcessError(thd, err)
@@ -704,26 +717,28 @@ do
           return xpcall(func, debug.traceback)
         end
       ),
-      pid = last,                       -- process/thread ID
-      parent = cur,                     -- parent thread's PID
-      name = name,                      -- thread name
-      handler = handler,                -- error handler
-      user = kernel.users.uid(),        -- current user
-      users = {},                       -- user history
-      owner = kernel.users.uid(),       -- thread owner
-      sig = {},                         -- signal buffer
-      ipc = {},                         -- IPC buffer
-      env = env,                        -- environment variables
-      deadline = computer.uptime(),     -- signal deadline
-      priority = priority,              -- thread priority
-      uptime = 0,                       -- thread uptime
-      started = computer.uptime()       -- time of thread creation
+      pid = last,                               -- process/thread ID
+      parent = cur,                             -- parent thread's PID
+      name = name,                              -- thread name
+      handler = handler or kernel.logger.panic, -- error handler
+      user = kernel.users.uid(),                -- current user
+      users = {},                               -- user history
+      owner = kernel.users.uid(),               -- thread owner
+      sig = {},                                 -- signal buffer
+      ipc = {},                                 -- IPC buffer
+      env = env,                                -- environment variables
+      deadline = computer.uptime(),             -- signal deadline
+      priority = priority,                      -- thread priority
+      uptime = 0,                               -- thread uptime
+      stopped = false,                          -- is it stopped?
+      started = computer.uptime()               -- time of thread creation
     }
     if not new.env.PWD then
       new.env.PWD = "/"
     end
     setmetatable(new, {__index = tasks[cur] or {}})
     tasks[last] = new
+    computer.pushSignal("thread_spawned", last)
     return last
   end
 
@@ -859,6 +874,8 @@ do
   thread.signals = {
     interrupt = 2,
     quit      = 3,
+    stop      = 19,
+    continue  = 18,
     term      = 15,
     usr1      = 65,
     usr2      = 66,
@@ -883,7 +900,7 @@ do
       local run = {}
       for pid, thd in pairs(tasks) do
         tasks[pid].uptime = computer.uptime() - thd.started
-        if thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0 then
+        if (thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0) and not thd.stopped then
           run[#run + 1] = thd
         end
       end
@@ -911,6 +928,10 @@ do
           if nsig[3] == thread.signals.kill then
             thd.dead = true
             ok, p1, p2 = true, nil, "killed"
+          elseif nsig[3] == thread.signals.stop then
+            thd.stopped = true
+          elseif nsig[3] == thread.signals.continue then
+            thd.stopped = false
           else
             ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
           end
@@ -976,7 +997,7 @@ end
 sandbox.loadfile = loadfile
 
 
-kernel.logger.log("loadinig init from " .. flags.init)
+kernel.logger.log("loading init from " .. flags.init)
 
 local ok, err = loadfile(flags.init, "bt", sandbox)
 if not ok then

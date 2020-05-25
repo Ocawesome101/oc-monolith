@@ -21,6 +21,11 @@ kernel.info = {
   builder       = _KERNEL_BUILDER,
   compiler      = _KERNEL_COMPILER
 }
+
+if computer.setArchitecture then
+  computer.setArchitecture("Lua 5.3")
+end
+
 --#include "module/logger.lua"
 --#include "module/component.lua"
 -- --#include "module/initfs.lua"
@@ -32,7 +37,7 @@ kernel.info = {
 --#include "module/thread.lua"
 --#include "module/loadfile.lua"
 
-kernel.logger.log("loadinig init from " .. flags.init)
+kernel.logger.log("loading init from " .. flags.init)
 
 local ok, err = loadfile(flags.init, "bt", sandbox)
 if not ok then

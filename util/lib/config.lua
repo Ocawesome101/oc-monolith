@@ -15,7 +15,7 @@ function config.load(file, defaults)
 
   local handle, err = fs.open(file, "r")
   if not handle then
-    return nil, err
+    return {}, err
   end
   local data = handle:read("*a")
   handle:close()

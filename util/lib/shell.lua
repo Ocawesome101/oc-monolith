@@ -12,7 +12,7 @@ local aliases = {}
 --log("shell builtins")
 shell.builtins = {
   [":"] = function() return 0 end,
-  ["source"] = function(path)
+  source = function(path)
     checkArg(1, path, "string")
     return shell.execute(path)
   end,
@@ -20,7 +20,11 @@ shell.builtins = {
   cd = function(dir)
     local path = dir or os.getenv("HOME") or "/"
     if path:sub(1,1) ~= "/" then
-      path = fs.concat(os.getenv("PWD") or "/", path)
+      if path:sub(1,1) == "~" then
+        path = fs.concat((os.getenv("HOME") or "/"), path:sub(2))
+      else
+        path = fs.concat(os.getenv("PWD") or "/", path)
+      end
     end
     if not fs.exists(path) then
       shell.error("cd", string.format("%s: no such file or directory", dir))
@@ -81,8 +85,12 @@ shell.builtins = {
         sig = thread.signals.quit
       elseif sig == "-SIGTERM" then
         sig = thread.signals.term
+      elseif sig == "-SIGSTOP" then
+        sig = thread.signals.stop
+      elseif sig == "-SIGCONT" then
+        sig = thread.signals.continue
       else
-        shell.error("kill", "signal must be one of: SIGINT, SIGQUIT, SIGTERM, USR1, USR2, SIGKILL")
+        shell.error("kill", "signal must be one of: SIGINT, SIGQUIT, SIGCONT, SIGSTOP, SIGTERM, USR1, USR2, SIGKILL")
         return shell.codes.argument
       end
     else
@@ -98,7 +106,7 @@ shell.builtins = {
     local ts = {...}
     if #ts == 0 or ts[1] == "-p" then
       for k, v in pairs(os.getenv()) do
-        print(string.format("%s = %s", k, v))
+        print(string.format("%s = %s", k, tostring(v):gsub("\27", "\\27")))
       end
     else
       for k, v in pairs(ts) do
@@ -303,7 +311,7 @@ local function split(cmd, spt)
 end
 
 local function execute(cmd, ...)
-  local tokens = text.tokenize(shell.vars(table.concat({cmd, ...}, " ")))
+  local tokens = text.tokenize(shell.vars(table.concat({cmd, ...}, " "):gsub("\\27", "\27")))
   if #tokens == 0 then return end
   if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]]; tokens = text.tokenize(shell.vars(table.concat(tokens, " "))) end
   local path, ftype = shell.resolve(tokens[1])

@@ -1,8 +1,8 @@
 -- userspace sandbox and some security features --
 
-kernel.logger.log("wrapping setmetatable,getmetatable for security")
+kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
 
-local smt, gmt = setmetatable, getmetatable
+local smt, gmt, typ = setmetatable, getmetatable, type
 
 function _G.setmetatable(tbl, mt)
   checkArg(1, tbl, "table")
@@ -27,6 +27,14 @@ function _G.getmetatable(tbl)
   else
     return mt
   end
+end
+
+function _G.type(obj)
+  local t = typ(obj)
+  if t == "table" and getmetatable(obj) and getmetatable(obj).__type then
+    return getmetatable(obj).__type
+  end
+  return t
 end
 
 kernel.logger.log("setting up userspace sandbox")

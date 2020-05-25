@@ -99,10 +99,12 @@ do
   end
 
   function _G.print(...)
-    local args = {...}
+    local args = table.pack(...)
     local tp = ""
-    for k, v in ipairs(args) do
-      tp = tp .. tostring(v) .. "\t"
+    local n = args.n
+    for i=1, n, 1 do
+      local k, v = i, args[i]
+      tp = tp .. tostring(v) .. (k < n and "\t" or "")
     end
     return io.stdout:write(tp .. "\n")
   end

@@ -9,6 +9,7 @@ function cpio.extract(file, dir)
   checkArg(2, dir, "string", "nil")
   dir = dir or os.getenv("PWD")
   local file = io.open(args[1], "rb")
+  local extracted = {}
 
   local dent = {
     magic = 0,
@@ -60,6 +61,7 @@ function cpio.extract(file, dir)
     if (name == "TRAILER!!!") then break end
     dent.name = name
     print(name)
+    table.insert(extracted, name)
     if (dent.namesize % 2 ~= 0) then
       file:seek("cur", 1)
     end
@@ -70,4 +72,8 @@ function cpio.extract(file, dir)
       file:seek("cur", 1)
     end
   end
+
+  return extracted
 end
+
+return cpio

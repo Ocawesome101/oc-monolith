@@ -48,7 +48,7 @@ do
 
   local function getHandler(thd)
     local p = tasks[thd.parent] or {handler = kernel.logger.panic}
-    return thd.handler or p.handler or getHandler(p)
+    return thd.handler or p.handler or getHandler(p) or kernel.logger.panic
   end
 
   local function handleProcessError(thd, err)
@@ -83,26 +83,28 @@ do
           return xpcall(func, debug.traceback)
         end
       ),
-      pid = last,                       -- process/thread ID
-      parent = cur,                     -- parent thread's PID
-      name = name,                      -- thread name
-      handler = handler,                -- error handler
-      user = kernel.users.uid(),        -- current user
-      users = {},                       -- user history
-      owner = kernel.users.uid(),       -- thread owner
-      sig = {},                         -- signal buffer
-      ipc = {},                         -- IPC buffer
-      env = env,                        -- environment variables
-      deadline = computer.uptime(),     -- signal deadline
-      priority = priority,              -- thread priority
-      uptime = 0,                       -- thread uptime
-      started = computer.uptime()       -- time of thread creation
+      pid = last,                               -- process/thread ID
+      parent = cur,                             -- parent thread's PID
+      name = name,                              -- thread name
+      handler = handler or kernel.logger.panic, -- error handler
+      user = kernel.users.uid(),                -- current user
+      users = {},                               -- user history
+      owner = kernel.users.uid(),               -- thread owner
+      sig = {},                                 -- signal buffer
+      ipc = {},                                 -- IPC buffer
+      env = env,                                -- environment variables
+      deadline = computer.uptime(),             -- signal deadline
+      priority = priority,                      -- thread priority
+      uptime = 0,                               -- thread uptime
+      stopped = false,                          -- is it stopped?
+      started = computer.uptime()               -- time of thread creation
     }
     if not new.env.PWD then
       new.env.PWD = "/"
     end
     setmetatable(new, {__index = tasks[cur] or {}})
     tasks[last] = new
+    computer.pushSignal("thread_spawned", last)
     return last
   end
 
@@ -238,6 +240,8 @@ do
   thread.signals = {
     interrupt = 2,
     quit      = 3,
+    stop      = 19,
+    continue  = 18,
     term      = 15,
     usr1      = 65,
     usr2      = 66,
@@ -262,7 +266,7 @@ do
       local run = {}
       for pid, thd in pairs(tasks) do
         tasks[pid].uptime = computer.uptime() - thd.started
-        if thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0 then
+        if (thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0) and not thd.stopped then
           run[#run + 1] = thd
         end
       end
@@ -290,6 +294,10 @@ do
           if nsig[3] == thread.signals.kill then
             thd.dead = true
             ok, p1, p2 = true, nil, "killed"
+          elseif nsig[3] == thread.signals.stop then
+            thd.stopped = true
+          elseif nsig[3] == thread.signals.continue then
+            thd.stopped = false
           else
             ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
           end
