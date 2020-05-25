@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 8238134 (built Fri May 22 16:43:11 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe fe517e8 (built Sun May 24 21:06:53 EDT 2020 by ocawesome101@windowsisbad)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -246,20 +246,7 @@ do
   end
 end
 
-
-log("Running scripts out of /lib/init/....")
-
-local files = kernel.filesystem.list("/lib/init/")
-table.sort(files)
-for k, v in ipairs(files) do
-  log(v)
-  local full = kernel.filesystem.concat("/lib/init", v)
-  local ok, err = loadfile(full)
-  if not ok then
-    panic(err)
-  end
-end
-
+---#include "module/initd.lua"
 
 -- `initsvc` lib. --
 
@@ -394,6 +381,8 @@ require("thread").spawn(ok, "/sbin/getty.lua", panic)
   local component = require("component")
   local computer  = require("computer")
   for a, t in component.list() do
+  :a
+  :q
     computer.pushSignal("component_added", a, t)
   end
 end]]

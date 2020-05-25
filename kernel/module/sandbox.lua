@@ -2,7 +2,19 @@
 
 kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
 
-local smt, gmt, typ = setmetatable, getmetatable, type
+local smt, gmt, typ, err = setmetatable, getmetatable, type, error
+
+function _G.error(e, l)
+  local pref = "/"
+  if fs.get("/").isReadOnly() then
+    pref = "/tmp/"
+  end
+  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "w")
+  handle:write(debug.traceback(e))
+  --kernel.logger.log(debug.traceback(e))
+  handle:close()
+  err(e, l)
+end
 
 function _G.setmetatable(tbl, mt)
   checkArg(1, tbl, "table")

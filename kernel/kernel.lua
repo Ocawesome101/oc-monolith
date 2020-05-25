@@ -7,8 +7,8 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "8238134"
-local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
+local _KERNEL_REVISION = "fe517e8"
+local _KERNEL_BUILDER = "ocawesome101@windowsisbad"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
@@ -579,7 +579,19 @@ end
 
 kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
 
-local smt, gmt, typ = setmetatable, getmetatable, type
+local smt, gmt, typ, err = setmetatable, getmetatable, type, error
+
+function _G.error(e, l)
+  local pref = "/"
+  if fs.get("/").isReadOnly() then
+    pref = "/tmp/"
+  end
+  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "w")
+  handle:write(debug.traceback(e))
+  --kernel.logger.log(debug.traceback(e))
+  handle:close()
+  err(e, l)
+end
 
 function _G.setmetatable(tbl, mt)
   checkArg(1, tbl, "table")
@@ -956,11 +968,11 @@ do
         end
 
         -- this might reduce performance, we shall see
-        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+        if computer.freeMemory() < 1024*1024*1.5 then -- oh no, we're out of memory
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
-          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+          if computer.freeMemory() < 1024*1024 then -- GC didn't help. Panic!
             kernel.logger.panic("out of memory")
           end
         end

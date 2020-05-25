@@ -322,11 +322,11 @@ do
         end
 
         -- this might reduce performance, we shall see
-        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+        if computer.freeMemory() < 1024*1024*1.5 then -- oh no, we're out of memory
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
-          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+          if computer.freeMemory() < 1024*1024 then -- GC didn't help. Panic!
             kernel.logger.panic("out of memory")
           end
         end

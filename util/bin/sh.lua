@@ -1,8 +1,8 @@
 -- very heavily inspired by the default *nix Bourne shell --
 
 -- reload shell and sh, else things break badly for unknown reasons
-local shell = require("shell", true)
-local sh = require("sh", true)
+local shell = require("shell")
+local sh = require("sh")
 local readline = require("readline").readline
 local thread = require("thread")
 

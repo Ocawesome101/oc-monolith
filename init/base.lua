@@ -17,13 +17,15 @@ log(_INITVERSION)
 --#include "module/package.lua"
 --#include "module/io.lua"
 --#include "module/os.lua"
---#include "module/initd.lua"
+---#include "module/initd.lua"
 --#include "module/initsvc.lua"
 
 --[[do
   local component = require("component")
   local computer  = require("computer")
   for a, t in component.list() do
+  :a
+  :q
     computer.pushSignal("component_added", a, t)
   end
 end]]
