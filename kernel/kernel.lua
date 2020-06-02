@@ -7,8 +7,13 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
+<<<<<<< HEAD
 local _KERNEL_REVISION = "88c89a1"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
+=======
+local _KERNEL_REVISION = "f17d9bd"
+local _KERNEL_BUILDER = "ocawesome101@networksaredumb"
+>>>>>>> b6147a9826ac63487a604de78ad776cf637e703c
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
@@ -987,11 +992,18 @@ do
 
         -- this might reduce performance, we shall see
         if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+<<<<<<< HEAD
           --kernel.logger.log("low memory after thread " .. thd.name .. " - collecting garbage")
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
           if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+=======
+          for i=1, 50 do -- invoke GC
+            computer.pullSignal(0)
+          end
+          if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
+>>>>>>> b6147a9826ac63487a604de78ad776cf637e703c
             kernel.logger.panic("out of memory")
           end
         end
