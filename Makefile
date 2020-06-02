@@ -14,4 +14,4 @@ all:
 
 release: all
 	cd build && find ./* | cpio -o > ../release.cpio && cd ..
-	lua5.3 lzssit.lua
+#	lua5.3 lzssit.lua
