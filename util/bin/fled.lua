@@ -38,46 +38,6 @@ local function lineread(line, y)
   return readline(string.format("\27[%d;1H\27[91m%4d \27[37m", y, line), opts)
 end
 
---[[ built-in (broken) highlighting for Lua
-local luaKeywords = {
-  ["function"]  = 94,
-  ["while"]     = 93,
-  ["do"]        = 93,
-  ["end"]       = 93,
-  ["true"]      = 95,
-  ["false"]     = 95,
-  ["repeat"]    = 93,
-  ["until"]     = 93,
-  ["local"]     = 93
-}
-
-local function escape(s) -- escape pattern chars from string
-  local r = ""
-  for char in s:gmatch(".") do
-    if char:match("[%^%$%(%)%%%.%[%]%*%+%-%?]") then
-      r = r .. "%"
-    end
-    r = r .. char
-  end
-  return r
-end
--- vt100-based syntax highlighting functions
-local langs = {
-  txt = function(l) return l end,
-  lua = function(l)
-    local rt = l
-    -- match keywords
-    for kw, col in pairs(luaKeywords) do
-      rt = rt:gsub(kw, string.format("\27[%dm%s\27[37m", col, kw))
-    end
-    -- match strings
-    for match in rt:gmatch([[(["'][%g ]+["'])]]--[[) do
-      rt = rt:gsub(escape(match), "\27[91m" .. match .. "\27[37m")
-    end
-    return rt
-  end
-}]]
-
 local function split(w)
   local W = {}
   for _w in w:gmatch("[^ \n]+") do
@@ -165,6 +125,7 @@ local function binst(b, l)
   local _b=buf[b]
   local c = l
   while true do
+    opts.text = _b.buf[c] or ""
     local ln = lineread(c, c - _b.scroll)
     if ln:sub(1,1) == "." then break end
     table.insert(_b.buf,c,ln)

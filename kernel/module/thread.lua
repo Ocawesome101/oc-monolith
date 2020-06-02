@@ -238,6 +238,23 @@ do
     return cur
   end
 
+  -- detach from the parent thread
+  function thread.detach()
+    tasks[cur].parent = 1
+  end
+
+  -- detach any child thread, parent it to init
+  function thread.orphan(pid)
+    checkArg(1, pid, "number")
+    if not tasks[pid] then
+      return nil, "no such thread"
+    end
+    if tasks[pid].parent ~= cur then
+      return nil, "thread is not a child of current"
+    end
+    tasks[pid].parent = 1 -- init
+  end
+
   thread.signals = {
     interrupt = 2,
     quit      = 3,

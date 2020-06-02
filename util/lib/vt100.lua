@@ -224,7 +224,11 @@ function vt.emu(gpu)
     gpu.set(cx, cy, char)
     gpu.setForeground(fg)
     gpu.setBackground(bg)
-    return resp, echo--, dhist
+    if resp ~= "" then
+      computer.pushSignal("vt_response", gpu.getScreen(), resp)
+      resp = ""
+    end
+    --return resp, echo--, dhist
   end
   return vtwrite
 end

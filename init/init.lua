@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 22d8694 (built Mon Jun 01 20:32:46 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 88c89a1 (built Mon Jun 01 23:53:18 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -280,6 +280,7 @@ do
       thread.spawn(senv.start, service, handler or print)
     end]]
     local pid = thread.spawn(ok, service, handler or panic)
+    thread.orphan(pid)
     svc[service] = pid
     return true
   end

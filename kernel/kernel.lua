@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "22d8694"
+local _KERNEL_REVISION = "88c89a1"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -882,6 +882,23 @@ do
 
   function thread.current()
     return cur
+  end
+
+  -- detach from the parent thread
+  function thread.detach()
+    tasks[cur].parent = 1
+  end
+
+  -- detach any child thread, parent it to init
+  function thread.orphan(pid)
+    checkArg(1, pid, "number")
+    if not tasks[pid] then
+      return nil, "no such thread"
+    end
+    if tasks[pid].parent ~= cur then
+      return nil, "thread is not a child of current"
+    end
+    tasks[pid].parent = 1 -- init
   end
 
   thread.signals = {

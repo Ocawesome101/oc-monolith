@@ -78,6 +78,7 @@ function getty.scan()
 
   while true do
     local gpu, screen = nextGPU(), nextScreen()
+--    logger.log(gpu, screen)
     if gpu and screen then
       --local sr, sw, sc = vt100.session(gpu, screen)
       local ios = makeStream(gpu, screen)--stream.new(sr, sw, sc)]]

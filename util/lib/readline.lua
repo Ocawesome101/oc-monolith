@@ -32,6 +32,11 @@ setmetatable(replacements, {__index = function() return "" end})
 -- 2. if the keyboard is registered, it checks the character code
 -- 3. if the character code is >0, we concatenate it to the screen's buffer with string.char, else goto step 4
 -- 4. if the character code is 0, we concatenate one of the keycode replacements, or nothing
+--
+-- I'm fairly certain that one single key input thread will be
+-- faster, in most cases, than one per terminal session
+-- granted, this isn't much of an issue whilst multi-
+-- terminal is broken :/
 local function listener()
   while true do
     local signal, keyboard, character, keycode = coroutine.yield()
@@ -49,6 +54,9 @@ local function listener()
       buffers[screen].down[keycode] = false
     elseif signal == "clipboard" and buffers[keyboard] then
       local screen = buffers[keyboard]
+      buffers[screen].buffer = buffers[screen].buffer .. character
+    elseif signal == "vt_response" and buffers[keyboard] then
+      local screen = keyboard
       buffers[screen].buffer = buffers[screen].buffer .. character
     end
   end
@@ -114,7 +122,8 @@ function rl.readline(prompt, opts)
   local arrows = opts.arrows
   if arrows == nil then arrows = true end
   local pos = 1
-  local buffer = opts.default or ""
+  local buffer = opts.default or opts.text or ""
+  local highlighter = opts.highlighter or opts.syntax or function(e)return e end
   local acts = opts.acts or opts.actions or 
     {
       up = function()
@@ -158,7 +167,7 @@ function rl.readline(prompt, opts)
   local function redraw()
     local write = buffer
     if pwchar then write = pwchar:rep(#buffer) end
-    io.write(string.format("\27[%d;%dH%s%s \27[2K", sy, 1, prompt, write))
+    io.write(string.format("\27[%d;%dH%s%s \27[2K", sy, 1, prompt, highlighter(write)))
     --local span = math.max(1, math.ceil(#prompt + #buffer / w))
     io.write(string.rep("\8", pos)) -- move the cursor to where it should be
   end

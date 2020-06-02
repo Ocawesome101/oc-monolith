@@ -30,6 +30,7 @@ do
       thread.spawn(senv.start, service, handler or print)
     end]]
     local pid = thread.spawn(ok, service, handler or panic)
+    thread.orphan(pid)
     svc[service] = pid
     return true
   end
