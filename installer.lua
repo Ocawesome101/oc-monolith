@@ -1,24 +1,23 @@
 -- install Monolith --
 -- requires an LZSS library --
 
-local CPIO = "https://raw.githubusercontent.com/ocawesome101/oc-monolith/master/release.cpio.lzss"
-local ARCPATH = "/mnt/monolith.cpio.lzss"
+local CPIO = "https://raw.githubusercontent.com/ocawesome101/oc-monolith/master/release.cpio"
+local ARCPATH = "/mnt/monolith.cpio"
 local MOUNT = "/mnt/install/"
-local EXTPATH = "/mnt/install/rootfs.cpio"
 
 -- pretty requires
 local serialization = require("serialization")
 local component    = require("component")
 local computer    = require("computer")
 local internet   = require("internet")
-local lzss      = require("lzss")
-local sha      = require("sha3")
+--local lzss      = require("lzss")
+local sha3     = require("sha3")
 local fs      = require("filesystem")
 
 local ask = {}
 local fsl = component.list("filesystem")
 local blacklist = {[computer.getBootAddress()] = true, [computer.tmpAddress()] = true}
-for fsa, _ in fs do
+for fsa, _ in fsl do
   if not blacklist[fsa] then
     ask[#ask + 1] = fsa
   end
@@ -29,7 +28,8 @@ local function uncpio(file, dest)
   checkArg(1, file, "string")
   checkArg(2, dest, "string")
   local dir = dest
-  local file = io.open(args[1], "rb")
+  local file = io.open(file, "rb")
+  local filesystem = fs
 
   local dent = {
     magic = 0,
@@ -57,8 +57,9 @@ local function uncpio(file, dest)
     local _dir = dent.name:match("(.+)/.*%.?.+")
     if (_dir) then
       filesystem.makeDirectory(dir.."/".._dir)
+--      dir = dir .. "/" .. _dir
     end
-    local hand = io.open(dir.."/"..dent.name, "w")
+    local hand = assert(io.open(dir.."/"..dent.name, "w"))
     hand:write(file:read(dent.filesize))
     hand:close()
   end
@@ -105,9 +106,9 @@ local function unlzss(file, dest)
 end
 
 local function menu(opts)
-  print("\27[2JPlease choose one:")
+  print("\27[2J\27[1;1HPlease choose one:")
   for k, v in ipairs(opts) do
-    print(string.format("\27[%dH. %s", k, v))
+    print(string.format(" %d. %s", k, v))
   end
   local n
   repeat
@@ -121,7 +122,8 @@ end
 local function prompt(msg)
   local inp = ""
   repeat
-    inp = io.read():gsub("\n", "")
+    io.write(msg)
+    inp = (io.read() or ""):gsub("\n", "")
   until inp ~= ""
   return inp
 end
@@ -136,8 +138,8 @@ local function download(url, file)
 end
 
 print("Make sure your TMPFS is COMPLETELY empty!")
-fsl[#fsl + 1] = "Quit"
-local ifs = menu(fsl)
+ask[#ask + 1] = "Quit"
+local ifs = menu(ask)
 if ifs == "Quit" then return 0 end
 
 fs.mount(ifs, MOUNT)
@@ -146,26 +148,26 @@ print("Mounted install fs at " .. MOUNT)
 print("Downloading " .. CPIO .. " as " .. ARCPATH)
 download(CPIO, ARCPATH)
 
-print("Decompressing archive to " .. EXTPATH)
-unlzss(ARCPATH, EXTPATH)
+--print("Decompressing archive to " .. EXTPATH)
+--unlzss(ARCPATH, EXTPATH)
 
 print("Extracting CPIO to " .. MOUNT)
-uncpio(EXTPATH, MOUNT)
+uncpio(ARCPATH, MOUNT)
 
 print("Cleaning up installation files...")
-fs.remove(EXTPATH)
+--fs.remove(EXTPATH)
 fs.remove(ARCPATH)
 
 print("Now that the system has been installed, you should set up a user.")
 
-print("\27[8mWARNING: if you can see this message, your terminal does NOT have support for hidden text input.\27[0m")
+--print("\27[8mWARNING: if you can see this message, your terminal does NOT have support for hidden text input.\27[0m")
 
-local rootpass = prompt("root password: \27[8;30;40m")
+local rootpass = prompt("root password: \27[30;40m")
 
 io.write("\27[0m")
 local name = prompt("username: ")
 
-local password = prompt("password: \27[8;30;40m")
+local password = prompt("password: \27[30;40m")
 local passwd = fs.concat(MOUNT, "/etc/passwd")
 
 local function tohex(str)
