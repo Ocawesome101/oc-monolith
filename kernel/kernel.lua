@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "4f862ab"
+local _KERNEL_REVISION = "f17d9bd"
 local _KERNEL_BUILDER = "ocawesome101@networksaredumb"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
