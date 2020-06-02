@@ -39,7 +39,7 @@ shell.extensions = {
   lua = true
 }
 
-shell.builtins = {
+--[[shell.builtins = {
   echo = function(...) print(table.concat({...}, " ")) end,
   cd = function(dir)
     local path = dir or os.getenv("HOME") or "/"
@@ -154,7 +154,7 @@ shell.builtins = {
   sleep = function(t)
     os.sleep(tonumber(t) or 1)
   end
-}
+}]]
 
 local function percent(s)
   local r = ""
@@ -182,24 +182,31 @@ end
 
 shell.vars = shell.expand
 
-shell.parse = require("shell_old").parse
---[[function shell.parse(ops, ...)
-  local parse = {ops, ...}
-  local opts = (type(ops) == "table" and table.remove(parse, 1)) or {short = "-", long = "--"}
+function shell.parse(...)
+  local params = {...}
+  local inopt = false
+  local cropt = ""
   local args, opts = {}, {}
-  for i=1, #parse, 1 do
-    local op = parse[i]
-    if op:sub(1, 2) == "--" then
-      table.insert(opts, op:sub(3))
-    elseif op:sub(1, 1) == "-" then
-      table.insert(opts, op:sub(2))
+  for i=1, #params, 1 do
+    local p = params[i]
+    if p:sub(1,2) == "--" then -- "long" option
+      local o = p:sub(3)
+      local op, vl = o:match("([%w]+)=([%w/,:]+)") -- I amaze myself with these patterns sometimes
+      if op and vl then
+        opts[op] = vl or true
+      else
+        opts[o] = true
+      end
+    elseif p:sub(1,1) == "-" then -- "short" option
+      for opt in p:gmatch(".") do
+        opts[opt] = true
+      end
     else
-      table.insert(args, op)
+      args[#args + 1] = p
     end
   end
-  --print(table.unpack(args), "OPTS", table.unpack(opts))
   return args, opts
-end]]
+end
 
 function shell.setAlias(k, v)
   checkArg(1, k, "string")
@@ -262,81 +269,26 @@ function shell.resolve(path, ext)
   return nil, path .. ": command not found"
 end
 
-local function spawnCommand(cmd, stdin, stdout, ...)
-  local path, err = shell.resolve(cmd, "lua")
-  local args = {...}
-  print("SC", path, err)
-  if not path then
-    return nil, err
-  end
-  local ok, err = loadfile(path)
-  print("LF", ok, err)
-  if not ok then
-    return nil, err
-  end
-  local env = {["0"] = cmd}
-  for i=1, #args, 1 do
-    env[tostring(i - 1)] = args[i]
-  end
-  local errno
-  print("SPAWN", cmd, stdin, stdin == io.input(), stdout, stdout == io.output())
-  local pid = thread.spawn(function()errno = ok(table.unpack(args))end, path, function(err)shell.error(cmd, err)end, env)--, stdin, stdout)
-  print("WAIT", pid)
-  while (not errno) and thread.info(pid) do coroutine.yield() end
-  print("ERRNO", errno)
-  return errno
-end
-
-local function pipeCommands(cmd1, cmd2, ...)
-  local args = {cmd1, cmd2, ...}
-  --print("PIPECMD", #args, cmd1, cmd2, ...)
-  local result = 0
-  local pipe = pipe.create()
-  for i=1, #args, 1 do
-    local input, output = io.input(), io.output()
-    if #args == 1 then
-      --print("STDIN UNCHANGED")
-      -- stub
-    elseif i % 2 == 0 and i < #args then
-      input, output = pipe.input, pipe.output
-    elseif i > 1 and i < #args then
-      input, output = pipe.output, pipe.input
-    elseif i == 1 then
-      output = pipe.output
-    elseif i == #args then
-      if i % 2 == 0 then
-        input = pipe.input
-      else
-        input = pipe.output
-      end
-    end
-    local split = shell.split(args[i])
-    --print("SPLIT", table.unpack(split))
-    if aliases[split[1]] then
-      split = shell.split(table.concat({aliases[split[1]], table.unpack(split, 2)}, " "))
-    end
-    local cmd = split[1]
-    local argc = {table.unpack(split, 2)}
-    --print("PIPE", table.unpack(split))
-    if shell.builtins[cmd] then
-      --print("BUILTIN")
-      result = shell.builtins[cmd](table.unpack(args))
-    else
-      --print("NOT BUILTIN")
-      result = spawnCommand(cmd, input, output, table.unpack(argc))
-    end
-    if result and result ~= 0 then return result, cmd end
-  end
-  return result or 0
-end
-
 function shell.execute(...)
   local commands = text.split(table.concat({...}, " "), "|")
   --print("EXEC", table.unpack(commands))
-  local exit, command = pipeCommands(table.unpack(commands))
-  if exit ~= 0 then
-    shell.error(command, shell.errors[exit])
-    return nil, shell.errors[exit]
+  for k, v in pairs(commands) do
+    commands[k] = text.split(v)
+    commands[k][1] = shell.resolve(commands[k][1], "lua")
+  end
+  local pids, err = pipe.chain(commands)
+  if not pids then
+    return shell.error("sh", err)
+  end
+  local running = true
+  while running do
+    running = false
+    for _, pid in pairs(pids) do
+      if thread.info(pid) then
+        running = true
+      end
+    end
+    coroutine.yield()
   end
   return true
 end

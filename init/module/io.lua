@@ -95,7 +95,7 @@ do
   end
 
   function io.write(...)
-    return io.output():write(...)
+    return io.output():write(table.concat({...}))
   end
 
   function _G.print(...)

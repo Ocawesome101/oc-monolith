@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe fe517e8 (built Sun May 24 21:06:53 EDT 2020 by ocawesome101@windowsisbad)"
+local _INITVERSION = "InitMe 4259c7d (built Mon Jun 01 20:28:27 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -214,7 +214,7 @@ do
   end
 
   function io.write(...)
-    return io.output():write(...)
+    return io.output():write(table.concat({...}))
   end
 
   function _G.print(...)
@@ -366,14 +366,16 @@ do
       end
     end
   end
+  log("done")
   --require("computer").pushSignal("init")
   coroutine.yield(0)
 end
 
 local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
-  panic(err)
+  panic("GETTY load failed: " .. err)
 end
+log("starting getty")
 require("thread").spawn(ok, "/sbin/getty.lua", panic)
 
 

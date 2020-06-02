@@ -7,8 +7,8 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "fe517e8"
-local _KERNEL_BUILDER = "ocawesome101@windowsisbad"
+local _KERNEL_REVISION = "4259c7d"
+local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
@@ -701,7 +701,7 @@ do
     local h = getHandler(thd)
     tasks[thd.pid] = nil
     computer.pushSignal("thread_errored", thd.pid, err)
-    h(err)
+    h(thd.name .. ": " .. err)
   end
 
   local global_env = {}
@@ -726,7 +726,8 @@ do
     local new = {
       coro = coroutine.create( -- the thread itself
         function()
-          return xpcall(func, debug.traceback)
+          local ok, err = xpcall(func, debug.traceback)
+          if not ok and err then error(err) end
         end
       ),
       pid = last,                               -- process/thread ID
@@ -968,11 +969,12 @@ do
         end
 
         -- this might reduce performance, we shall see
-        if computer.freeMemory() < 1024*1024*1.5 then -- oh no, we're out of memory
+        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+          --kernel.logger.log("low memory after thread " .. thd.name .. " - collecting garbage")
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
-          if computer.freeMemory() < 1024*1024 then -- GC didn't help. Panic!
+          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
             kernel.logger.panic("out of memory")
           end
         end
@@ -998,6 +1000,7 @@ local function loadfile(file, mode, env)
   if not handle then
     return nil, err
   end
+  --kernel.logger.log("loadfile " .. file)
   local data = handle:read("*a")
   handle:close()
   if data:sub(1,1) == "#" then -- crude shebang detection

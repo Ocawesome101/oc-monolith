@@ -28,6 +28,7 @@ while true do
         local sig, dpid, err = coroutine.yield()
         if sig == "thread_errored" and err then
           io.write("\27[31m" .. err .. "\27[37m\n")
+          os.sleep(10)
         end
       until sig == "thread_died" or sig == "thread_errored" and dpid == pid and not thread.info(pid)
       --os.sleep(10)

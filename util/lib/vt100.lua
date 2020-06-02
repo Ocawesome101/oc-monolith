@@ -59,8 +59,8 @@ function vt.emu(gpu)
       cy = h
     end
     
+    if cx < 1 then cx = w cy = cy - 1 end
     if cy < 1 then cy = 1 end
-    if cx < 1 then cx = 1 end
   end
   
   local function flush()

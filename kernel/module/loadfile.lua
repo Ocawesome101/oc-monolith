@@ -10,6 +10,7 @@ local function loadfile(file, mode, env)
   if not handle then
     return nil, err
   end
+  --kernel.logger.log("loadfile " .. file)
   local data = handle:read("*a")
   handle:close()
   if data:sub(1,1) == "#" then -- crude shebang detection

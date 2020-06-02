@@ -108,7 +108,10 @@ local function split(cmd, spt)
 end
 
 local function execute(cmd, ...)
-  local tokens = text.tokenize(shell.vars(table.concat({cmd, ...}, " "):gsub("\\27", "\27")))
+  local concat = table.concat({cmd, ...}, " ")
+  concat = concat:gsub("#[.]+", "")
+  if concat:sub(1,1) == "#" then return nil end
+  local tokens = text.tokenize(shell.vars(concat):gsub("\\27", "\27"))
   if #tokens == 0 then return end
   if aliases[tokens[1]] then tokens[1] = aliases[tokens[1]]; tokens = text.tokenize(shell.vars(table.concat(tokens, " "))) end
   local path, ftype = shell.resolve(tokens[1])

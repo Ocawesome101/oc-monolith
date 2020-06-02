@@ -55,7 +55,7 @@ do
     local h = getHandler(thd)
     tasks[thd.pid] = nil
     computer.pushSignal("thread_errored", thd.pid, err)
-    h(err)
+    h(thd.name .. ": " .. err)
   end
 
   local global_env = {}
@@ -80,7 +80,8 @@ do
     local new = {
       coro = coroutine.create( -- the thread itself
         function()
-          return xpcall(func, debug.traceback)
+          local ok, err = xpcall(func, debug.traceback)
+          if not ok and err then error(err) end
         end
       ),
       pid = last,                               -- process/thread ID
@@ -322,11 +323,12 @@ do
         end
 
         -- this might reduce performance, we shall see
-        if computer.freeMemory() < 1024*1024*1.5 then -- oh no, we're out of memory
+        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+          --kernel.logger.log("low memory after thread " .. thd.name .. " - collecting garbage")
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
-          if computer.freeMemory() < 1024*1024 then -- GC didn't help. Panic!
+          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
             kernel.logger.panic("out of memory")
           end
         end
