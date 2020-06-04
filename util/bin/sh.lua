@@ -23,6 +23,7 @@ end
 os.setenv("PWD", os.getenv("HOME"))
 os.setenv("PS1", os.getenv("PS1") or "\\w\\$ ")
 local ok, err = pcall(sh.execute, ".shrc")
+if not ok then print("\27[31m.shrc: " .. err .. "\27[37m") end
 
 local handle, err = io.open("/etc/motd.txt")
 if handle then

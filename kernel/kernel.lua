@@ -7,13 +7,8 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-<<<<<<< HEAD
-local _KERNEL_REVISION = "88c89a1"
-local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
-=======
-local _KERNEL_REVISION = "f17d9bd"
+local _KERNEL_REVISION = "8cbc5d3"
 local _KERNEL_BUILDER = "ocawesome101@networksaredumb"
->>>>>>> b6147a9826ac63487a604de78ad776cf637e703c
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
@@ -588,11 +583,11 @@ local smt, gmt, typ, err = setmetatable, getmetatable, type, error
 
 function _G.error(e, l)
   local pref = "/"
-  if fs.get("/").isReadOnly() then
+  if kernel.filesystem.get("/").isReadOnly() then
     pref = "/tmp/"
   end
-  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "w")
-  handle:write(debug.traceback(e))
+  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
+  handle:write(debug.traceback(e).."\n")
   --kernel.logger.log(debug.traceback(e))
   handle:close()
   err(e, l)
@@ -978,7 +973,7 @@ do
         --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
         if (not (p1 or ok)) and p2 then
           --component.sandbox.log("thread error", thd.name, ok, p1, p2)
-          handleProcessError(thd, p2)
+          handleProcessError(thd, p2 or p1)
         elseif ok then
           if p2 and type(p2) == "number" then
             thd.deadline = thd.deadline + p2
@@ -992,18 +987,16 @@ do
 
         -- this might reduce performance, we shall see
         if computer.freeMemory() < 1024 then -- oh no, we're out of memory
-<<<<<<< HEAD
           --kernel.logger.log("low memory after thread " .. thd.name .. " - collecting garbage")
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
           if computer.freeMemory() < 512 then -- GC didn't help. Panic!
-=======
-          for i=1, 50 do -- invoke GC
-            computer.pullSignal(0)
+            for i=1, 50 do -- invoke GC
+              computer.pullSignal(0)
+            end
           end
           if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
->>>>>>> b6147a9826ac63487a604de78ad776cf637e703c
             kernel.logger.panic("out of memory")
           end
         end

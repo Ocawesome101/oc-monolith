@@ -6,11 +6,11 @@ local smt, gmt, typ, err = setmetatable, getmetatable, type, error
 
 function _G.error(e, l)
   local pref = "/"
-  if fs.get("/").isReadOnly() then
+  if kernel.filesystem.get("/").isReadOnly() then
     pref = "/tmp/"
   end
-  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "w")
-  handle:write(debug.traceback(e))
+  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
+  handle:write(debug.traceback(e).."\n")
   --kernel.logger.log(debug.traceback(e))
   handle:close()
   err(e, l)

@@ -222,7 +222,7 @@ setmetatable(shell, {
     setmetatable(shell, {})
     local ok, err = dofile("/lib/shell_builtins.lua")
     if not ok then
-      shell.error("builtins", err)
+      shell.error("builtins", err or "builtins failed to load")
     end
     if tbl[k] then
       return tbl[k]

@@ -205,3 +205,5 @@ function shell.builtins.builtins()
     print(k)
   end
 end
+
+return true

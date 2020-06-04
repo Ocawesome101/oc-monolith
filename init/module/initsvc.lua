@@ -117,7 +117,6 @@ do
       end
     end
   end
-  log("done")
   --require("computer").pushSignal("init")
   coroutine.yield(0)
 end
@@ -126,5 +125,5 @@ local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
   panic("GETTY load failed: " .. err)
 end
-log("starting getty")
+--log("starting getty")
 require("thread").spawn(ok, "/sbin/getty.lua", panic)

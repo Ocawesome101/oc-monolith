@@ -38,30 +38,34 @@ local function nextScreen(res)
   return match[res] or match[8000] or match[2000] or match[800]
 end
 
+-- register gpu/screen as an IO stream
 local function makeStream(gpu, screen)
+  local gpu = component.proxy(gpu)
+  gpu.bind(screen)
   readline.addscreen(screen, gpu) -- register with readline so it listens for stuff
-  local write = vt100.emu(component.proxy(gpu))
+  local write = vt100.emu(gpu)
   local read = readline.readline
   local close = function()end
   --component.sandbox.log("create IO stream", read, write, close)
   write("\27[2J")
-  return stream.new(read, write, close, {screen = screen, gpu = component.proxy(gpu)})
+  return stream.new(read, write, close, {screen = screen, gpu = gpu})
 end
 
 function getty.scan()
   dinfo = computer.getDeviceInfo()
   for addr, _ in component.list("gpu") do
-    gpus[addr] = gpus[addr] or {bound = false, res = tonumber(dinfo[addr].capacity)}
+    gpus[addr] = gpus[addr] or {bound = false, res = tonumber(dinfo[addr].capacity) or 8000}
   end
 
   for addr, _ in component.list("screen") do
-    screens[addr] = screens[addr] or {bound = false, res = tonumber(dinfo[addr].capacity)}
+    screens[addr] = screens[addr] or {bound = false, res = tonumber(dinfo[addr].capacity or 8000)}
   end
 
   for addr, p in pairs(gpus) do
     if not dinfo[addr] then
       if p.bound then
         thread.signal(p.bound, thread.signals.kill)
+        screens[p.screen].bound = false
       end
       gpus[addr] = nil
     end
@@ -71,6 +75,7 @@ function getty.scan()
     if not dinfo[addr] then
       if p.bound then
         thread.signal(p.bound, thread.signals.kill)
+        gpus[p.gpu].bound = false
       end
       screens[addr] = nil
     end
@@ -88,7 +93,9 @@ function getty.scan()
       end
       local pid = thread.spawn(ok, login, nil, nil, ios, ios)
       gpus[gpu].bound = pid
+      gpus[gpu].screen = screen
       screens[screen].bound = pid
+      screens[screen].gpu = gpu
     else
       break
     end
@@ -100,7 +107,7 @@ getty.scan()
 while true do
   local sig, pid, res = coroutine.yield()
   if sig == "thread_errored" then
-    error(pid .. ": " .. res)
+    io.stderr:write(pid .. ": " .. res)
   end
   if sig == "component_added" or sig == "component_removed" then
     getty.scan()

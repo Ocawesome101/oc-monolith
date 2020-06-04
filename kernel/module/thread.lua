@@ -327,7 +327,7 @@ do
         --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
         if (not (p1 or ok)) and p2 then
           --component.sandbox.log("thread error", thd.name, ok, p1, p2)
-          handleProcessError(thd, p2)
+          handleProcessError(thd, p2 or p1)
         elseif ok then
           if p2 and type(p2) == "number" then
             thd.deadline = thd.deadline + p2
@@ -341,18 +341,16 @@ do
 
         -- this might reduce performance, we shall see
         if computer.freeMemory() < 1024 then -- oh no, we're out of memory
-<<<<<<< HEAD
           --kernel.logger.log("low memory after thread " .. thd.name .. " - collecting garbage")
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
           if computer.freeMemory() < 512 then -- GC didn't help. Panic!
-=======
-          for i=1, 50 do -- invoke GC
-            computer.pullSignal(0)
+            for i=1, 50 do -- invoke GC
+              computer.pullSignal(0)
+            end
           end
           if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
->>>>>>> b6147a9826ac63487a604de78ad776cf637e703c
             kernel.logger.panic("out of memory")
           end
         end

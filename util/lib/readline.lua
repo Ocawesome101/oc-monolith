@@ -71,8 +71,8 @@ function rl.addscreen(screen, gpu)
   if type(gpu) == "string" then
     gpu = assert(component.proxy(gpu))
   end
-  buffers[screen] = {keyboards = {}, down = {}, buffer = ""}
-  buffers[gpu] = buffers[screen]
+  buffers[screen] = {keyboards = {}, down = {}, buffer = "", gpu = gpu}
+  buffers[gpu.address] = buffers[screen]
   for k, v in pairs(component.invoke(screen, "getKeyboards")) do
     buffers[screen].keyboards[v] = true
     buffers[v] = screen
@@ -155,19 +155,29 @@ function rl.readline(prompt, opts)
         end
       end
     }
+  local complete = opts.complete or function(x) return x end
   if not buffers[screen] then
-    rl.addscreen(screen, io.output().gpu)
+    return nil--rl.addscreen(screen, io.output().gpu)
   end
-  -- this lets us get a direct response from the terminal, which is nice
-  local resp = io.output().stream:write("\27[6n")
+  io.output():write("\27[6n")
+  local resp = ""
+  repeat
+    local char = rl.readlinebasic(screen, 1)
+    resp = resp .. char
+    --print(char)
+  until char == "R"
+  if io.output().gpu.address ~= io.input().gpu.address or io.output().screen ~= io.input().screen then
+    error("io gpu/screen mismatch")
+  end
+  --print(resp)
   local y, x = resp:match("\27%[(%d+);(%d+)R")
   local w, h = io.output().gpu.getResolution() -- :^)
   local sy = tonumber(y) or 1
   prompt = prompt or ("\27[C"):rep((tonumber(x) or 1))
   local function redraw()
-    local write = buffer
+    local write = buffer--highlighter(buffer)
     if pwchar then write = pwchar:rep(#buffer) end
-    io.write(string.format("\27[%d;%dH%s%s \27[2K", sy, 1, prompt, highlighter(write)))
+    io.write(string.format("\27[%d;%dH%s%s \27[2K", sy, 1, prompt, write))
     --local span = math.max(1, math.ceil(#prompt + #buffer / w))
     io.write(string.rep("\8", pos)) -- move the cursor to where it should be
   end
@@ -207,6 +217,8 @@ function rl.readline(prompt, opts)
       elseif char == "b" then
         pos = 1
       end
+    elseif char == "\t" then
+  --    buffer = complete(buffer)
     else
       buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub((#buffer - pos) + 2)
     end
