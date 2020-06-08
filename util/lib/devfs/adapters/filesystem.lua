@@ -9,27 +9,30 @@ adp.name = "fs"
 
 function adp.instance(addr)
   local prx = component.proxy(addr)
-  local r1, r2, r3, r4 = false, false, false, false
+  local rfsl = "readFSLabel" .. addr
+  local rfsm = "readFSMountPoint" .. addr
+  local rfst = "readFSSpaceTotal" .. addr
+  local rfsu = "readFSSpaceUsed" .. addr
   local inst = {
     isDirectory = true,
     children = {
       label = {
         isDirectory = false,
-        read = function()
-          if r1 then if r1 >= 1 then r1 = false else r1 = r1 + 1 end return nil end
-          r1 = 0
+        read = function(h)
+          if h[rfsl] then return nil end
+          h[rfsl] = true 
           return prx.getLabel()
         end,
-        write = function(d)
-          r1 = false
-          return prx.setLabel()
+        write = function(h, d)
+          h[rfsl] = false
+          return prx.setLabel(d)
         end
       },
       mount = {
         isDirectory = false,
-        read = function()
-          if r2 then if r2 >= 1 then r2 = false else r2 = r2 + 1 end return nil end
-          r2 = 0
+        read = function(h)
+          if h[rfsm] then return nil end
+          h[rfsm] = true
           local mounts = fs.mounts()
           for k, v in pairs(mounts) do
             if v == prx.address then
@@ -43,10 +46,10 @@ function adp.instance(addr)
       },
       spaceTotal = {
         isDirectory = false,
-        read = function()
-          if r3 then if r3 >= 1 then r3 = false else r3 = r3 + 1 end return nil end
-          r3 = 0
-          return prx.spaceTotal()
+        read = function(h)
+          if h[rfst] then return nil end
+          h[rfst] = true
+          return tostring(prx.spaceTotal())
         end,
         write = function()
           error("cannot change fs space")
@@ -54,13 +57,13 @@ function adp.instance(addr)
       },
       spaceUsed = {
         isDirectory = false,
-        read = function()
-          if r4 then if r4 >= 1 then r4 = false else r3 = r3 + 1 end return nil end
-          r4 = 0
-          return prx.spaceTotal()
+        read = function(h)
+          if h[rfsu] then return nil end
+          h[rfsu] = true
+          return tostring(prx.spaceUsed())
         end,
         write = function()
-          error("write somewhere else!")
+          error("I'm sorry, Dave. I'm afraid I can't do that.")
         end
       }
     }

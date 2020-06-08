@@ -2,4 +2,5 @@
 
 make
 rm -rf ../{bin,usr,boot,etc,lib,Makefile,mnt,tmp,home,root,sbin}
+rm -f ../err*
 mv build/* ..

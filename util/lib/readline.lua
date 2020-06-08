@@ -124,17 +124,22 @@ function rl.readline(prompt, opts)
   local pos = 1
   local buffer = opts.default or opts.text or ""
   local highlighter = opts.highlighter or opts.syntax or function(e)return e end
+  local redraw
   local acts = opts.acts or opts.actions or 
     {
       up = function()
         if ent > 1 then
           ent = ent - 1
+          buffer = (" "):rep(#buffer)
+          redraw()
           buffer = history[ent] or ""
         end
       end,
       down = function()
         if ent <= #history then
           ent = ent + 1
+          buffer = (" "):rep(#buffer)
+          redraw()
           buffer = history[ent] or ""
         end
       end,
@@ -174,9 +179,17 @@ function rl.readline(prompt, opts)
   local w, h = io.output().gpu.getResolution() -- :^)
   local sy = tonumber(y) or 1
   prompt = prompt or ("\27[C"):rep((tonumber(x) or 1))
-  local function redraw()
+  local lines = 1
+  function redraw()
     local write = buffer--highlighter(buffer)
     if pwchar then write = pwchar:rep(#buffer) end
+    local written = math.max(1, math.ceil((#buffer + #prompt) / w))
+    if written > lines then
+      local diff = written - lines
+      io.write(string.rep("\27[B", diff) .. string.rep("\27[A", diff))
+      sy = sy - diff
+      lines = written
+    end
     io.write(string.format("\27[%d;%dH%s%s \27[2K", sy, 1, prompt, write))
     --local span = math.max(1, math.ceil(#prompt + #buffer / w))
     io.write(string.rep("\8", pos)) -- move the cursor to where it should be

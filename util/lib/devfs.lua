@@ -89,7 +89,7 @@ function fsc.open(file, mode)
     return nil, err
   end
   local n = #open + 1
-  open[n] = ok
+  open[n] = {thing = ok}
   return n
 end
 
@@ -99,7 +99,7 @@ function fsc.read(n, a)
   if not open[n] then
     return nil, "bad file descriptor"
   end
-  return open[n].read(a)
+  return open[n].thing.read(open[n], a)
 end
 
 function fsc.seek()
@@ -112,7 +112,7 @@ function fsc.write(n, d)
   if not open[n] then
     return nil, "bad file descriptor"
   end
-  return open[n].read(a)
+  return open[n].thing.write(open[n], a)
 end
 
 function fsc.close(n)
