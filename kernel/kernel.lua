@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "7f227a1"
+local _KERNEL_REVISION = "3abdf60"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -854,7 +854,7 @@ do
     if not tasks[pid] then
       return nil, "no such thread"
     end
-    if tasks[pid].owner ~= tasks[cur].user and tasks[cur].user ~= 0 then
+    if tasks[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
     local msg = {

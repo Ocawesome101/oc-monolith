@@ -33,6 +33,9 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] Service management (`initsvc`)
   - [ ] Services
     - [X] `getty`
+    - [X] `mountd`
+    - [X] `devfs`
+    - [ ] `procfs`
     - [X] Minitel daemon
     - [ ] GERTi daemon
   - [ ] Libraries
@@ -51,8 +54,8 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] `cp`
       - [X] `copy`
     - [ ] `event`
-    - [ ] `uuid`
-    - [ ] `internet`
+    - [X] `uuid`
+    - [X] `internet`
     - [ ] `network` (may integrate with `internet`)
     - [X] `filesystem`
     - [X] `signals`

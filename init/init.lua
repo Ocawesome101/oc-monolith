@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 7f227a1 (built Mon Jun 08 01:22:21 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 3abdf60 (built Tue Jun 16 23:37:15 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log

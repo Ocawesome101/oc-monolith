@@ -208,7 +208,7 @@ do
     if not tasks[pid] then
       return nil, "no such thread"
     end
-    if tasks[pid].owner ~= tasks[cur].user and tasks[cur].user ~= 0 then
+    if tasks[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
     local msg = {
