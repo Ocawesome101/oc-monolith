@@ -8,12 +8,11 @@ local function protect(tbl, mtblro)
   checkArg(1, tbl, "table")
   checkArg(2, mtblro, "boolean", "nil")
   local mt = {
-    __index = tbl,
     __newindex = roerr,
-    __ro = mtblro
+    __metatable = (mtblro and {}) or nil
   }
 
-  return setmetatable({}, mt)
+  return setmetatable(tbl, mt)
 end
 
 return protect

@@ -53,14 +53,25 @@ kernel.logger.log("setting up userspace sandbox")
 
 local sandbox = {}
 
-for k, v in pairs(_G) do
-  if v ~= _G then -- prevent recursion hopefully
-    if type(v) == "table" then
-      sandbox[k] = setmetatable({}, {__index = v})
-    else
-      sandbox[k] = v
+-- it is now time for an actually working sandbox!
+do
+  local seen = {}
+  local function copy(tbl)
+    local ret = {}
+    for k, v in pairs(tbl) do
+--      kernel.logger.log("copy " .. k)
+      if type(v) == "table" and not seen[v] then
+        seen[v] = true
+--        kernel.logger.log("tcopy " .. tostring(k))
+        ret[k] = copy(v)
+      else
+        ret[k] = v
+      end
     end
+    return ret
   end
+  kernel.logger.log("tcopy sanbox")
+  sandbox = copy(_G)
 end
 
 sandbox._G = sandbox

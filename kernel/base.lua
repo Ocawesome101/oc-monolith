@@ -34,8 +34,9 @@ end
 --#include "module/module.lua"
 --#include "module/filesystem.lua"
 --#include "module/computer.lua"
---#include "module/sandbox.lua"
+--#include "module/runlevel.lua"
 --#include "module/thread.lua"
+--#include "module/sandbox.lua"
 --#include "module/loadfile.lua"
 
 kernel.logger.log("loading init from " .. flags.init)
@@ -45,6 +46,6 @@ if not ok then
   kernel.logger.panic(err)
 end
 
-kernel.thread.spawn(ok, flags.init, kernel.logger.panic)
-
+kernel.thread.spawn(function()return ok(flags.runlevel or 3) end, flags.init, kernel.logger.panic)
+kernel.runlevel.setrunlevel(1)
 kernel.thread.start()

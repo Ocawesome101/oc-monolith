@@ -9,10 +9,7 @@ else
   for k, v in ipairs(args) do
     local file, err = io.open(v, "r")
     if file then
-      repeat
-        local chunk = file:read(2048)
-        io.write(chunk or "")
-      until not chunk
+      io.write(file:read("*a"))
       file:close()
     else
       shell.error("cat", err)

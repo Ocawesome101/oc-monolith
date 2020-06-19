@@ -7,9 +7,9 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "e1bc322"
-local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
-local _KERNEL_COMPILER = "luacomp 1.2.0"
+local _KERNEL_REVISION = "3a50a9f"
+local _KERNEL_BUILDER = "ocawesome101@archlinux"
+local _KERNEL_COMPILER = "luacomp 1.2.2"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
 
@@ -28,7 +28,6 @@ if computer.setArchitecture then
 end
 
 -- --#include "module/logger.lua"
-
 -- component API metatable allowing component.filesystem, and component.get --
 
 do
@@ -63,7 +62,6 @@ do
 end
 
 -- --#include "module/initfs.lua"
-
 -- users --
 
 do
@@ -155,7 +153,6 @@ do
   kernel.users = u
 end
 
-
 -- kernel modules-ish --
 
 do
@@ -195,7 +192,6 @@ do
 
   kernel.module = m
 end
-
 
 -- filesystem management --
 
@@ -497,7 +493,6 @@ do
   kernel.filesystem = fs
 end
 
-
 -- computer.shutdown stuff --
 
 do
@@ -528,75 +523,54 @@ do
   end
 end
 
+-- run levels --
 
--- userspace sandbox and some security features --
-
-kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
-
-local smt, gmt, typ, err = setmetatable, getmetatable, type, error
-
-function _G.error(e, l)
-  local pref = "/"
-  if kernel.filesystem.get("/").isReadOnly() then
-    pref = "/tmp/"
-  end
-  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
-  handle:write(debug.traceback(e).."\n")
-  --kernel.logger.log(debug.traceback(e))
-  handle:close()
-  err(e, l)
-end
-
-function _G.setmetatable(tbl, mt)
-  checkArg(1, tbl, "table")
-  checkArg(2, mt, "table")
-  local _mt = gmt(tbl)
-  if _mt and _mt.__ro then
-    error("table is read-only")
-  end
-  return smt(tbl, mt)
-end
-
-function _G.getmetatable(tbl)
-  checkArg(1, tbl, "table")
-  local mt = gmt(tbl)
-  local _mt = {
-    __index = mt,
-    __newindex = function()error("metatable is read-only")end,
-    __ro = true
+do
+  local rl = {}
+  rl.levels = {
+    [0] = {
+      booted = false,
+      init = false,
+      services = false,
+      multiuser = false
+    },
+    [1] = {
+      booted = true,
+      init = true,
+      services = false,
+      multiuser = false
+    },
+    [2] = {
+      booted = true,
+      init = true,
+      multiuser = false,
+      services = true
+    },
+    [3] = {
+      booted = true,
+      init = true,
+      multiuser = true,
+      services = true
+    }
   }
-  if mt and mt.__ro then
-    return smt({}, _mt)
-  else
-    return mt
-  end
-end
-
-function _G.type(obj)
-  local t = typ(obj)
-  if t == "table" and getmetatable(obj) and getmetatable(obj).__type then
-    return getmetatable(obj).__type
-  end
-  return t
-end
-
-kernel.logger.log("setting up userspace sandbox")
-
-local sandbox = {}
-
-for k, v in pairs(_G) do
-  if v ~= _G then -- prevent recursion hopefully
-    if type(v) == "table" then
-      sandbox[k] = setmetatable({}, {__index = v})
-    else
-      sandbox[k] = v
+  local level = 0
+  function rl.setrunlevel(n)
+    if not rl.levels[n] or n > flags.runlevel then
+      return nil, "invalid runlevel"
     end
+    if kernel.users.uid() ~= 0 then
+      return nil, "permission denied"
+    end
+    level = n
+    return true
   end
+
+  function rl.getlevel()
+    return level
+  end
+
+  kernel.runlevel = rl
 end
-
-sandbox._G = sandbox
-sandbox.computer.pullSignal = coroutine.yield
-
 
 -- big fancy scheduler --
 
@@ -954,6 +928,9 @@ do
             kernel.logger.panic("out of memory")
           end
         end
+        --[[if #kernel.sandbox == 0 then
+          kernel.logger.panic("userspace sandbox empty")
+        end]]
       end
 
       cleanup()
@@ -963,6 +940,84 @@ do
   kernel.thread = thread
 end
 
+-- userspace sandbox and some security features --
+
+kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
+
+local smt, gmt, typ, err = setmetatable, getmetatable, type, error
+
+function _G.error(e, l)
+  local pref = "/"
+  if kernel.filesystem.get("/").isReadOnly() then
+    pref = "/tmp/"
+  end
+  local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
+  handle:write(debug.traceback(e).."\n")
+  --kernel.logger.log(debug.traceback(e))
+  handle:close()
+  err(e, l)
+end
+
+function _G.setmetatable(tbl, mt)
+  checkArg(1, tbl, "table")
+  checkArg(2, mt, "table")
+  local _mt = gmt(tbl)
+  if _mt and _mt.__ro then
+    error("table is read-only")
+  end
+  return smt(tbl, mt)
+end
+
+function _G.getmetatable(tbl)
+  checkArg(1, tbl, "table")
+  local mt = gmt(tbl)
+  local _mt = {
+    __index = mt,
+    __newindex = function()error("metatable is read-only")end,
+    __ro = true
+  }
+  if mt and mt.__ro then
+    return smt({}, _mt)
+  else
+    return mt
+  end
+end
+
+function _G.type(obj)
+  local t = typ(obj)
+  if t == "table" and getmetatable(obj) and getmetatable(obj).__type then
+    return getmetatable(obj).__type
+  end
+  return t
+end
+
+kernel.logger.log("setting up userspace sandbox")
+
+local sandbox = {}
+
+-- it is now time for an actually working sandbox!
+do
+  local seen = {}
+  local function copy(tbl)
+    local ret = {}
+    for k, v in pairs(tbl) do
+--      kernel.logger.log("copy " .. k)
+      if type(v) == "table" and not seen[v] then
+        seen[v] = true
+--        kernel.logger.log("tcopy " .. tostring(k))
+        ret[k] = copy(v)
+      else
+        ret[k] = v
+      end
+    end
+    return ret
+  end
+  kernel.logger.log("tcopy sanbox")
+  sandbox = copy(_G)
+end
+
+sandbox._G = sandbox
+sandbox.computer.pullSignal = coroutine.yield
 
 -- basic loadfile function --
 
@@ -995,6 +1050,6 @@ if not ok then
   kernel.logger.panic(err)
 end
 
-kernel.thread.spawn(ok, flags.init, kernel.logger.panic)
-
+kernel.thread.spawn(function()return ok(flags.runlevel or 3) end, flags.init, kernel.logger.panic)
+kernel.runlevel.setrunlevel(1)
 kernel.thread.start()

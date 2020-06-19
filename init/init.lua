@@ -1,19 +1,14 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe e1bc322 (built Fri Jun 19 14:30:31 EDT 2020 by ocawesome101@manjaro-pbp)"
+local maxrunlevel = ...
+local _INITVERSION = "InitMe 3a50a9f (built Fri Jun 19 16:21:20 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
+local runlevel = kernel.runlevel
 local _log = function()end--component.sandbox.log
 
---[[local oerr = error
-function _G.error(e, l)
-  _log(debug.traceback(e, l))
-  oerr(e, l)
-end]]
-
 log(_INITVERSION)
-
 
 -- `package` library --
 
@@ -30,7 +25,8 @@ do
     table = table,
     component = component,
     computer = computer,
-    unicode = unicode
+    unicode = unicode,
+    runlevel = runlevel
   }
 
   _G.component, _G.computer, _G.unicode = nil, nil, nil
@@ -115,7 +111,6 @@ package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
 _G.kernel = nil
-
 
 -- `io` library --
 
@@ -233,7 +228,6 @@ do
   end
 end
 
-
 -- os --
 
 do
@@ -250,24 +244,15 @@ do
   end
 end
 
-
-log("Running scripts out of /lib/init/....")
-
-local files = kernel.filesystem.list("/lib/init/")
-table.sort(files)
-for k, v in ipairs(files) do
-  log(v)
-  local full = kernel.filesystem.concat("/lib/init", v)
-  local ok, err = loadfile(full)
-  if not ok then
-    panic(err)
-  end
-end
-
-
+---#include "module/initd.lua"
+runlevel.setrunlevel(2)
+runlevel.setrunlevel(3)
 -- `initsvc` lib. --
 
-do
+function runlevel.max()
+  return maxrunlevel
+end
+if runlevel.levels[maxrunlevel].services then
   log("InitMe: Initializing initsvc")
 
   local config = require("config")

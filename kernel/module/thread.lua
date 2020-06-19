@@ -354,6 +354,9 @@ do
             kernel.logger.panic("out of memory")
           end
         end
+        --[[if #kernel.sandbox == 0 then
+          kernel.logger.panic("userspace sandbox empty")
+        end]]
       end
 
       cleanup()

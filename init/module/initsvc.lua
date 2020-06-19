@@ -1,6 +1,9 @@
 -- `initsvc` lib. --
 
-do
+function runlevel.max()
+  return maxrunlevel
+end
+if runlevel.levels[maxrunlevel].services then
   log("InitMe: Initializing initsvc")
 
   local config = require("config")

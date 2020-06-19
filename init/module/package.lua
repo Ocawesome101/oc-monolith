@@ -13,7 +13,8 @@ do
     table = table,
     component = component,
     computer = computer,
-    unicode = unicode
+    unicode = unicode,
+    runlevel = runlevel
   }
 
   _G.component, _G.computer, _G.unicode = nil, nil, nil

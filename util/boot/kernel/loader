@@ -1,8 +1,11 @@
 -- boot loader for the Monolith kernel. ensures compatibility with OpenLoader. --
 
+_G._START = computer.uptime()
+
 local flags = {
   init = "/sbin/init.lua",
-  quiet = false
+  quiet = false,
+  runlevel = 3
 }
 
 _G.kernel = {}
@@ -40,7 +43,7 @@ do
   end
   function kernel.logger.log(msg)
     for line in msg:gmatch("[^\n]+") do
-      line = string.format("[ %04.04f ] %s", computer.uptime(), line)
+      line = string.format("[ %04.04f ] %s", computer.uptime() - _START, line)
       if show then log(line) end
       invoke(tmp, "write", blog, line .. "\n")
     end

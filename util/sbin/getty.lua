@@ -10,6 +10,13 @@ local config = require("config")
 
 local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua"})
 local login = cfg.start or "/sbin/login.lua"
+if not require("runlevel").levels[require("runlevel").max()].multiuser then login = "/bin/sh.lua" package.loaded.users = setmetatable({
+  user = function() return 'root' end,
+  uid = function() return 0 end,
+  login = function() error('system is in single-user mode') end,
+  sudo = function() error('system is in single-user mode') end,
+  shell = function() return '/bin/sh.lua' end
+}, {__index = require("users")}) end
 
 local getty = {}
 

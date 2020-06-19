@@ -187,7 +187,9 @@ function rl.readline(prompt, opts)
     if written > lines then
       local diff = written - lines
       io.write(string.rep("\27[B", diff) .. string.rep("\27[A", diff))
-      sy = sy - diff
+      if (sy + diff + 1) >= h then
+        sy = sy - diff
+      end
       lines = written
     end
     io.write(string.format("\27[%d;%dH%s%s \27[2K", sy, 1, prompt, write))
