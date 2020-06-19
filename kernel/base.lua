@@ -13,7 +13,7 @@ local _KERNEL_COMPILER = "luacomp $[[luacomp -v]]"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
 
-_G.kernel = {}
+kernel.logger.log("Starting " .. _OSVERSION)
 
 kernel.info = {
   name          = _KERNEL_NAME,
@@ -23,10 +23,11 @@ kernel.info = {
 }
 
 if computer.setArchitecture then
+  kernel.logger.log("Set architecture to Lua 5.3")
   computer.setArchitecture("Lua 5.3")
 end
 
---#include "module/logger.lua"
+-- --#include "module/logger.lua"
 --#include "module/component.lua"
 -- --#include "module/initfs.lua"
 --#include "module/users.lua"

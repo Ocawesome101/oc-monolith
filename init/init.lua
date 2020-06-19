@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe 3abdf60 (built Tue Jun 16 23:37:15 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe da46fcd (built Thu Jun 18 21:06:28 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -13,7 +13,6 @@ function _G.error(e, l)
 end]]
 
 log(_INITVERSION)
-
 
 -- `package` library --
 
@@ -115,7 +114,6 @@ package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
 _G.kernel = nil
-
 
 -- `io` library --
 
@@ -229,7 +227,6 @@ do
   end
 end
 
-
 -- os --
 
 do
@@ -247,7 +244,6 @@ do
 end
 
 ---#include "module/initd.lua"
-
 -- `initsvc` lib. --
 
 do
@@ -256,6 +252,7 @@ do
   local config = require("config")
   local fs = require("filesystem")
   local thread = require("thread")
+  local users = require("users")
   local scripts = "/lib/scripts/"
   local services = "/lib/services/"
 
@@ -266,6 +263,9 @@ do
 
   function initsvc.start(service, handler)
     checkArg(1, service, "string")
+    if users.uid() ~= 0 then
+      return nil, "only root can do that"
+    end
     if svc[service] and thread.info(svc[service]) then
       return nil, "service is already running"
     end
@@ -305,6 +305,9 @@ do
     checkArg(1, service, "string")
     if not svc[service] then
       return nil, "service is not running"
+    end
+    if users.uid() ~= 0 then
+      return nil, "only root can do that"
     end
     if type(svc[service]) == "table" then
       pcall(svc[service].stop)

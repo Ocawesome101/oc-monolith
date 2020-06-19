@@ -6,6 +6,7 @@ do
   local config = require("config")
   local fs = require("filesystem")
   local thread = require("thread")
+  local users = require("users")
   local scripts = "/lib/scripts/"
   local services = "/lib/services/"
 
@@ -16,6 +17,9 @@ do
 
   function initsvc.start(service, handler)
     checkArg(1, service, "string")
+    if users.uid() ~= 0 then
+      return nil, "only root can do that"
+    end
     if svc[service] and thread.info(svc[service]) then
       return nil, "service is already running"
     end
@@ -55,6 +59,9 @@ do
     checkArg(1, service, "string")
     if not svc[service] then
       return nil, "service is not running"
+    end
+    if users.uid() ~= 0 then
+      return nil, "only root can do that"
     end
     if type(svc[service]) == "table" then
       pcall(svc[service].stop)

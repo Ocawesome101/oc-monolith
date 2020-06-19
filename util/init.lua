@@ -1,15 +1,10 @@
 -- init --
 
-local flags = {
-  init = "/sbin/init.lua",
-  quiet = false
-}
-
 local addr, invoke = computer.getBootAddress(), component.invoke
 
-local kernel = "/boot/kernel.lua"
+local kernelPath = "/boot/kernel/loader"
 
-local handle, err = invoke(addr, "open", kernel)
+local handle, err = invoke(addr, "open", kernelPath)
 if not handle then
   error(err)
 end
@@ -22,9 +17,12 @@ until not c
 
 invoke(addr, "close", handle)
 
-local ok, err = load(t, "=" .. kernel, "bt", _G)
+local ok, err = load(t, "=" .. kernelPath, "bt", _G)
 if not ok then
-  error(err)
+  kernel.logger.panic(err)
 end
 
-ok(flags)
+local ok, err = xpcall(ok, debug.traceback, flags)
+if not ok and err then
+  error(err)
+end
