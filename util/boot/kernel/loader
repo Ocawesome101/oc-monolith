@@ -12,10 +12,15 @@ _G.kernel = {}
 kernel.logger = {}
 kernel.logger.log = function()end
 
+local blog, tmp, addr, invoke
+tmp = computer.tmpAddress() or computer.getBootAddress()
+
 do
   local y, w, h = 0
   local gpu = component.list("gpu")()
   local screen = component.list("screen")()
+  local log = function() end
+  local show = true
   if gpu and screen then
     gpu = component.proxy(gpu)
     gpu.bind(screen)
@@ -23,8 +28,7 @@ do
     gpu.setResolution(w, h)
     gpu.setForeground(0xDDDDDD)
     gpu.fill(1, 1, w, h, " ")
-    local function log(msg)
-      msg = string.format("[%3.3f] %s", computer.uptime() - _START, tostring(msg))
+    function log(msg)
       if y == h then
         gpu.copy(1, 2, w, h, 0, -1)
         gpu.fill(1, h, w, 1, " ")
@@ -33,16 +37,23 @@ do
       end
       gpu.set(1, y, msg)
     end
-    function kernel.logger.log(msg)
-      for line in msg:gmatch("[^\n]+") do
-        log(line)
-      end
+  end
+  function kernel.logger.log(msg)
+    for line in msg:gmatch("[^\n]+") do
+      line = string.format("[ %04.04f ] %s", computer.uptime(), line)
+      if show then log(line) end
+      invoke(tmp, "write", blog, line .. "\n")
     end
+  end
+  function kernel.logger.setShown(b)
+    checkArg(1, b, "boolean")
+    show = b
   end
 end
 
 function kernel.logger.panic(reason)
   reason = tostring(reason)
+  kernel.logger.setShown(true)
   kernel.logger.log("==== Crash ".. os.date() .." ====")
   local trace = debug.traceback(reason):gsub("\t", "  ")
   for line in trace:gmatch("[^\n]+") do
@@ -52,7 +63,16 @@ function kernel.logger.panic(reason)
   while true do computer.pullSignal(0.5) computer.beep(440, 0.1) end
 end
 
-local addr, invoke = computer.getBootAddress(), component.invoke
+addr, invoke = computer.getBootAddress(), component.invoke
+
+blog = invoke(tmp, "open", "monolith.log", "a")
+local shutdown = computer.shutdown
+function computer.shutdown(reboot)
+  invoke(tmp, "close", blog)
+  shutdown(reboot)
+end
+
+kernel.logger.log("Booting Monolith at " .. os.date())
 
 local kernelPath = "/boot/monolith"
 

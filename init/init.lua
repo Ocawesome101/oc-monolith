@@ -1,6 +1,6 @@
 -- Monolith's init --
 
-local _INITVERSION = "InitMe da46fcd (built Thu Jun 18 21:06:28 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe e1bc322 (built Fri Jun 19 14:30:31 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -13,6 +13,7 @@ function _G.error(e, l)
 end]]
 
 log(_INITVERSION)
+
 
 -- `package` library --
 
@@ -115,6 +116,7 @@ package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
 _G.kernel = nil
 
+
 -- `io` library --
 
 do
@@ -146,6 +148,10 @@ do
       return nil, err
     end
     return buffer.new(mode, handle)
+  end
+
+  function io.popen(...)
+    return require("pipe").popen(...)
   end
 
   function io.output(file)
@@ -227,6 +233,7 @@ do
   end
 end
 
+
 -- os --
 
 do
@@ -243,7 +250,21 @@ do
   end
 end
 
----#include "module/initd.lua"
+
+log("Running scripts out of /lib/init/....")
+
+local files = kernel.filesystem.list("/lib/init/")
+table.sort(files)
+for k, v in ipairs(files) do
+  log(v)
+  local full = kernel.filesystem.concat("/lib/init", v)
+  local ok, err = loadfile(full)
+  if not ok then
+    panic(err)
+  end
+end
+
+
 -- `initsvc` lib. --
 
 do
@@ -340,6 +361,7 @@ do
         return nil, "script not found"
       end
     end
+    return true
   end
 
   function initsvc.disable(script)
@@ -382,15 +404,7 @@ end
 require("thread").spawn(ok, "/sbin/getty.lua", panic)
 
 
---[[do
-  local component = require("component")
-  local computer  = require("computer")
-  for a, t in component.list() do
-  :a
-  :q
-    computer.pushSignal("component_added", a, t)
-  end
-end]]
+kernel.logger.setShown(false)
 
 _G._BOOT = require("computer").uptime() - _START
 

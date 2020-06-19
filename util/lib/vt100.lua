@@ -68,7 +68,7 @@ function vt.emu(gpu)
       checkCursor()
       local ln = wbuf:sub(1, w - cx + 1)
       wbuf = wbuf:sub(#ln + 1)
-      gpu.set(cx, cy, ln)
+      if echo then gpu.set(cx, cy, ln) end
       cx = cx + #ln
     end
   end
@@ -147,9 +147,7 @@ function vt.emu(gpu)
               resp = string.format("%s\27[%dn", resp, (gpu and gpu.getScreen() and 0) or 3)
             end
           elseif char == "c" then -- not really necessary, may remove
-            resp = string.format("%s\27[?1ocansi0c", resp)
-          elseif char == "Z" then
-            cto = params[1] or 0.6
+            resp = string.format("%s\27[?1;ocansi0c", resp)
           elseif char == "K" then
             if params[1] == 1 then
               gpu.fill(1, cy, cx, 1, " ")
@@ -176,7 +174,7 @@ function vt.emu(gpu)
           elseif char == "m" then
             if #params == 0 then
               echo = true
-              hist = false
+              --hist = false
               fg = colors[8]
               bg = colors[1]
             end
@@ -188,14 +186,9 @@ function vt.emu(gpu)
                 echo = true
               elseif n == 0 then
                 echo = true
-                hist = false
+                --hist = false
                 fg = colors[8]
                 bg = colors[1]
-              -- this is no longer necessary
-              --[[elseif n == 9 then
-                dhist = false
-              elseif n == 19 then
-                dhist = true]]
               elseif n == 7 or n == 27 then
                 fg, bg = bg, fg
               elseif n > 29 and n < 38 then

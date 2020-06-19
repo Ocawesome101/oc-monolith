@@ -7,9 +7,9 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "da46fcd"
-local _KERNEL_BUILDER = "ocawesome101@archlinux"
-local _KERNEL_COMPILER = "luacomp 1.2.2"
+local _KERNEL_REVISION = "e1bc322"
+local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
+local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
 
@@ -28,6 +28,7 @@ if computer.setArchitecture then
 end
 
 -- --#include "module/logger.lua"
+
 -- component API metatable allowing component.filesystem, and component.get --
 
 do
@@ -62,6 +63,7 @@ do
 end
 
 -- --#include "module/initfs.lua"
+
 -- users --
 
 do
@@ -153,6 +155,7 @@ do
   kernel.users = u
 end
 
+
 -- kernel modules-ish --
 
 do
@@ -192,6 +195,7 @@ do
 
   kernel.module = m
 end
+
 
 -- filesystem management --
 
@@ -493,6 +497,7 @@ do
   kernel.filesystem = fs
 end
 
+
 -- computer.shutdown stuff --
 
 do
@@ -522,6 +527,7 @@ do
     shutdown(reboot)
   end
 end
+
 
 -- userspace sandbox and some security features --
 
@@ -590,6 +596,7 @@ end
 
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
+
 
 -- big fancy scheduler --
 
@@ -955,6 +962,7 @@ do
 
   kernel.thread = thread
 end
+
 
 -- basic loadfile function --
 

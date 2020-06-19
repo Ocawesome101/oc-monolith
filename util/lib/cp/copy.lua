@@ -23,14 +23,16 @@ function cp.copy(...)
       print(string.format("%s -> %s", path, to))
     end
     local cpath = fs.canonical(path)
-    if fs.get(cpath) ~= rootfs then
-      print("cp: refusing to leave the rootfs: not recursing to " .. cpath)
+    if fs.get(cpath) ~= rootfs and cp.recurse then
+      print("cp: refusing to leave rootfs: not recursing to " .. cpath)
       return
     end
-    for a, _ in pairs(opts.skip) do
-      if cpath:find(a) == 1 then
-        print("cp: skipping " .. cpath)
-        return
+    if opts.skip then
+      for a, _ in pairs(opts.skip) do
+        if cpath:find(a) == 1 then
+          print("cp: skipping " .. cpath)
+          return
+        end
       end
       --print("cp: not skipping " .. cpath .. " for " .. a)
     end

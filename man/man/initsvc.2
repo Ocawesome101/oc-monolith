@@ -1,0 +1,32 @@
+*NAME&
+        initsvc - API for starting and stopping system daemons
+
+*DESCRIPTION
+        initsvc& is provided by the *InitMe& init system as a method of controlling system services.  Starting and stopping services require root access.
+
+        Configuration is storeed in #/etc/initsvc.cfg&.
+
+*METHODS
+        start&(*service&:~string&[, *handler&:^function&]): ?boolean& or *nil&, ~string&
+                Start service ~service&.  Looks for #/lib/services/~service*.lua&.
+
+        *list&(): @table&
+                Returns a table of services, and whether they are running.  Each entry is a sub-table with the fields *name&:~string& and *running&:?boolean&.
+        
+        *stop&(*service&:~string&): ?boolean& or *nil&, ~string&
+                Attempts to stop service ~service&.  May have compatibility with OpenOS services.
+
+        *enable&(*script&:~string&[, *isService&:?boolean&]): ?boolean& or *nil&, ~string&
+                Attempts to enable service or startup script ~script&.  If ?isService& is true, *initsvc& will treat ~script& as the name of a service.  Otherwise, ~script& is treated as the name of a script.
+
+        *disable&(*script&:~string&)
+                Disable script or service ~script&.
+
+*NOTES&
+        Due to the manner in which *initsvc&'s configuration is formatted, a script and a service cannot have the same name.  This may change in the future.
+
+*COPYRIGHT
+        Monolith System Interfaces& (c) 2020 Ocawesome101 under the MIT license.
+
+*SEE ALSO
+        init&(*1&), *init&(*5&)

@@ -32,6 +32,14 @@ function preproc.line(line) -- string -- -- Returns either a function - which ca
   else
    error("unknown preprocessor directive: "..directive)
   end
+ --[[elseif line:match("$%[%[(.-)%]%]") then
+  local command = line:match("%$%[%[(.-)%]%]")
+  print("shell", command)
+  local cmd = assert(io.popen(command, "rw"))
+  local result = cmd:read()
+  cmd:close()
+  line = line:gsub(command:gsub("%$%[%]", "%%1"), result)
+  return line]]
  else
   return line
  end
@@ -43,6 +51,7 @@ function preproc.preproc(...) -- string -- string -- Returns the output from pre
  for _,fname in ipairs(tA) do
   local f,e = io.open(fname)
   if not f then error("unable to open file "..fname..": "..e) end
+  print("proc", fname)
   for line in f:lines() do
    local r = preproc.line(line)
    if type(r) == "function" then

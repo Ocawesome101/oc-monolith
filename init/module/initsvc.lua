@@ -94,6 +94,7 @@ do
         return nil, "script not found"
       end
     end
+    return true
   end
 
   function initsvc.disable(script)

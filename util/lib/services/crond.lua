@@ -34,3 +34,5 @@ for dir in fs.list(jobd) do
   logwrite("adding jobs from " .. jobd .. dir)
   search(jobd .. dir, cronfig.intervals[dir])
 end
+
+log:close()

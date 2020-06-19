@@ -31,6 +31,10 @@ do
     return buffer.new(mode, handle)
   end
 
+  function io.popen(...)
+    return require("pipe").popen(...)
+  end
+
   function io.output(file)
     checkArg(1, file, "string", "table", "nil")
     if type(file) == "string" then

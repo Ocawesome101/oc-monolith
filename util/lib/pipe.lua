@@ -61,18 +61,16 @@ function pipe.popen(prog, mode, env)
   checkArg(1, prog, "string")
   checkArg(2, mode, "string", "nil")
   mode = mode or "rw"
-  if prog:sub(1,1) ~= "/" then
-    prog = "/bin/" .. prog
-  end
-  prog = string.split(prog, " ")
+  prog = require("text").split(prog, " ")
+  prog[1] = "/bin/" .. prog[1] .. ".lua"
   local ok, err = loadfile(prog[1])
   if not ok then
     return nil, err
   end
-  local input, output = new()
+  local input, output = pipe.new()
   local mode = {}
   for m in mode:gmatch(".") do mode[m] = true end
-  kernel.process.spawn(function()return ok(table.unpack(prog,2))end, prog[1], nil, env, nil, nil, mode.w and output, mode.r and output)
+  require("thread").spawn(function()return ok(table.unpack(prog,2))end, prog[1], nil, env, mode.w and output, mode.r and output)
   return input
 end
 

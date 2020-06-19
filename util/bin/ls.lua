@@ -56,7 +56,7 @@ local function fsize(size)
 end
 
 for i=1, #args, 1 do
-  local dir = args[i]
+  local dir = fs.canonical(args[i])
   if not fs.exists(dir) then
     shell.error("ls", string.format("%s: no such file or directory", dir))
     return shell.codes.failure
@@ -91,7 +91,7 @@ for i=1, #args, 1 do
       local isdr = fs.isDirectory(full)
       local isro = fs.isReadOnly(full)
       local yr, mon, day, hr, min = date(fs.lastModified(full))
-      finfo = string.format("\27[37m%s%s %s %s %s %d %d:%d ", (isdr and "d") or "-", (isro and "r-") or "rw", fsize(size), mon, day, yr, hr, min)
+      finfo = string.format("\27[37m%s%s %s %s %s %d %02d:%02d ", (isdr and "d") or "-", (isro and "r-") or "rw", fsize(size), mon, day, yr, hr, min)
     end
     out = out .. finfo
     if f:sub(-1) == "/" then
