@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "3a50a9f"
+local _KERNEL_REVISION = "b1810d5"
 local _KERNEL_BUILDER = "ocawesome101@archlinux"
 local _KERNEL_COMPILER = "luacomp 1.2.2"
 
@@ -86,8 +86,10 @@ do
   function u.authenticate(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
+    kernel.logger.log("kernel: check user ID " .. uid)
     if not u.passwd[uid] then
-      return nil, "no such user"
+      kernel.logger.log("UID mismatch, no entry")
+      return nil, "no user with UID " .. uid
     end
     return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
@@ -504,21 +506,21 @@ do
     checkArg(1, reboot, "boolean", "nil")
     local running = kernel.thread.threads()
     computer.pushSignal("shutdown")
-    --log("shutdown")
+    kernel.logger.log("shutting down")
     coroutine.yield()
     for i=1, #running, 1 do
       kernel.thread.signal(running[i], kernel.thread.signals.term)
     end
     coroutine.yield()
-    --log("close all file handles")
+    kernel.logger.log("close all file handles")
     closeAll()
     -- clear all GPUs
-    --log("clear all the screens")
+    kernel.logger.log("clear all the screens")
     for addr, _ in component.list("gpu") do
       local w, h = component.invoke(addr, "getResolution")
       component.invoke(addr, "fill", 1, 1, w, h, " ")
     end
-    --log("shut down")
+    kernel.logger.log("shut down")
     shutdown(reboot)
   end
 end
@@ -1018,6 +1020,7 @@ end
 
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
+sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
 
 -- basic loadfile function --
 

@@ -76,3 +76,4 @@ end
 
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
+sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug

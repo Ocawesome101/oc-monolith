@@ -1,4 +1,4 @@
--- mpm- the Monolith Package Manager --
+-- mpm - the Monolith Package Manager --
 
 local   shell  = require (   "shell"  )
 local  config  = require (  "config"  )

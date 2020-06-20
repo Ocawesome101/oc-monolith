@@ -9,21 +9,21 @@ do
     checkArg(1, reboot, "boolean", "nil")
     local running = kernel.thread.threads()
     computer.pushSignal("shutdown")
-    --log("shutdown")
+    kernel.logger.log("shutting down")
     coroutine.yield()
     for i=1, #running, 1 do
       kernel.thread.signal(running[i], kernel.thread.signals.term)
     end
     coroutine.yield()
-    --log("close all file handles")
+    kernel.logger.log("close all file handles")
     closeAll()
     -- clear all GPUs
-    --log("clear all the screens")
+    kernel.logger.log("clear all the screens")
     for addr, _ in component.list("gpu") do
       local w, h = component.invoke(addr, "getResolution")
       component.invoke(addr, "fill", 1, 1, w, h, " ")
     end
-    --log("shut down")
+    kernel.logger.log("shut down")
     shutdown(reboot)
   end
 end

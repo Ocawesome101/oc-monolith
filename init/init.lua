@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 3a50a9f (built Fri Jun 19 16:21:20 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe b1810d5 (built Fri Jun 19 20:29:40 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -102,20 +102,23 @@ do
     end
   end
 end
-
+log("InitMe: setting up libraries")
 package.loaded.filesystem = kernel.filesystem
-package.loaded.users = require("users")
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
+package.loaded.syslog = {
+  log = kernel.logger.log
+}
+package.loaded.users = require("users")
 _G.kernel = nil
 
 -- `io` library --
 
 do
-  log("InitMe: Initialing IO library")
+  log("InitMe: Initializing IO library")
 
   _G.io = {}
   package.loaded.io = io

@@ -16,7 +16,7 @@ kernel.logger = {}
 kernel.logger.log = function()end
 
 local blog, tmp, addr, invoke
-tmp = computer.tmpAddress() or computer.getBootAddress()
+tmp = --[[computer.tmpAddress() or]] computer.getBootAddress()
 
 do
   local y, w, h = 0
@@ -43,7 +43,7 @@ do
   end
   function kernel.logger.log(msg)
     for line in msg:gmatch("[^\n]+") do
-      line = string.format("[ %04.04f ] %s", computer.uptime() - _START, line)
+      line = string.format("[ %4.04f ] %s", computer.uptime() - _START, line)
       if show then log(line) end
       invoke(tmp, "write", blog, line .. "\n")
     end

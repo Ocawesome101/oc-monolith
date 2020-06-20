@@ -28,7 +28,7 @@ for i=1, #args, 1 do
   else
     local _rm = true
     if ask then
-      io.write(string.format("rm: remove '%s'? [y/N]: "))
+      io.write(string.format("rm: remove '%s'? [y/N]: ", rm))
       local inp = io.read():gsub("\n", ""):lower()
       if inp == "y" then
         _rm = true

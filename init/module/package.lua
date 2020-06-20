@@ -90,12 +90,15 @@ do
     end
   end
 end
-
+log("InitMe: setting up libraries")
 package.loaded.filesystem = kernel.filesystem
-package.loaded.users = require("users")
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
+package.loaded.syslog = {
+  log = kernel.logger.log
+}
+package.loaded.users = require("users")
 _G.kernel = nil

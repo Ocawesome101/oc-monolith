@@ -55,6 +55,7 @@ local function fsize(size)
   return r .. (" "):rep(6 - #r)
 end
 
+local w, h = io.output().gpu.getResolution()
 for i=1, #args, 1 do
   local dir = fs.canonical(args[i])
   if not fs.exists(dir) then
@@ -82,6 +83,7 @@ for i=1, #args, 1 do
   for i=1, #files, 1 do
     if #files[i] > longest then longest = #files[i] end
   end
+  local n = 1
   for i=1, #files, 1 do
     local f = files[i]
     local finfo = ""
@@ -102,7 +104,13 @@ for i=1, #args, 1 do
       out = out .. color(colors.file)
     end
     if f:sub(1,1) ~= "." or all then
-      out = out .. f .. (i <= #files and (not inf and "  " or "\n") or "")
+      if inf then out = out .. f .. "\n"
+      else
+        if n + longest >= w and n ~= 1 then out = out .. "\n" n = 1 end
+        out = out .. f
+        n = n + longest + 1
+        if n + (longest - #f + 1) >= w then n = 1 out = out .. "\n" else out = out .. (" "):rep(longest - #f + 1) end
+      end
     end
   end
   print(out .. color(37))

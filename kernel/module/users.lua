@@ -22,8 +22,10 @@ do
   function u.authenticate(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
+    kernel.logger.log("kernel: check user ID " .. uid)
     if not u.passwd[uid] then
-      return nil, "no such user"
+      kernel.logger.log("UID mismatch, no entry")
+      return nil, "no user with UID " .. uid
     end
     return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
