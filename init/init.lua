@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe b1810d5 (built Fri Jun 19 20:29:40 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe 5586c9f (built Fri Jun 19 23:06:16 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -9,6 +9,7 @@ local runlevel = kernel.runlevel
 local _log = function()end--component.sandbox.log
 
 log(_INITVERSION)
+
 
 -- `package` library --
 
@@ -114,6 +115,7 @@ package.loaded.syslog = {
 }
 package.loaded.users = require("users")
 _G.kernel = nil
+
 
 -- `io` library --
 
@@ -231,6 +233,7 @@ do
   end
 end
 
+
 -- os --
 
 do
@@ -250,6 +253,7 @@ end
 ---#include "module/initd.lua"
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
+
 -- `initsvc` lib. --
 
 function runlevel.max()
