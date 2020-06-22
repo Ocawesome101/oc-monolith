@@ -137,6 +137,22 @@ local function binst(b, l)
   end
 end
 
+local function brep(b,l)
+  b,l = tonumber(b),tonumber(l) or 1
+  if not buf[b] then return nil, "no such buffer" end
+  bdraw(b)
+  local _b=buf[b]
+  if not _b.buf[l] then
+    return nil, "invalid line number"
+  end
+  opts.text = _b.buf[l]:sub(0,-2)
+  local txt = lineread(l,l-_b.scroll)
+  if txt ~= "." then
+    _b.buf[l] = txt
+  end
+  opts.text = ""
+end
+
 local help = [[FLED - Fullscreen Lua EDitor (c) 2020 Ocawesome101 under the MIT license.
 Commands:
   o | open <file>       Open <file> for editing. <file> must exist in your filesystem.
@@ -150,7 +166,8 @@ Commands:
   wq                    Quit. Save all open buffers.
   l                     Prints the number of lines in the current buffer.
   dl       [line]       Delete line ([line] or 1) from the current buffer.
-  sc       [line]       Scroll to line [line], or line 1. [line] will be the top line of the screen.]]
+  sc       [line]       Scroll to line [line], or line 1. [line] will be the top line of the screen.
+  r        [line]       Replace line [line].]]
 local exit = false
 local funcs = {
   help = function()return help end,
@@ -170,6 +187,7 @@ local funcs = {
   dl = function(n)n=tonumber(n)or 1 if buf[cur] and buf[cur].buf[n] then table.remove(buf[cur].buf, n) end end,
   sc = function(l) --[[scroll]] l = tonumber(l) or 1 if not buf[cur] then return nil, cur .. " has no buffer" end if l > #buf[cur].buf then return nil, "no such line" end buf[cur].scroll = l bdraw(cur) end,
   wq = function()for id, b in pairs(buf) do fsave(id) end exit = true end,
+  r = function(l)return brep(cur,l)end,
   ["\27[B"] = function()if buf[cur] then buf[cur].scroll = buf[cur].scroll + 1 end bdraw() end,
   ["\27[A"] = function()if buf[cur] and buf[cur].scroll > 0 then buf[cur].scroll = buf[cur].scroll - 1 bdraw() end end
 }

@@ -201,8 +201,13 @@ function vt.emu(gpu)
                 bg = bright[n - 99]
               end
             end
-            gpu.setForeground(fg)
-            gpu.setBackground(bg)
+            local depth = gpu.getDepth()
+            if (depth > 1 or fg == colors[1] or fg == colors[8] or bg == bright[1] or bg == bright[8]) then
+              gpu.setForeground(fg)
+            end
+            if (depth > 1 or bg == colors[1] or bg == colors[8] or bg == bright[1] or bg == bright[8]) then
+              gpu.setBackground(bg)
+            end
           end
           ebuf = ""
           checkCursor()

@@ -14,8 +14,7 @@ cfg.baseURL = cfg.baseURL or "https://raw.githubusercontent.com"
 config.save(cfg, "/etc/mpm/mpm.cfg")
 
 local function lprint(...)
-  local msg = table.concat({...}, " ")
-  print("\27[93m-> \27[37m" .. msg)
+  print("\27[93m-> \27[37m", ...)
 end
 
 lprint("Initializing MPM")
@@ -53,6 +52,7 @@ end
 
 local function getPackageConfig(package)
   local user, repo, pkg = getParts(package)
+  lprint(package, user, repo, pkg)
   if not user then
     lprint("No username provided - checking name list from configuration")
     for _, v in pairs(cfg.names) do

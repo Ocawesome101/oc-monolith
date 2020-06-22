@@ -8,7 +8,7 @@ function cpio.extract(file, dir)
   checkArg(1, file, "string")
   checkArg(2, dir, "string", "nil")
   dir = dir or os.getenv("PWD")
-  local file = io.open(args[1], "rb")
+  local file = io.open(file, "rb")
   local extracted = {}
 
   local dent = {

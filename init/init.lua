@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 5586c9f (built Fri Jun 19 23:06:16 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 8c20de5 (built Mon Jun 22 19:50:14 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -9,7 +9,6 @@ local runlevel = kernel.runlevel
 local _log = function()end--component.sandbox.log
 
 log(_INITVERSION)
-
 
 -- `package` library --
 
@@ -115,7 +114,6 @@ package.loaded.syslog = {
 }
 package.loaded.users = require("users")
 _G.kernel = nil
-
 
 -- `io` library --
 
@@ -233,7 +231,6 @@ do
   end
 end
 
-
 -- os --
 
 do
@@ -250,10 +247,28 @@ do
   end
 end
 
+-- component API metatable allowing component.filesystem and things --
+-- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
+
+do
+  local component = require("component")
+  local mt = {
+    __index = function(tbl, k)
+      local addr = component.list(k, true)()
+      if not addr then
+        error("component of type '" .. k .. "' not found")
+      end
+      tbl[k] = component.proxy(addr)
+      return tbl[k]
+    end
+  }
+
+  setmetatable(component, mt)
+end
+
 ---#include "module/initd.lua"
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
-
 -- `initsvc` lib. --
 
 function runlevel.max()

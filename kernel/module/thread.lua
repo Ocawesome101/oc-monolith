@@ -24,6 +24,7 @@ do
         break
       end
     end
+--    kernel.logger.log("min timeout " .. min)
     return min
   end
 
@@ -330,9 +331,9 @@ do
           handleProcessError(thd, p2 or p1)
         elseif ok then
           if p2 and type(p2) == "number" then
-            thd.deadline = thd.deadline + p2
+            thd.deadline = computer.uptime() + p2
           elseif p1 and type(p1) == "number" then
-            thd.deadline = thd.deadline + p1
+            thd.deadline = computer.uptime() + p1
           else
             thd.deadline = math.huge
           end

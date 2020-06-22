@@ -49,7 +49,7 @@ function internet.request(url, data, headers, method)
         elseif #data > 0 then
           return data
         else
-          error("download failed", 2)
+          --error("download failed", 2)
         end
         os.sleep(0)
       end

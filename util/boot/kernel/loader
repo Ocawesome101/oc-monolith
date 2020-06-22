@@ -24,7 +24,7 @@ do
   local screen = component.list("screen")()
   local log = function() end
   local show = true
-  if gpu and screen then
+  if gpu and screen and not flags.quiet then
     gpu = component.proxy(gpu)
     gpu.bind(screen)
     w, h = gpu.maxResolution()
@@ -59,11 +59,10 @@ function kernel.logger.panic(reason)
   kernel.logger.setShown(true)
   kernel.logger.log("==== Crash ".. os.date() .." ====")
   local trace = debug.traceback(reason):gsub("\t", "  ")
-  for line in trace:gmatch("[^\n]+") do
-    kernel.logger.log(line)
-  end
+  kernel.logger.log(trace)
+  kernel.logger.log("Press R to reboot.")
   kernel.logger.log("=========== End trace ===========")
-  while true do computer.pullSignal(0.5) computer.beep(440, 0.1) end
+  while true do local sig, _, id = computer.pullSignal(0.5) if sig == "key_down" and string.char(id) == "r" then computer.shutdown(true) end computer.beep(440, 0.1) end
 end
 
 addr, invoke = computer.getBootAddress(), component.invoke
@@ -101,3 +100,4 @@ local ok, err = xpcall(ok, debug.traceback, flags)
 if not ok and err then
   kernel.logger.panic(err)
 end
+kernel.logger.panic("kernel halted")
