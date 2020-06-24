@@ -32,7 +32,18 @@ function adp.instance(addr)
           h.readEEPROMData = false
           return prx.setData(d)
         end
-      }
+      },
+      address = {
+        isDirectory = false,
+        read = function(h)
+          if h.readEEPROMAddress then return nil end
+          h.readEEPROMAddress = true
+          return prx.address
+        end,
+        write = function(h, d)
+          error("component address not writable")
+        end
+      },
     }
   }
   return inst
