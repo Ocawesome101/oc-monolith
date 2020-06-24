@@ -13,6 +13,7 @@ function adp.instance(addr)
   local rfsm = "readFSMountPoint" .. addr
   local rfst = "readFSSpaceTotal" .. addr
   local rfsu = "readFSSpaceUsed" .. addr
+  local rfsa = "readFSAddress" .. addr
   local inst = {
     isDirectory = true,
     children = {
@@ -20,12 +21,23 @@ function adp.instance(addr)
         isDirectory = false,
         read = function(h)
           if h[rfsl] then return nil end
-          h[rfsl] = true 
+          h[rfsl] = true print("GET LABEL")
           return prx.getLabel()
         end,
         write = function(h, d)
           h[rfsl] = false
           return prx.setLabel(d)
+        end
+      },
+      address = {
+        isDirectory = false,
+        read = function(h)
+          if h[rfsa] then return nil end
+          h[rfsa] = true
+          return prx.address
+        end,
+        write = function(h, d)
+          error("component address not writable")
         end
       },
       mount = {

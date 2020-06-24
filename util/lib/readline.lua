@@ -125,7 +125,7 @@ function rl.readline(prompt, opts)
   local buffer = opts.default or opts.text or ""
   local highlighter = opts.highlighter or opts.syntax or function(e)return e end
   local redraw
-  local acts = opts.acts or opts.actions or 
+  local acts = opts.acts or opts.actions or
     {
       up = function()
         if ent > 1 then
@@ -178,7 +178,7 @@ function rl.readline(prompt, opts)
   local y, x = resp:match("\27%[(%d+);(%d+)R")
   local w, h = io.output().gpu.getResolution() -- :^)
   local sy = tonumber(y) or 1
-  prompt = prompt or ("\27[C"):rep((tonumber(x) or 0))
+  prompt = ("\27[C"):rep((tonumber(x) or 1) - 1) .. (prompt or "")
   local lines = 1
   function redraw()
     local write = buffer--highlighter(buffer)
