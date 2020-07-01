@@ -12,4 +12,23 @@ do
     until computer.uptime() >= m
     return true
   end
+
+  -- we define os.getenv and os.setenv here now, rather than in kernel/module/process
+  function os.getenv(k)
+    if k then
+      return assert((kernel.process or require("process")).info()).data.env[k] or nil
+    else -- return a copy of the env
+      local e = {}
+      for k, v in pairs((kernel.process or require("process")).info().data.env) do
+        e[k] = v
+      end
+      return e
+    end
+  end
+
+  function os.setenv(k,v)
+    --checkArg(1, k, "string", "number")
+    --checkArg(2, v, "string", "number", "nil")
+    (kernel.process or require("process")).info().data.env[k] = v
+  end
 end

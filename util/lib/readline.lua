@@ -1,7 +1,7 @@
 -- relatively flexible readline implementation --
 
 local component = require("component")
-local thread = require("thread")
+local process = require("process")
 local rl = {}
 
 local buffers = {}
@@ -35,8 +35,6 @@ setmetatable(replacements, {__index = function() return "" end})
 --
 -- I'm fairly certain that one single key input thread will be
 -- faster, in most cases, than one per terminal session
--- granted, this isn't much of an issue whilst multi-
--- terminal is broken :/
 local function listener()
   while true do
     local signal, keyboard, character, keycode = coroutine.yield()
@@ -62,7 +60,7 @@ local function listener()
   end
 end
 
-thread.spawn(listener, "readline")
+process.spawn(listener, "readline", {default = error})
 
 function rl.addscreen(screen, gpu)
   checkArg(1, screen, "string")

@@ -3,9 +3,9 @@
 do
   kernel.logger.log("initializing 'process' type")
 
-  local proc = {} -- the base "process" template
-  
-  function proc:resume(...) -- resumes every thread in the process, in order
+  local proc_type = {} -- the base "process" template
+
+  function proc_type:resume(...) -- resumes every thread in the process, in order
     if self.stopped then return nil end
     local timeout = math.huge
     for n, thread in ipairs(self.threads) do
@@ -27,7 +27,7 @@ do
     return timeout
   end
 
-  function proc:addthread(func) -- add a "child" thread (coroutine)
+  function proc_type:addthread(func) -- add a "child" thread (coroutine)
     local new = coroutine.create(function()
       assert(xpcall(func, debug.traceback)) -- this gives us a stack traceback if the thread errors while still propagating the error, and exits cleanly if it doesn't.
     end)
@@ -35,41 +35,41 @@ do
     return #self.threads
   end
 
-  function proc:delthread(n)
+  function proc_type:delthread(n)
     self.threads[n] = nil
     return true
   end
 
-  function proc:kill()
+  function proc_type:kill()
     self.dead = true
   end
 
-  function proc:stop()
+  function proc_type:stop()
     self.stopped = true
   end
 
-  function proc:continue()
+  function proc_type:continue()
     self.stopped = false
   end
 
-  function proc:interrupt()
+  function proc_type:interrupt()
     self.handlers.interrupt("interrupted")
   end
 
-  function proc:terminate()
+  function proc_type:terminate()
     self.handlers.terminate("terminated")
   end
-  
-  function proc:usr1()
+
+  function proc_type:usr1()
     self.handlers.usr1("user signal 1")
   end
 
-  function proc:usr2()
+  function proc_type:usr2()
     self.handlers.usr2("EXECUTE ORDER 66")
   end
 
-  function proc.new(name, handlers, env)
-    local new = setmetatable({
+  function proc_type.new(name, handlers, env)
+    local new = {
       name = name,
       handlers = handlers or {default = kernel.logger.panic},
       env = env or {},
@@ -77,17 +77,19 @@ do
       pid = 0,
       dead = false,
       owner = kernel.users.uid(),
+      users = {kernel.users.uid()},
       stopped = false,
       started = computer.uptime(),
       io = {[0] = {}, [1] = {}, [2] = {}},
-      signals = {}
-    }, {__index = proc})
+      signals = {},
+      deadline = 0
+    }
     new.env.PWD = new.env.PWD or "/"
     new.env.UID = new.owner
     handlers.default = handlers.default or kernel.logger.panic
     setmetatable(new.handlers, {__index = function() return new.handlers.default end})
     local ts = tostring(new):gsub("table", "process")
-    return setmetatable(new, {__type = "process", __tostring = function() return ts end})
+    return setmetatable(new, {__type = "process", __tostring = function() return ts end, __index = proc_type})
   end
 
   ------------------------------------------------------------------------------------------
@@ -98,10 +100,12 @@ do
   function process.spawn(func, name, handlers, env)
     checkArg(1, func, "function")
     checkArg(2, name, "string")
-    checkArg(3, handlers, "table", "nil")
+    checkArg(3, handlers, "function", "table", "nil")
     checkArg(4, env, "table", "nil")
+    if type(handlers) == "function" then handlers = {default = handlers} end
+    handlers = handlers or {default = kernel.logger.panic}
     env = env or kernel.table_copy((processes[current] or {env = {}}).env)
-    local new = proc.new(name, handlers, env)
+    local new = proc_type.new(name, handlers, env)
     lastpid = lastpid + 1
     new.pid = lastpid
     new.parent = current
@@ -113,6 +117,40 @@ do
     processes[lastpid] = new
     coroutine.yield(0)
     return lastpid
+  end
+
+  -- os.setenv and os.getenv are defined in init now rather than here
+
+  -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level access.
+  local ulogin, ulogout, uuid = kernel.users.login, kernel.users.logout, kernel.users.uid
+  function kernel.users.login(uid, password)
+    checkArg(1, uid, "number")
+    checkArg(2, password, "string")
+    local ok, err = kernel.users.authenticate(uid, password)
+    if not ok then
+      return nil, err
+    end
+    if processes[current] then
+      table.insert(processes[current].users, 1, uid)
+      return true
+    end
+    return ulogin(uid, password)
+  end
+
+  function kernel.users.logout()
+    if processes[current] then
+      table.remove(processes[current].users, 1)
+      return true
+    end
+    return false -- kernel is always root
+  end
+
+  function kernel.users.uid()
+    if processes[current] then
+      return processes[current].users[1]
+    else
+      return 0 -- again, kernel is always root
+    end
   end
 
   function process.processes()
@@ -128,7 +166,7 @@ do
     pid = pid or current
     local p = processes[pid]
     if not p then
-      return nil, "no such process"
+      return nil, "no such process: " .. pid
     end
     local info = {
       name = p.name,
@@ -209,6 +247,53 @@ do
     end
     processes[pid].parent = 0
     return true
+  end
+
+  function process.start()
+    process.start = nil
+    while #processes > 0 do
+      local signal = {}
+      local timeout = math.huge
+      local uptime = computer.uptime()
+      for pid, proc in pairs(processes) do
+        if proc.deadline < uptime then
+          timeout = uptime - proc.deadline
+          if timeout <= 0 then
+            timeout = 0
+            break
+          end
+        end
+      end
+      signal = table.pack(computer.pullSignal(timeout))
+      local run = {}
+      for pid, proc in pairs(processes) do
+        if (proc.deadline < uptime or #proc.signals > 0 or signal.n > 0) and not proc.stopped then
+          run[#run + 1] = proc
+          if #proc.signals > 0 and signal.n > 0 then
+            table.insert(proc.signals, signal)
+          end
+        end
+      end
+
+      local start = computer.uptime()
+      for _, proc in ipairs(run) do
+        current = proc.pid
+        local timeout = proc:resume(table.unpack((#proc.signals > 0 and table.remove(proc.signals, 1)) or signal))
+        if timeout then
+          proc.deadline = computer.uptime() + timeout
+        end
+        if computer.uptime() - start > 5 then
+          goto cleanup
+        end
+      end
+
+      ::cleanup::
+      for pid, proc in pairs(processes) do
+        if proc.dead then
+          processes[pid] = nil
+        end
+      end
+    end
   end
 
   kernel.process = process

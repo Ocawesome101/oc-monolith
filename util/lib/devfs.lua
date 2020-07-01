@@ -181,6 +181,19 @@ function devfs.addComponent(addr)
   return true
 end
 
+function devfs.register(name, stream)
+  checkArg(1, name, "string")
+  checkArg(2, stream, "table")
+  vfs.children[name] = stream
+  return true
+end
+
+function devfs.unregister(name)
+  checkArg(1, name, "string")
+  vfs.children[name] = nil
+  return true
+end
+
 function devfs.removeComponent(addr)
   checkArg(1, addr, "string")
   local c = vfs.children.component.children

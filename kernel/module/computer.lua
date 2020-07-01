@@ -7,13 +7,9 @@ do
   kernel.filesystem.closeAll = nil
   function computer.shutdown(reboot)
     checkArg(1, reboot, "boolean", "nil")
-    local running = kernel.thread.threads()
+    local running = kernel.process.processes()
     computer.pushSignal("shutdown")
     kernel.logger.log("shutting down")
-    coroutine.yield()
-    for i=1, #running, 1 do
-      kernel.thread.signal(running[i], kernel.thread.signals.term)
-    end
     coroutine.yield()
     kernel.logger.log("close all file handles")
     closeAll()

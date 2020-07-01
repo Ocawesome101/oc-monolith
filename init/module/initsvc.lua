@@ -8,7 +8,7 @@ if runlevel.levels[maxrunlevel].services then
 
   local config = require("config")
   local fs = require("filesystem")
-  local thread = require("thread")
+  local process = require("process")
   local users = require("users")
   local scripts = "/lib/scripts/"
   local services = "/lib/services/"
@@ -23,7 +23,7 @@ if runlevel.levels[maxrunlevel].services then
     if users.uid() ~= 0 then
       return nil, "only root can do that"
     end
-    if svc[service] and thread.info(svc[service]) then
+    if svc[service] and process.info(svc[service]) then
       return nil, "service is already running"
     end
     local senv = setmetatable({}, {__index=_G})
@@ -34,10 +34,10 @@ if runlevel.levels[maxrunlevel].services then
     --[[pcall(ok) -- this isn't actually supported, heh
     if senv.start then -- OpenOS-y service
       osvc[service] = senv
-      thread.spawn(senv.start, service, handler or print)
+      process.spawn(senv.start, service, handler or print)
     end]]
-    local pid = thread.spawn(ok, service, handler or panic)
-    thread.orphan(pid)
+    local pid = process.spawn(ok, service, {default = handler or error})
+    process.orphan(pid)
     svc[service] = pid
     return true
   end
@@ -69,7 +69,7 @@ if runlevel.levels[maxrunlevel].services then
     if type(svc[service]) == "table" then
       pcall(svc[service].stop)
     else
-      thread.signal(svc[service], thread.signals.kill)
+      process.kill(svc[service])
     end
     svc[service] = nil
     return true
@@ -137,4 +137,4 @@ if not ok then
   panic("GETTY load failed: " .. err)
 end
 --log("starting getty")
-require("thread").spawn(ok, "/sbin/getty.lua", panic)
+require("process").spawn(ok, "/sbin/getty.lua", {default = error})

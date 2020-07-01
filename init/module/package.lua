@@ -92,8 +92,8 @@ do
 end
 log("InitMe: setting up libraries")
 package.loaded.filesystem = kernel.filesystem
-package.loaded.thread = kernel.thread
-package.loaded.signals = kernel.thread.signals
+package.loaded.process = kernel.process
+package.loaded.signals = kernel.process.signals
 package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info

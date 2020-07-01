@@ -1,6 +1,6 @@
 -- getty implementation --
 
-local thread = require("thread")
+local process = require("process")
 local component = require("component")
 local computer = require("computer")
 local vt100 = require("vt100")
@@ -58,6 +58,8 @@ local function makeStream(gpu, screen)
   return stream.new(read, write, close, {screen = screen, gpu = gpu})
 end
 
+local ttyn = 0
+
 function getty.scan()
   dinfo = computer.getDeviceInfo()
   for addr, _ in component.list("gpu") do
@@ -71,7 +73,7 @@ function getty.scan()
   for addr, p in pairs(gpus) do
     if not dinfo[addr] then
       if p.bound then
-        thread.signal(p.bound, thread.signals.kill)
+        process.signal(p.bound, thread.signals.kill)
         screens[p.screen].bound = false
       end
       gpus[addr] = nil
@@ -81,7 +83,7 @@ function getty.scan()
   for addr, p in pairs(screens) do
     if not dinfo[addr] then
       if p.bound then
-        thread.signal(p.bound, thread.signals.kill)
+        process.signal(p.bound, thread.signals.kill)
         gpus[p.gpu].bound = false
       end
       screens[addr] = nil
@@ -90,19 +92,21 @@ function getty.scan()
 
   while true do
     local gpu, screen = nextGPU(), nextScreen()
---    logger.log(gpu, screen)
     if gpu and screen then
-      --local sr, sw, sc = vt100.session(gpu, screen)
-      local ios = makeStream(gpu, screen)--stream.new(sr, sw, sc)]]
       local ok, err = loadfile(login)
       if not ok then
         error(err)
       end
-      local pid = thread.spawn(ok, login, nil, nil, ios, ios)
+      local ios = makeStream(gpu, screen)
+      require("devfs").register("tty" .. ttyn, ios)
+      io.output("/dev/tty" .. ttyn)
+      io.input("/dev/tty" .. ttyn)
+      local pid = process.spawn(ok, login, {default = error})
       gpus[gpu].bound = pid
       gpus[gpu].screen = screen
       screens[screen].bound = pid
       screens[screen].gpu = gpu
+      ttyn =ttyn + 1
     else
       break
     end
@@ -113,7 +117,7 @@ getty.scan()
 
 while true do
   local sig, pid, res = coroutine.yield()
-  if sig == "thread_errored" then
+  if sig == "process_errored" then
     io.stderr:write(pid .. ": " .. res)
   end
   if sig == "component_added" or sig == "component_removed" then

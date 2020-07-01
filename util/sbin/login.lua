@@ -1,7 +1,7 @@
 -- login --
 
 local users = require("users")
-local thread = require("thread")
+local process = require("process")
 local readline = require("readline")
 
 local out = io.output()
@@ -23,7 +23,7 @@ while true do
     if not ok then
       out:write("\27[31m" .. err .. "\27[37m\n")
     else
-      local pid = thread.spawn(ok, shell, function(err)out:write("\27[31m" .. err .. "\27[37m\n")end, nil, inp, out)
+      local pid = process.spawn(ok, shell, function(err)out:write("\27[31m" .. err .. "\27[37m\n")end)
       repeat
         local sig, dpid, err = coroutine.yield()
         if sig == "thread_errored" and err and dpid == pid then

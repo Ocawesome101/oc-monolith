@@ -1,9 +1,8 @@
--- A vt100 emulator because why tf not? Supports as much of the vt100 stuff as I can manage to puzzle out --
+-- A vt100 emulator. Supports as much of the vt100 stuff as I can manage to puzzle out --
 -- Heavily inspired by the PsychOS VT100 emulator.
 
 local component = require("component")
 local computer = require("computer")
-local thread = require("thread")
 local config = require("config")
 local vt = {}
 
@@ -15,7 +14,7 @@ end
 vt.reload()
 function vt.emu(gpu)
   checkArg(1, gpu, "table")
-  
+
   local w, h = gpu.maxResolution()
   gpu.setResolution(w, h)
   local cx, cy, w, h = 1, 1, gpu.getResolution()
@@ -47,22 +46,22 @@ function vt.emu(gpu)
     0xFFFFFF
   }
   local fg, bg = 0xFFFFFF, 0x000000
-  
+
   local function checkCursor()
     if cx > w then
       cx, cy = 1, cy + 1
     end
-    
+
     if cy > h then
       gpu.copy(1, 1, w, h, 0, -1)
       gpu.fill(1, h, w, 1, " ")
       cy = h
     end
-    
+
     if cx < 1 then cx = w cy = cy - 1 end
     if cy < 1 then cy = 1 end
   end
-  
+
   local function flush()
     while #wbuf > 0 do
       checkCursor()
@@ -72,7 +71,7 @@ function vt.emu(gpu)
       cx = cx + #ln
     end
   end
-  
+
   local function vtwrite(str)
     checkArg(1, str, "string")
     str = str:gsub("\8","\27[D")
@@ -140,7 +139,7 @@ function vt.emu(gpu)
             sx, sy = cx, cy
           elseif char == "u" then
             cx, cy = sx, sy
-          elseif char == "n" then 
+          elseif char == "n" then
             if params[1] == 6 then
               resp = string.format("%s\27[%d;%dR", resp, cy, cx)
             elseif params[1] == 5 then
@@ -241,13 +240,13 @@ function vt.session(gpu, screen)
     gpu = component.proxy(gpu)
   end
   gpu.bind(screen)
-  
+
   local write = vt.emu(gpu)
   local keyboards = {}
   for _, addr in pairs(component.invoke(screen, "getKeyboards")) do
     keyboards[addr] = true
   end
-  
+
   local buf, echo, last, hist, hp, dh = "", true, computer.uptime(), {}, 1, false
   local function proc()
     while true do
@@ -303,7 +302,7 @@ function vt.session(gpu, screen)
     end
   end
   local pid = thread.spawn(proc, string.format("tty(%s:%s)", gpu.address:sub(1, 8), screen:sub(1, 8)))
-  
+
   local function sread()
     while not buf:find("\n") do
       coroutine.yield()
@@ -315,7 +314,7 @@ function vt.session(gpu, screen)
       if #hist > 16 then table.remove(hist, 1) end end
     return ret
   end
-  
+
   local function swrite(str)
     checkArg(1, str, "string")
     local response, localEcho, doh = write(str)
@@ -323,12 +322,12 @@ function vt.session(gpu, screen)
     if doh ~= nil then dh = doh end
     return response
   end
-  
+
   local function sclose()
     os.kill(pid)
     io.write("\27[2J\27[H")
   end
-  
+
   return sread, swrite, sclose
 end
 
