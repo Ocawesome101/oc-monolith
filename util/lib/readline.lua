@@ -40,7 +40,6 @@ local function listener()
     local signal, keyboard, character, keycode = coroutine.yield()
     if signal == "key_down" and buffers[keyboard] then
       local screen = buffers[keyboard]
-      --if character == 13 or keycode == 28 then character = 10 end -- if enter, just write a newline
       local concat = string.char(character)
       if character == 0 then
         concat = replacements[keycode]

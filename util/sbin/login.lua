@@ -9,10 +9,11 @@ local inp = io.input()
 out:write("\27[2J\27[1;1H\27[0;37m" .. _OSVERSION .. --[[" - " .. require("computer").freeMemory() // 1024 .. "k free]]"\n\n")
 while true do
   --print("LOGIN READ")
-  local uname = readline.readline({prompt=(os.getenv("HOSTNAME") or "localhost").." login: "}):gsub("\n", "")
+  local uname = readline.readline({prompt=(os.getenv("HOSTNAME") or "localhost").." login: "})
+  uname = (uname or ""):gsub("\n", "")
   --print("READ DONE")
   local pwd = readline.readline({prompt="password: ", pwchar="*", notrail = true})
-  out:write("\27[0m\n")
+  out:write("\n")
 
   local ok, err = users.login(uname, pwd)
   if not ok then

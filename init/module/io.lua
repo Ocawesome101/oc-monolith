@@ -17,7 +17,7 @@ do
     elseif k == "stdout" then
       return process.info().data.io[1]
     elseif k == "stderr" then
-      return process.info().data.io[2]
+      return process.info().data.io[2] or process.info().data.io[1]
     end
   end})
 

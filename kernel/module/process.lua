@@ -10,6 +10,7 @@ do
     local timeout = math.huge
     for n, thread in ipairs(self.threads) do
       local ok, ret = coroutine.resume(thread, ...)
+      kernel.logger.log(tostring(ok) .. " " .. tostring(ret))
       if not ok and ret then
         self.threads[n] = nil
         self.handlers.default(string.format("process %d: error in thread %d: %s", self.pid, n, ret or "not specified"))
@@ -115,7 +116,7 @@ do
     new.io[2] = (processes[current] or dummy).io[2]
     new:addthread(func)
     processes[lastpid] = new
-    coroutine.yield(0)
+--    coroutine.yield(0)
     return lastpid
   end
 
@@ -130,11 +131,14 @@ do
     if not ok then
       return nil, err
     end
+    local ok, err = ulogin(uid, password)
+    if not ok then
+      return nil, err
+    end
     if processes[current] then
       table.insert(processes[current].users, 1, uid)
       return true
     end
-    return ulogin(uid, password)
   end
 
   function kernel.users.logout()
@@ -249,27 +253,42 @@ do
     return true
   end
 
+  local function null_concat(t)
+    local s = ""
+    for i=1, #t, 1 do
+      s = s .. ' ' .. tostring(t[i])
+    end
+    return s
+  end
+
   function process.start()
     process.start = nil
     while #processes > 0 do
       local signal = {}
       local timeout = math.huge
       local uptime = computer.uptime()
+      kernel.logger.log("PROC GET_TIMEOUT")
       for pid, proc in pairs(processes) do
-        if proc.deadline < uptime then
+        if uptime - proc.deadline >= 0 and uptime - proc.deadline < timeout then
           timeout = uptime - proc.deadline
+          kernel.logger.log("PROC SET_TIMEOUT " .. timeout)
           if timeout <= 0 then
             timeout = 0
+            kernel.logger.log("PROC END_GET_TIMEOUT")
             break
           end
         end
       end
+      kernel.logger.log("PROC PULL_SIGNAL::" .. timeout)
       signal = table.pack(computer.pullSignal(timeout))
       local run = {}
+      kernel.logger.log("PROC CHECK_PROC_RUN_STATUS")
       for pid, proc in pairs(processes) do
         if (proc.deadline < uptime or #proc.signals > 0 or signal.n > 0) and not proc.stopped then
           run[#run + 1] = proc
+          kernel.logger.log("PROC RUN PID::" .. pid)
           if #proc.signals > 0 and signal.n > 0 then
+            kernel.logger.log("PROC TOOMANYSIGNALSINSERTTOPROCBUFFERHELPMEMYSPACEBARBROKE")
             table.insert(proc.signals, signal)
           end
         end
@@ -278,11 +297,22 @@ do
       local start = computer.uptime()
       for _, proc in ipairs(run) do
         current = proc.pid
-        local timeout = proc:resume(table.unpack((#proc.signals > 0 and table.remove(proc.signals, 1)) or signal))
+        local rsig = {}
+        if #proc.signals > 0 then
+          kernel.logger.log("PROC SIG_FROM_INTERNAL_QUEUE")
+          rsig = table.remove(proc.signals)
+        else
+          kernel.logger.log("PROC SIG_FROM_PULLSIGNAL")
+          rsig = signal
+        end
+        kernel.logger.log("PROC RESUME PID::" .. proc.pid .. "NAME::" .. proc.name .. " SIGNAL::'" .. null_concat(rsig) .. "'")
+        local timeout = proc:resume(table.unpack(rsig))
         if timeout then
           proc.deadline = computer.uptime() + timeout
+          kernel.logger.log("PROC SET_PROCESS_DEADLINE " .. proc.deadline)
         end
         if computer.uptime() - start > 5 then
+          kernel.logger.log("PROC EXIT_LOOP_CLEANUP")
           goto cleanup
         end
       end
@@ -290,6 +320,7 @@ do
       ::cleanup::
       for pid, proc in pairs(processes) do
         if proc.dead then
+          kernel.logger.log("PROC DEAD ".. pid)
           processes[pid] = nil
         end
       end

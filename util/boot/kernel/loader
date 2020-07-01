@@ -16,7 +16,7 @@ kernel.logger = {}
 kernel.logger.log = function()end
 
 local blog, tmp, addr, invoke
-tmp = computer.tmpAddress() or computer.getBootAddress()
+tmp = --[[computer.tmpAddress() or]] computer.getBootAddress()
 
 do
   local y, w, h = 0

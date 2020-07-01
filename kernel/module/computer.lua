@@ -12,7 +12,7 @@ do
     kernel.logger.log("shutting down")
     coroutine.yield()
     kernel.logger.log("close all file handles")
-    closeAll()
+    pcall(closeAll)
     -- clear all GPUs
     kernel.logger.log("clear all the screens")
     for addr, _ in component.list("gpu") do
