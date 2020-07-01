@@ -14,12 +14,12 @@ local vfs = {
   children = {
     ["random"] = {
       isDirectory = false,
-      read = function(n) if n > 2048 then n = 2048 end local s = "" for i=1, n, 1 do s = s .. string.char(math.random(0, 255)) end return s end,
+      read = function(_,n) if n > 2048 then n = 2048 end local s = "" for i=1, n, 1 do s = s .. string.char(math.random(0, 255)) end return s end,
       write = roerr
     },
     ["zero"] = {
       isDirectory = false,
-      read = function(n) if n > 2048 then n = 2048 end return string.rep("\0", n) end,
+      read = function(_,n) if n > 2048 then n = 2048 end return string.rep("\0", n) end,
       write = roerr
     },
     ["null"] = {
@@ -29,13 +29,13 @@ local vfs = {
     },
     ["stdin"] = {
       isDirectory = false,
-      read = function(...)return io.stdin:read(...) end,
+      read = function(_,...)return io.stdin:read(...) end,
       write = roerr
     },
     ["stdout"] = {
       isDirectory = false,
       read = function()error("stdout is write-only")end,
-      write = function(...)return io.stdout:write(...) end
+      write = function(_,...)return io.stdout:write(...) end
     },
     ["components"] = {
       isDirectory = true,

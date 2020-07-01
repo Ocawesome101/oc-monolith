@@ -54,15 +54,13 @@ kernel.logger.log("setting up userspace sandbox")
 local sandbox = {}
 
 -- it is now time for an actually working sandbox!
-do
+function kernel.table_copy(t)
   local seen = {}
   local function copy(tbl)
     local ret = {}
     for k, v in pairs(tbl) do
---      kernel.logger.log("copy " .. k)
       if type(v) == "table" and not seen[v] then
         seen[v] = true
---        kernel.logger.log("tcopy " .. tostring(k))
         ret[k] = copy(v)
       else
         ret[k] = v
@@ -70,10 +68,10 @@ do
     end
     return ret
   end
-  kernel.logger.log("tcopy sanbox")
-  sandbox = copy(_G)
+  return copy(t)
 end
 
+sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
