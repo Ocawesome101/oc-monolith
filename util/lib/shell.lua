@@ -61,7 +61,7 @@ shell.builtins = {
   end,
   kill = function(...)
     local signals = require("signals")
-    local args, opts = shell.parse({long = "-", short = "--"}, ...)
+    local args, opts = shell.parse(...)
     local pid = tonumber(args[1] or "")
     if #args == 0 or not pid then
       shell.error("sh: kill", "usage: kill [-<signal>] <PID>")
