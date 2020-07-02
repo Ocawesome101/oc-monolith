@@ -243,13 +243,7 @@ function shell.split(str)
   local cur = ""
   local last = ""
   for char in str:gmatch(".") do
-    if last == "'" then
-      if char == "'" then
-        cur = cur .. "'"
-      else
-        inblock = false
-      end
-    elseif char == "'" then
+    if char == "'" then
       if inblock == false then inblock = true end
     elseif char == " " then
       if inblock then
