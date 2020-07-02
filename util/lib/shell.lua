@@ -93,7 +93,7 @@ shell.builtins = {
     local set, opts = shell.parse(...)
     if #set == 0 or opts.p then
       for k,v in pairs(thread.info().data.env) do
-        print(string.format("%s=%s", k, v:gsub("\27", "\\27")))
+        print(string.format("%s=%s", k, tostring(v):gsub("\27", "\\27")))
       end
     else
       for k, v in pairs(set) do
@@ -304,7 +304,6 @@ local function execute(...)
       builtin = commands[k]
     else
       commands[k][1] = shell.resolve(commands[k][1], "lua") or commands[k][1]
-      --print(table.unpack(commands[k]))
     end
   end
   if #commands > 1 and has_builtin then
