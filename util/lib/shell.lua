@@ -93,12 +93,12 @@ shell.builtins = {
     local set, opts = shell.parse(...)
     if #set == 0 or opts.p then
       for k,v in pairs(thread.info().data.env) do
-        print(string.format("%s=%s", k, v))
+        print(string.format("%s=%s", k, v:gsub("\27", "\\27")))
       end
     else
       for k, v in pairs(set) do
         local var, val = v:match("(.+)=(.+)")
-        os.setenv(var, val)
+        os.setenv(var, val:gsub("\\27", "\27"))
       end
     end
   end,
@@ -255,7 +255,7 @@ function shell.split(str)
       if inblock then
         cur = cur .. " "
       else
-        ret[#ret + 1] = cur
+        ret[#ret + 1] = cur:gsub("\\27", "\27")
         cur = ""
       end
     else
@@ -264,7 +264,7 @@ function shell.split(str)
     last = char
   end
   if #cur > 0 then
-    ret[#ret + 1] = cur
+    ret[#ret + 1] = cur:gsub("\\27", "\27")
   end
   return ret
 end
