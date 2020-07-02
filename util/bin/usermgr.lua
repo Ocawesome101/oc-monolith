@@ -59,7 +59,7 @@ if #args == 0 then -- enter interactive mode
   interactive = true
   print("usermgr (c) 2020 Ocawesome101 under the MIT license.")
   while interactive do
-    io.write("usermgr>")
+    io.write("usermgr> ")
     local cmd = require("text").tokenize(io.read():gsub("\n",""))
     local ok, err = execute(table.unpack(cmd))
     if not ok and err then

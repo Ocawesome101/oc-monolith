@@ -86,8 +86,10 @@ function rl.readlinebasic(screen, n)
   end
   local buf = buffers[screen]
   while #buf.buffer < n or (not n and not buf.buffer:find("\n")) do
-    --print("RLBY")
     coroutine.yield()
+  end
+  if buf.buffer:find("\4") then
+    os.exit()
   end
   local n = n or buf.buffer:find("\n")
   local returnstr = buf.buffer:sub(1, n)

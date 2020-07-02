@@ -108,7 +108,7 @@ function pipe.chain(progs)
   local buffers = {}
   local last
   local pids = {}
-  --local io = env.io
+  local orig_io = { input = io.input(), output = io.output() }
   for i=1, #progs, 1 do
     buffers[i] = ""
     local new = setmetatable({
@@ -124,8 +124,10 @@ function pipe.chain(progs)
     local ok, err = loadfile(prog[1])
     if not ok then return nil, err end
     local function handler(...)
-      io.write("\27[31m", ..., "\27[37m")
+      orig_io.output:write("\27[31m", ..., "\27[37m")
     end
+    io.input ((i > 1 and last) or orig_io.input)
+    io.output((i < #progs and new) or orig_io.output)
     table.insert(pids, thread.spawn(
       function()
         return ok(
@@ -133,12 +135,11 @@ function pipe.chain(progs)
         )
       end,
       prog[1],                          --name
-      handler,                          --handler
-      nil,                              --env
-      (i > 1 and last) or nil,          --stdin
-      (i < #progs and new) or nil       --stdout
+      handler                           --handler
     ))
   end
+  io.input(orig_io.input)
+  io.output(orig_io.output)
   return pids
 end
 

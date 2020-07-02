@@ -3,7 +3,10 @@
 local shell = require("shell")
 local fs = require("filesystem")
 
-local w, h = io.output().gpu.getResolution()
+local w, h = math.huge, math.huge
+if io.output().gpu then
+  w, h= io.output().gpu.getResolution()
+end
 
 local colors = {
   dir = 34,

@@ -59,6 +59,17 @@ do
     return thread.info().data.io[0]
   end
 
+  function io.error(file)
+    checkArg(1, file, "string", "table", "nil")
+    if type(file) == "string" then
+      file = io.open(file, "r")
+    end
+    if file then
+      thread.info().data.io[2] = file
+    end
+    return thread.info().data.io[2] or thread.info().data.io[1]
+  end
+
   function io.lines(file, ...)
     checkArg(1, file, "string", "table", "nil")
     if file then

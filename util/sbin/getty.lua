@@ -53,7 +53,6 @@ local function makeStream(gpu, screen)
   local write = vt100.emu(gpu)
   local read = readline.readline
   local close = function()end
-  --component.sandbox.log("create IO stream", read, write, close)
   write("\27[2J")
   return stream.new(read, write, close, {screen = screen, gpu = gpu})
 end
@@ -98,6 +97,7 @@ function getty.scan()
         error(err)
       end
       local ios = makeStream(gpu, screen)
+      ios.tty = true
       require("devfs").register("tty" .. ttyn, ios)
       io.input(ios)
       io.output(ios)
@@ -106,7 +106,7 @@ function getty.scan()
       gpus[gpu].screen = screen
       screens[screen].bound = pid
       screens[screen].gpu = gpu
-      ttyn =ttyn + 1
+      ttyn = ttyn + 1
     else
       break
     end
@@ -118,7 +118,8 @@ getty.scan()
 while true do
   local sig, pid, res = coroutine.yield()
   if sig == "thread_errored" then
-    io.stderr:write(pid .. ": " .. res)
+    if res:sub(-1) ~= "\n" then res = res .. "\n" end
+    io.write("\27[31m error in thread " .. pid .. ": " .. res)
   end
   if sig == "component_added" or sig == "component_removed" then
     getty.scan()

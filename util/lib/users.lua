@@ -31,7 +31,8 @@ local function getuid(name)
 end
 
 function users.getname(uid)
-  checkArg(1, uid, "number")
+  checkArg(1, uid, "number", "string")
+  if type(uid) == "string" then return uid end
   if old.passwd[uid] then
     return old.passwd[uid].n
   end
@@ -99,6 +100,30 @@ function users.shell()
   return os.getenv("SHELL")
 end
 
-users.sudo = old.sudo
+function users.sudo(func, uname, password)
+  checkArg(1, func, "function")
+  checkArg(2, uname, "string", "number")
+  checkArg(3, password, "string")
+  uid = getuid(uname)
+  if not old.passwd[users.uid()].c then
+    return nil, "user is not allowed to sudo"
+  end
+  if old.authenticate(users.uid(), password) then
+    local uuid = users.uid
+    local name = os.getenv("USER")
+    local ouid = os.getenv("UID")
+    function users.uid()
+      return uid
+    end
+    os.setenv("USER", users.getname(uname))
+    os.setenv("UID", uid)
+    local s, r = pcall(func)
+    u.uid = uuid
+    os.setenv("USER", name)
+    os.setenv("UID", ouid)
+    return true, s, r
+  end
+  return nil, "permission denied"
+end
 
-return protect(users, true)
+return package.protect(users, "users")

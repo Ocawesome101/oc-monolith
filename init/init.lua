@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe aa0bf2c (built Wed Jul 01 23:24:31 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe aeeb6e2 (built Thu Jul 02 16:54:22 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -40,7 +40,6 @@ do
   local function libError(name, searched)
     local err = "module '%s' not found:\n\tno field package.loaded['%s']"
     err = err .. ("\n\tno file '%s'"):rep(#searched)
-    _log(string.format(err, name, name, table.unpack(searched)))
     error(string.format(err, name, name, table.unpack(searched)))
   end
 
@@ -49,7 +48,6 @@ do
     checkArg(2, path, "string")
     checkArg(3, sep, "string", "nil")
     checkArg(4, rep, "string", "nil")
-    _log("search", path, name)
     sep = "%" .. (sep or ".")
     rep = rep or "/"
     local searched = {}
@@ -57,12 +55,18 @@ do
     for search in path:gmatch("[^;]+") do
       search = search:gsub("%?", name)
       if fs.exists(search) then
-        _log("found", search)
         return search
       end
       searched[#searched + 1] = search
     end
     return nil, searched
+  end
+
+  function package.protect(tbl, name)
+    return setmetatable(tbl, {
+      __newindex = function() error((name or "lib") .. " is read-only") end,
+      __metatable = {}
+    })
   end
 
   function _G.dofile(file)
@@ -82,22 +86,17 @@ do
   function _G.require(lib, reload)
     checkArg(1, lib, "string")
     checkArg(2, reload, "boolean", "nil")
-    _log("require", lib, "reload:", reload)
     if loaded[lib] and not reload then
-      _log("returning cached")
       return loaded[lib]
     else
-      _log("searching")
       local ok, searched = package.searchpath(lib, package.path, ".", "/")
       if not ok then
         libError(lib, searched)
       end
       local ok, err = dofile(ok)
       if not ok then
-        _log(string.format("failed loading module '%s':\n%s", lib, err))
         error(string.format("failed loading module '%s':\n%s", lib, err))
       end
-      _log("succeeded - returning", lib)
       loaded[lib] = ok
       return ok
     end
@@ -176,6 +175,17 @@ do
       thread.info().data.io[0] = file
     end
     return thread.info().data.io[0]
+  end
+
+  function io.error(file)
+    checkArg(1, file, "string", "table", "nil")
+    if type(file) == "string" then
+      file = io.open(file, "r")
+    end
+    if file then
+      thread.info().data.io[2] = file
+    end
+    return thread.info().data.io[2] or thread.info().data.io[1]
   end
 
   function io.lines(file, ...)

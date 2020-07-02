@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "aa0bf2c"
+local _KERNEL_REVISION = "aeeb6e2"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -132,26 +132,6 @@ do
     u.passwd[uid] = nil
     u.psave()
     return true
-  end
-
-  -- run `func` as another user. Somewhat hacky.
-  function u.sudo(func, uid, password)
-    checkArg(1, func, "function")
-    checkArg(2, uid, "number")
-    checkArg(3, password, "string")
-    if not u.passwd[u.uid()].c then
-      return nil, "user is not allowed to sudo"
-    end
-    if hex(u.sha.sha256(password)) == u.passwd[u.uid()].p then
-      local uuid = u.uid
-      function u.uid()
-        return uid
-      end
-      local s, r = pcall(func)
-      u.uid = uuid
-      return true, s, r
-    end
-    return nil, "permission denied"
   end
 
   kernel.users = u
