@@ -35,7 +35,7 @@ end
 --#include "module/filesystem.lua"
 --#include "module/computer.lua"
 --#include "module/runlevel.lua"
---#include "module/process.lua"
+--#include "module/thread.lua"
 --#include "module/sandbox.lua"
 --#include "module/loadfile.lua"
 
@@ -46,6 +46,6 @@ if not ok then
   kernel.logger.panic(err)
 end
 
-kernel.process.spawn(function()return ok(flags.runlevel or 3) end, flags.init, {default = kernel.logger.panic})
+kernel.thread.spawn(function()return ok(flags.runlevel or 3) end, flags.init, kernel.logger.panic)
 kernel.runlevel.setrunlevel(1)
-kernel.process.start()
+kernel.thread.start()

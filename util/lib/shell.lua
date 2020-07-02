@@ -8,6 +8,7 @@ local thread = require("thread")
 
 local shell = {}
 local aliases = {}
+shell.aliases = aliases
 
 --log("shell builtins")
 

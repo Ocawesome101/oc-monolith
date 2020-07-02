@@ -1,12 +1,14 @@
 -- big fancy scheduler --
 
+-- this may not be the best but at least it's pretty reliable
+
 do
   kernel.logger.log("initializing scheduler")
-  local thread, tasks, sbuf, last, cur = {}, {}, {}, 0, 0
+  local thread, threads, sbuf, last, cur = {}, {}, {}, 0, 0
   local lastKey = math.huge
 
   local function checkDead(thd)
-    local p = tasks[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
+    local p = threads[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
     if thd.dead or p.dead or coroutine.status(thd.coro) == "dead" or coroutine.status(p.coro) == "dead" then
       return true
     end
@@ -15,7 +17,7 @@ do
 
   local function getMinTimeout()
     local min = math.huge
-    for pid, thd in pairs(tasks) do
+    for pid, thd in pairs(threads) do
       if thd.deadline - computer.uptime() < min then
         min = computer.uptime() - thd.deadline
       end
@@ -30,14 +32,14 @@ do
 
   local function cleanup()
     local dead = {}
-    for pid, thd in pairs(tasks) do
+    for pid, thd in pairs(threads) do
       if checkDead(thd) then
         computer.pushSignal("thread_died", pid)
         dead[#dead + 1] = pid
       end
     end
     for i=1, #dead, 1 do
-      tasks[dead[i]] = nil
+      threads[dead[i]] = nil
     end
 
     local timeout = getMinTimeout()
@@ -48,36 +50,27 @@ do
   end
 
   local function getHandler(thd)
-    local p = tasks[thd.parent] or {handler = kernel.logger.panic}
+    local p = threads[thd.parent] or {handler = kernel.logger.panic}
     return thd.handler or p.handler or getHandler(p) or kernel.logger.panic
   end
 
   local function handleProcessError(thd, err)
     local h = getHandler(thd)
-    tasks[thd.pid] = nil
+    threads[thd.pid] = nil
     computer.pushSignal("thread_errored", thd.pid, err)
     h(thd.name .. ": " .. err)
   end
 
   local global_env = {}
 
-  function thread.spawn(func, name, handler, env, stdin, stdout, priority)
+  function thread.spawn(func, name, handler, env)
     checkArg(1, func, "function")
     checkArg(2, name, "string")
     checkArg(3, handler, "function", "nil")
     checkArg(4, env, "table", "nil")
-    checkArg(5, stdin, "table", "nil")
-    checkArg(6, stdout, "table", "nil")
-    checkArg(7, priority, "number", "nil")
     last = last + 1
-    env = setmetatable(env or {}, {__index = (tasks[cur] and tasks[cur].env) or global_env})
-    stdin = stdin or (tasks[cur] and tasks[cur].stdin)
-    stdout = stdout or (tasks[cur] and tasks[cur].stdout)
-    env.STDIN = stdin or env.STDIN
-    env.STDOUT = stdout or env.STDOUT
-    env.OUTPUT = stdout or env.OUTPUT or env.STDOUT
-    env.INPUT = stdin or env.INPUT or env.STDIN
-    priority = priority or math.huge
+    local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
+    env = env or kernel.table_copy(current.data.env)
     local new = {
       coro = coroutine.create( -- the thread itself
         function()
@@ -99,13 +92,18 @@ do
       priority = priority,                      -- thread priority
       uptime = 0,                               -- thread uptime
       stopped = false,                          -- is it stopped?
-      started = computer.uptime()               -- time of thread creation
+      started = computer.uptime(),              -- time of thread creation
+      io      = {                               -- thread I/O streams
+        [0] = current.data.io[0],
+        [1] = current.data.io[1],
+        [2] = current.data.io[2]
+      }
     }
     if not new.env.PWD then
       new.env.PWD = "/"
     end
-    setmetatable(new, {__index = tasks[cur] or {}})
-    tasks[last] = new
+    setmetatable(new, {__index = threads[cur] or {}})
+    threads[last] = new
     computer.pushSignal("thread_spawned", last)
     return last
   end
@@ -114,27 +112,17 @@ do
     checkArg(1, var, "string", "number")
     checkArg(2, val, "string", "number", "boolean", "table", "nil", "function")
     --kernel.logger.log("SET " .. var .. "=" .. tostring(val))
-    if tasks[cur] then
-      tasks[cur].env[var] = val
+    if threads[cur] then
+      threads[cur].env[var] = val
     else
       global_env[var] = val
     end
   end
 
   function os.getenv(var)
-    checkArg(1, var, "string", "number", "nil")
-    if not var then -- return a table of all environment variables
-      local vtbl = {}
-      if tasks[cur] then vtbl = tasks[cur].env
-      else vtbl = global_env end
-      local r = {}
-      for k, v in pairs(vtbl) do
-        r[k] = v
-      end
-      return r
-    end
-    if tasks[cur] then
-      return tasks[cur].env[var] or nil
+    checkArg(1, var, "string", "number")
+    if threads[cur] then
+      return threads[cur].env[var] or nil
     else
       return global_env[var] or nil
     end
@@ -149,21 +137,21 @@ do
     if not ok then
       return nil, err
     end
-    if tasks[cur] then
-      table.insert(tasks[cur].users, 1, tasks[cur].user)
-      tasks[cur].user = uid
+    if threads[cur] then
+      table.insert(threads[cur].users, 1, threads[cur].user)
+      threads[cur].user = uid
       return true
     end
     return ulogin(uid, password)
   end
 
   function kernel.users.logout()
-    if tasks[cur] then
-      tasks[cur].user = -1
-      if #tasks[cur].users > 0 then
-        tasks[cur].user = table.remove(tasks[cur].users, 1)
+    if threads[cur] then
+      threads[cur].user = -1
+      if #threads[cur].users > 0 then
+        threads[cur].user = table.remove(threads[cur].users, 1)
       else
-        tasks[cur].user = -1 -- guest, no privileges
+        threads[cur].user = -1 -- guest, no privileges
       end
       return true
     end
@@ -171,8 +159,8 @@ do
   end
 
   function kernel.users.uid()
-    if tasks[cur] then
-      return tasks[cur].user
+    if threads[cur] then
+      return threads[cur].user
     else
       return 0 -- again, kernel is always root
     end
@@ -180,18 +168,19 @@ do
 
   function thread.threads()
     local t = {}
-    for pid, _ in pairs(tasks) do
+    for pid, _ in pairs(threads) do
       t[#t + 1] = pid
     end
     return t
   end
 
   function thread.info(pid)
-    checkArg(1, pid, "number")
-    if not tasks[pid] then
+    checkArg(1, pid, "number", "nil")
+    pid = pid or cur
+    if not threads[pid] then
       return nil, "no such thread"
     end
-    local t = tasks[pid]
+    local t = threads[pid]
     local inf = {
       name = t.name,
       owner = t.owner,
@@ -200,16 +189,22 @@ do
       uptime = t.uptime,
       started = t.started
     }
+    if pid == cur then
+      inf.data = {
+        io = t.io,
+        env = t.env
+      }
+    end
     return inf
   end
 
   function thread.signal(pid, sig)
     checkArg(1, pid, "number")
     checkArg(2, sig, "number")
-    if not tasks[pid] then
+    if not threads[pid] then
       return nil, "no such thread"
     end
-    if tasks[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
+    if threads[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
     local msg = {
@@ -217,21 +212,21 @@ do
       cur,
       sig
     }
-    table.insert(tasks[pid].sig, msg)
+    table.insert(threads[pid].sig, msg)
     return true
   end
 
   function thread.ipc(pid, ...)
     checkArg(1, pid, "number")
-    if not tasks[pid] then
+    if not threads[pid] then
       return nil, "no such thread"
     end
-    local ipc = {
+    local ipc = table.pack(
       "ipc",
       cur,
       ...
-    }
-    table.insert(tasks[pid].ipc, ipc)
+    )
+    table.insert(threads[pid].ipc, ipc)
     return true
   end
 
@@ -241,19 +236,19 @@ do
 
   -- detach from the parent thread
   function thread.detach()
-    tasks[cur].parent = 1
+    threads[cur].parent = 1
   end
 
   -- detach any child thread, parent it to init
   function thread.orphan(pid)
     checkArg(1, pid, "number")
-    if not tasks[pid] then
+    if not threads[pid] then
       return nil, "no such thread"
     end
-    if tasks[pid].parent ~= cur then
-      return nil, "thread is not a child of current"
+    if threads[pid].parent ~= cur then
+      return nil, "specified thread is not a child of the current thread"
     end
-    tasks[pid].parent = 1 -- init
+    threads[pid].parent = 1 -- init
   end
 
   thread.signals = {
@@ -262,13 +257,15 @@ do
     stop      = 19,
     continue  = 18,
     term      = 15,
+    terminate = 15,
     usr1      = 65,
     usr2      = 66,
     kill      = 9
   }
 
   function os.exit(code)
-    checkArg(1, code, "number")
+    checkArg(1, code, "string", "number", "nil")
+    code = code or 0
     thread.signal(thread.current(), thread.signals.kill)
     if thread.info(thread.current()).parent then
       thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
@@ -281,24 +278,14 @@ do
 
   function thread.start()
     thread.start = nil
-    while #tasks > 0 do
+    while #threads > 0 do
       local run = {}
-      for pid, thd in pairs(tasks) do
-        tasks[pid].uptime = computer.uptime() - thd.started
+      for pid, thd in pairs(threads) do
+        threads[pid].uptime = computer.uptime() - thd.started
         if (thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0) and not thd.stopped then
           run[#run + 1] = thd
         end
       end
-
-      --[[table.sort(run, function(a, b)
-        if a.priority > b.priority then
-          return a, b
-        elseif a.priority < b.priority then
-          return b, a
-        else
-          return a, b
-        end
-      end)]]
 
       local sig = table.remove(sbuf, 1)
 
@@ -326,13 +313,11 @@ do
           ok, p1, p2 = coroutine.resume(thd.coro)
         end
         --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
-        if (not (p1 or ok)) and p2 then
+        if (not ok) and p1 then
           --component.sandbox.log("thread error", thd.name, ok, p1, p2)
-          handleProcessError(thd, p2 or p1)
+          handleProcessError(thd, p1)
         elseif ok then
-          if p2 and type(p2) == "number" then
-            thd.deadline = computer.uptime() + p2
-          elseif p1 and type(p1) == "number" then
+          if p1 and type(p1) == "number" then
             thd.deadline = computer.uptime() + p1
           else
             thd.deadline = math.huge

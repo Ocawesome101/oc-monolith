@@ -7,9 +7,9 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "0cf234f"
-local _KERNEL_BUILDER = "ocawesome101@archlinux"
-local _KERNEL_COMPILER = "luacomp 1.2.2"
+local _KERNEL_REVISION = "23eb47f"
+local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
+local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
 
@@ -28,6 +28,7 @@ if computer.setArchitecture then
 end
 
 -- --#include "module/logger.lua"
+
 -- component API metatable allowing component.filesystem, and component.get --
 
 do
@@ -62,6 +63,7 @@ do
 end
 
 -- --#include "module/initfs.lua"
+
 -- users --
 
 do
@@ -155,6 +157,7 @@ do
   kernel.users = u
 end
 
+
 -- kernel modules-ish --
 
 do
@@ -194,6 +197,7 @@ do
 
   kernel.module = m
 end
+
 
 -- filesystem management --
 
@@ -495,6 +499,7 @@ do
   kernel.filesystem = fs
 end
 
+
 -- computer.shutdown stuff --
 
 do
@@ -504,7 +509,7 @@ do
   kernel.filesystem.closeAll = nil
   function computer.shutdown(reboot)
     checkArg(1, reboot, "boolean", "nil")
-    local running = kernel.process.processes()
+    local running = kernel.thread.threads()
     computer.pushSignal("shutdown")
     kernel.logger.log("shutting down")
     coroutine.yield()
@@ -520,6 +525,7 @@ do
     shutdown(reboot)
   end
 end
+
 
 -- run levels --
 
@@ -570,131 +576,138 @@ do
   kernel.runlevel = rl
 end
 
--- it's finally time to rewrite the scheduler and related things. here we go!! --
+
+-- big fancy scheduler --
+
+-- this may not be the best but at least it's pretty reliable
 
 do
-  kernel.logger.log("initializing 'process' type")
-
-  local proc_type = {} -- the base "process" template
-
-  function proc_type:resume(...) -- resumes every thread in the process, in order
-    if self.stopped then return nil end
-    local timeout = math.huge
-    for n, thread in ipairs(self.threads) do
-      local ok, ret = coroutine.resume(thread, ...)
-      kernel.logger.log(tostring(ok) .. " " .. tostring(ret))
-      if not ok and ret then
-        self.threads[n] = nil
-        self.handlers.default(string.format("process %d: error in thread %d: %s", self.pid, n, ret or "not specified"))
-      end
-      if type(ret) == "number" then
-        local newTimeout = computer.uptime() + ret
-        if newTimeout < timeout then
-          timeout = newTimeout
-        end
-      end
-    end
-    if #self.threads == 0 then
-      self.dead = true
-    end
-    return timeout
-  end
-
-  function proc_type:addthread(func) -- add a "child" thread (coroutine)
-    local new = coroutine.create(function()
-      assert(xpcall(func, debug.traceback)) -- this gives us a stack traceback if the thread errors while still propagating the error, and exits cleanly if it doesn't.
-    end)
-    table.insert(self.threads, new)
-    return #self.threads
-  end
-
-  function proc_type:delthread(n)
-    self.threads[n] = nil
-    return true
-  end
-
-  function proc_type:kill()
-    self.dead = true
-  end
-
-  function proc_type:stop()
-    self.stopped = true
-  end
-
-  function proc_type:continue()
-    self.stopped = false
-  end
-
-  function proc_type:interrupt()
-    self.handlers.interrupt("interrupted")
-  end
-
-  function proc_type:terminate()
-    self.handlers.terminate("terminated")
-  end
-
-  function proc_type:usr1()
-    self.handlers.usr1("user signal 1")
-  end
-
-  function proc_type:usr2()
-    self.handlers.usr2("EXECUTE ORDER 66")
-  end
-
-  function proc_type.new(name, handlers, env)
-    local new = {
-      name = name,
-      handlers = handlers or {default = kernel.logger.panic},
-      env = env or {},
-      threads = {},
-      pid = 0,
-      dead = false,
-      owner = kernel.users.uid(),
-      users = {kernel.users.uid()},
-      stopped = false,
-      started = computer.uptime(),
-      io = {[0] = {}, [1] = {}, [2] = {}},
-      signals = {},
-      deadline = 0
-    }
-    new.env.PWD = new.env.PWD or "/"
-    new.env.UID = new.owner
-    handlers.default = handlers.default or kernel.logger.panic
-    setmetatable(new.handlers, {__index = function() return new.handlers.default end})
-    local ts = tostring(new):gsub("table", "process")
-    return setmetatable(new, {__type = "process", __tostring = function() return ts end, __index = proc_type})
-  end
-
-  ------------------------------------------------------------------------------------------
-
   kernel.logger.log("initializing scheduler")
-  local process, processes, lastpid, current = {}, {}, 0, 0
+  local thread, threads, sbuf, last, cur = {}, {}, {}, 0, 0
+  local lastKey = math.huge
 
-  function process.spawn(func, name, handlers, env)
+  local function checkDead(thd)
+    local p = threads[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
+    if thd.dead or p.dead or coroutine.status(thd.coro) == "dead" or coroutine.status(p.coro) == "dead" then
+      return true
+    end
+    return false
+  end
+
+  local function getMinTimeout()
+    local min = math.huge
+    for pid, thd in pairs(threads) do
+      if thd.deadline - computer.uptime() < min then
+        min = computer.uptime() - thd.deadline
+      end
+      if min <= 0 then
+        min = 0
+        break
+      end
+    end
+--    kernel.logger.log("min timeout " .. min)
+    return min
+  end
+
+  local function cleanup()
+    local dead = {}
+    for pid, thd in pairs(threads) do
+      if checkDead(thd) then
+        computer.pushSignal("thread_died", pid)
+        dead[#dead + 1] = pid
+      end
+    end
+    for i=1, #dead, 1 do
+      threads[dead[i]] = nil
+    end
+
+    local timeout = getMinTimeout()
+    local sig = {computer.pullSignal(timeout)}
+    if #sig > 0 then
+      sbuf[#sbuf + 1] = sig
+    end
+  end
+
+  local function getHandler(thd)
+    local p = threads[thd.parent] or {handler = kernel.logger.panic}
+    return thd.handler or p.handler or getHandler(p) or kernel.logger.panic
+  end
+
+  local function handleProcessError(thd, err)
+    local h = getHandler(thd)
+    threads[thd.pid] = nil
+    computer.pushSignal("thread_errored", thd.pid, err)
+    h(thd.name .. ": " .. err)
+  end
+
+  local global_env = {}
+
+  function thread.spawn(func, name, handler, env)
     checkArg(1, func, "function")
     checkArg(2, name, "string")
-    checkArg(3, handlers, "function", "table", "nil")
+    checkArg(3, handler, "function", "nil")
     checkArg(4, env, "table", "nil")
-    if type(handlers) == "function" then handlers = {default = handlers} end
-    handlers = handlers or {default = kernel.logger.panic}
-    env = env or kernel.table_copy((processes[current] or {env = {}}).env)
-    local new = proc_type.new(name, handlers, env)
-    lastpid = lastpid + 1
-    new.pid = lastpid
-    new.parent = current
-    local dummy = {io = {[0] = {}, [1] = {}, [2] = {}}}
-    new.io[0] = (processes[current] or dummy).io[0]
-    new.io[1] = (processes[current] or dummy).io[1]
-    new.io[2] = (processes[current] or dummy).io[2]
-    new:addthread(func)
-    processes[lastpid] = new
---    coroutine.yield(0)
-    return lastpid
+    last = last + 1
+    local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
+    env = env or kernel.table_copy(current.data.env)
+    local new = {
+      coro = coroutine.create( -- the thread itself
+        function()
+          local ok, err = xpcall(func, debug.traceback)
+          if not ok and err then error(err) end
+        end
+      ),
+      pid = last,                               -- process/thread ID
+      parent = cur,                             -- parent thread's PID
+      name = name,                              -- thread name
+      handler = handler or kernel.logger.panic, -- error handler
+      user = kernel.users.uid(),                -- current user
+      users = {},                               -- user history
+      owner = kernel.users.uid(),               -- thread owner
+      sig = {},                                 -- signal buffer
+      ipc = {},                                 -- IPC buffer
+      env = env,                                -- environment variables
+      deadline = computer.uptime(),             -- signal deadline
+      priority = priority,                      -- thread priority
+      uptime = 0,                               -- thread uptime
+      stopped = false,                          -- is it stopped?
+      started = computer.uptime(),              -- time of thread creation
+      io      = {                               -- thread I/O streams
+        [0] = current.data.io[0],
+        [1] = current.data.io[1],
+        [2] = current.data.io[2]
+      }
+    }
+    if not new.env.PWD then
+      new.env.PWD = "/"
+    end
+    setmetatable(new, {__index = threads[cur] or {}})
+    threads[last] = new
+    computer.pushSignal("thread_spawned", last)
+    return last
   end
 
-  -- os.setenv and os.getenv are defined in init now rather than here
+  function os.setenv(var, val)
+    checkArg(1, var, "string", "number")
+    checkArg(2, val, "string", "number", "boolean", "table", "nil", "function")
+    --kernel.logger.log("SET " .. var .. "=" .. tostring(val))
+    if threads[cur] then
+      threads[cur].env[var] = val
+    else
+      global_env[var] = val
+    end
+  end
 
-  -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level access.
+  function os.getenv(var)
+    checkArg(1, var, "string", "number")
+    if threads[cur] then
+      return threads[cur].env[var] or nil
+    else
+      return global_env[var] or nil
+    end
+  end
+
+  -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
   local ulogin, ulogout, uuid = kernel.users.login, kernel.users.logout, kernel.users.uid
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
@@ -703,204 +716,221 @@ do
     if not ok then
       return nil, err
     end
-    local ok, err = ulogin(uid, password)
-    if not ok then
-      return nil, err
-    end
-    if processes[current] then
-      table.insert(processes[current].users, 1, uid)
+    if threads[cur] then
+      table.insert(threads[cur].users, 1, threads[cur].user)
+      threads[cur].user = uid
       return true
     end
+    return ulogin(uid, password)
   end
 
   function kernel.users.logout()
-    if processes[current] then
-      table.remove(processes[current].users, 1)
+    if threads[cur] then
+      threads[cur].user = -1
+      if #threads[cur].users > 0 then
+        threads[cur].user = table.remove(threads[cur].users, 1)
+      else
+        threads[cur].user = -1 -- guest, no privileges
+      end
       return true
     end
     return false -- kernel is always root
   end
 
   function kernel.users.uid()
-    if processes[current] then
-      return processes[current].users[1]
+    if threads[cur] then
+      return threads[cur].user
     else
       return 0 -- again, kernel is always root
     end
   end
 
-  function process.processes()
-    local p = {}
-    for pid, _ in pairs(processes) do
-      p[#p+1] = pid
+  function thread.threads()
+    local t = {}
+    for pid, _ in pairs(threads) do
+      t[#t + 1] = pid
     end
-    return p
+    return t
   end
 
-  function process.info(pid)
+  function thread.info(pid)
     checkArg(1, pid, "number", "nil")
-    pid = pid or current
-    local p = processes[pid]
-    if not p then
-      return nil, "no such process: " .. pid
-    end
-    local info = {
-      name = p.name,
-      owner = p.owner,
-      started = p.started,
-      threads = #p.threads,
-      stopped = p.stopped
-    }
-    if pid == current then
-      local data = {
-        env = p.env,
-        ipc = p.ipc,
-        handlers = p.handlers,
-        io = p.io,
-        threads = p.threads
-      }
-      info.data = data
-    end
-    return info
-  end
-
-  process.signals = {
-    [2]         = "interrupt",
-    [9]         = "kill",
-    [15]        = "terminate",
-    [18]        = "continue",
-    [19]        = "stop",
-    [65]        = "usr1",
-    [66]        = "usr2",
-    interrupt   = 2,
-    kill        = 9,
-    terminate   = 15,
-    continue    = 18,
-    stop        = 19,
-    usr1        = 65,
-    usr2        = 66
-  }
-
-  function process.signal(pid, sig)
-    checkArg(1, pid, "number")
-    checkArg(2, sig, "number", "string")
-    if not processes[pid] then
-      return nil, "no such process"
-    end
-    if not process.signals[sig] then
-      return nil, "unrecognized signal"
-    end
-    if type(sig) == "number" then sig = process.signals[sig] end
-    processes[pid][sig](processes[pid])
-    return true
-  end
-
-  function process.ipc(pid, ...)
-    checkArg(1, pid, "number")
-    if not processes[pid] then
-      return nil, "no such process"
-    end
-    local sig = table.pack("ipc", pid, ...)
-    table.insert(processes[pid].signals, sig)
-    return true
-  end
-
-  function process.current()
-    return current
-  end
-
-  function process.detach()
-    processes[cur].parent = 0
-  end
-
-  function process.orphan(pid)
-    checkArg(1, pid, "number")
-    if not processes[pid] then
+    pid = pid or cur
+    if not threads[pid] then
       return nil, "no such thread"
     end
-    if processes[pid].parent ~= current then
-      return nil, "specified process is not a child of the current process"
+    local t = threads[pid]
+    local inf = {
+      name = t.name,
+      owner = t.owner,
+      priority = t.priority,
+      parent = t.parent,
+      uptime = t.uptime,
+      started = t.started
+    }
+    if pid == cur then
+      inf.data = {
+        io = t.io,
+        env = t.env
+      }
     end
-    processes[pid].parent = 0
+    return inf
+  end
+
+  function thread.signal(pid, sig)
+    checkArg(1, pid, "number")
+    checkArg(2, sig, "number")
+    if not threads[pid] then
+      return nil, "no such thread"
+    end
+    if threads[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
+      return nil, "permission denied"
+    end
+    local msg = {
+      "signal",
+      cur,
+      sig
+    }
+    table.insert(threads[pid].sig, msg)
     return true
   end
 
-  local function null_concat(t)
-    local s = ""
-    for i=1, #t, 1 do
-      s = s .. ' ' .. tostring(t[i])
+  function thread.ipc(pid, ...)
+    checkArg(1, pid, "number")
+    if not threads[pid] then
+      return nil, "no such thread"
     end
-    return s
+    local ipc = table.pack(
+      "ipc",
+      cur,
+      ...
+    )
+    table.insert(threads[pid].ipc, ipc)
+    return true
   end
 
-  function process.start()
-    process.start = nil
-    while #processes > 0 do
-      local signal = {}
-      local timeout = math.huge
-      local uptime = computer.uptime()
-      kernel.logger.log("PROC GET_TIMEOUT")
-      for pid, proc in pairs(processes) do
-        if uptime - proc.deadline >= 0 and uptime - proc.deadline < timeout then
-          timeout = uptime - proc.deadline
-          kernel.logger.log("PROC SET_TIMEOUT " .. timeout)
-          if timeout <= 0 then
-            timeout = 0
-            kernel.logger.log("PROC END_GET_TIMEOUT")
-            break
-          end
-        end
-      end
-      kernel.logger.log("PROC PULL_SIGNAL::" .. timeout)
-      signal = table.pack(computer.pullSignal(timeout))
+  function thread.current()
+    return cur
+  end
+
+  -- detach from the parent thread
+  function thread.detach()
+    threads[cur].parent = 1
+  end
+
+  -- detach any child thread, parent it to init
+  function thread.orphan(pid)
+    checkArg(1, pid, "number")
+    if not threads[pid] then
+      return nil, "no such thread"
+    end
+    if threads[pid].parent ~= cur then
+      return nil, "specified thread is not a child of the current thread"
+    end
+    threads[pid].parent = 1 -- init
+  end
+
+  thread.signals = {
+    interrupt = 2,
+    quit      = 3,
+    stop      = 19,
+    continue  = 18,
+    term      = 15,
+    terminate = 15,
+    usr1      = 65,
+    usr2      = 66,
+    kill      = 9
+  }
+
+  function os.exit(code)
+    checkArg(1, code, "string", "number", "nil")
+    code = code or 0
+    thread.signal(thread.current(), thread.signals.kill)
+    if thread.info(thread.current()).parent then
+      thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
+    end
+  end
+
+  function thread.kill(pid, sig)
+    return thread.signal(pid, sig or thread.signals.term)
+  end
+
+  function thread.start()
+    thread.start = nil
+    while #threads > 0 do
       local run = {}
-      kernel.logger.log("PROC CHECK_PROC_RUN_STATUS")
-      for pid, proc in pairs(processes) do
-        if (proc.deadline < uptime or #proc.signals > 0 or signal.n > 0) and not proc.stopped then
-          run[#run + 1] = proc
-          kernel.logger.log("PROC RUN PID::" .. pid)
-          if #proc.signals > 0 and signal.n > 0 then
-            kernel.logger.log("PROC TOOMANYSIGNALSINSERTTOPROCBUFFERHELPMEMYSPACEBARBROKE")
-            table.insert(proc.signals, signal)
+      for pid, thd in pairs(threads) do
+        threads[pid].uptime = computer.uptime() - thd.started
+        if (thd.deadline <= computer.uptime() or #sbuf > 0 or #thd.ipc > 0 or #thd.sig > 0) and not thd.stopped then
+          run[#run + 1] = thd
+        end
+      end
+
+      local sig = table.remove(sbuf, 1)
+
+      for i, thd in ipairs(run) do
+        cur = thd.pid
+        local ok, p1, p2
+        if #thd.ipc > 0 then
+          local ipc = table.remove(thd.ipc, 1)
+          ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(ipc))
+        elseif #thd.sig > 0 then
+          local nsig = table.remove(thd.sig, 1)
+          if nsig[3] == thread.signals.kill then
+            thd.dead = true
+            ok, p1, p2 = true, nil, "killed"
+          elseif nsig[3] == thread.signals.stop then
+            thd.stopped = true
+          elseif nsig[3] == thread.signals.continue then
+            thd.stopped = false
+          else
+            ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
+          end
+        elseif sig and #sig > 0 then
+          ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(sig))
+        else
+          ok, p1, p2 = coroutine.resume(thd.coro)
+        end
+        --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
+        if (not ok) and p1 then
+          --component.sandbox.log("thread error", thd.name, ok, p1, p2)
+          handleProcessError(thd, p1)
+        elseif ok then
+          if p1 and type(p1) == "number" then
+            thd.deadline = computer.uptime() + p1
+          else
+            thd.deadline = math.huge
+          end
+          thd.uptime = computer.uptime() - thd.started
+        end
+
+        -- this might reduce performance, we shall see
+        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+          --kernel.logger.log("low memory after thread " .. thd.name .. " - collecting garbage")
+          for i=1, 50 do -- invoke GC
+            computer.pullSignal(0)
+          end
+          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+            for i=1, 50 do -- invoke GC
+              computer.pullSignal(0)
+            end
+          end
+          if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
+            kernel.logger.panic("out of memory")
           end
         end
+        --[[if #kernel.sandbox == 0 then
+          kernel.logger.panic("userspace sandbox empty")
+        end]]
       end
 
-      local start = computer.uptime()
-      for _, proc in ipairs(run) do
-        current = proc.pid
-        local rsig = {}
-        if #proc.signals > 0 then
-          kernel.logger.log("PROC SIG_FROM_INTERNAL_QUEUE")
-          rsig = table.remove(proc.signals)
-        else
-          kernel.logger.log("PROC SIG_FROM_PULLSIGNAL")
-          rsig = signal
-        end
-        kernel.logger.log("PROC RESUME PID::" .. proc.pid .. "NAME::" .. proc.name .. " SIGNAL::'" .. null_concat(rsig) .. "'")
-        local timeout = proc:resume(table.unpack(rsig))
-        if timeout then
-          proc.deadline = computer.uptime() + timeout
-          kernel.logger.log("PROC SET_PROCESS_DEADLINE " .. proc.deadline)
-        end
-        if computer.uptime() - start > 5 then
-          kernel.logger.log("PROC EXIT_LOOP_CLEANUP")
-          goto cleanup
-        end
-      end
-
-      ::cleanup::
-      for pid, proc in pairs(processes) do
-        if proc.dead then
-          kernel.logger.log("PROC DEAD ".. pid)
-          processes[pid] = nil
-        end
-      end
+      cleanup()
     end
   end
 
-  kernel.process = process
+  kernel.thread = thread
 end
+
 
 -- userspace sandbox and some security features --
 
@@ -920,31 +950,6 @@ function _G.error(e, l)
   err(e, l)
 end
 
-function _G.setmetatable(tbl, mt)
-  checkArg(1, tbl, "table")
-  checkArg(2, mt, "table")
-  local _mt = gmt(tbl)
-  if _mt and _mt.__ro then
-    error("table is read-only")
-  end
-  return smt(tbl, mt)
-end
-
-function _G.getmetatable(tbl)
-  checkArg(1, tbl, "table")
-  local mt = gmt(tbl)
-  local _mt = {
-    __index = mt,
-    __newindex = function()error("metatable is read-only")end,
-    __ro = true
-  }
-  if mt and mt.__ro then
-    return smt({}, _mt)
-  else
-    return mt
-  end
-end
-
 function _G.type(obj)
   local t = typ(obj)
   if t == "table" and getmetatable(obj) and getmetatable(obj).__type then
@@ -959,9 +964,11 @@ local sandbox = {}
 
 -- it is now time for an actually working sandbox!
 function kernel.table_copy(t)
+  checkArg(1, t, "table")
   local seen = {}
   local function copy(tbl)
     local ret = {}
+    tbl = tbl or {}
     for k, v in pairs(tbl) do
       if type(v) == "table" and not seen[v] then
         seen[v] = true
@@ -979,6 +986,7 @@ sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
+
 
 -- basic loadfile function --
 
@@ -1011,6 +1019,6 @@ if not ok then
   kernel.logger.panic(err)
 end
 
-kernel.process.spawn(function()return ok(flags.runlevel or 3) end, flags.init, {default = kernel.logger.panic})
+kernel.thread.spawn(function()return ok(flags.runlevel or 3) end, flags.init, kernel.logger.panic)
 kernel.runlevel.setrunlevel(1)
-kernel.process.start()
+kernel.thread.start()

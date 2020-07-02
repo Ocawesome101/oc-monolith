@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 0cf234f (built Wed Jul 01 15:18:25 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe 23eb47f (built Wed Jul 01 23:23:46 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -9,6 +9,7 @@ local runlevel = kernel.runlevel
 local _log = function()end--component.sandbox.log
 
 log(_INITVERSION)
+
 
 -- `package` library --
 
@@ -104,8 +105,8 @@ do
 end
 log("InitMe: setting up libraries")
 package.loaded.filesystem = kernel.filesystem
-package.loaded.process = kernel.process
-package.loaded.signals = kernel.process.signals
+package.loaded.thread = kernel.thread
+package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
@@ -114,6 +115,7 @@ package.loaded.syslog = {
 }
 package.loaded.users = require("users")
 _G.kernel = nil
+
 
 -- `io` library --
 
@@ -125,16 +127,16 @@ do
 
   local buffer = require("buffer")
   local fs = require("filesystem")
-  local process = require("process")
+  local thread = require("thread")
   local stream = require("stream")
 
   setmetatable(io, {__index = function(tbl, k)
     if k == "stdin" then
-      return process.info().data.io[0]
+      return thread.info().data.io[0]
     elseif k == "stdout" then
-      return process.info().data.io[1]
+      return thread.info().data.io[1]
     elseif k == "stderr" then
-      return process.info().data.io[2] or process.info().data.io[1]
+      return thread.info().data.io[2] or thread.info().data.io[1]
     end
   end})
 
@@ -160,9 +162,9 @@ do
       file = io.open(file, "w")
     end
     if file then
-      process.info().data.io[1] = file
+      thread.info().data.io[1] = file
     end
-    return process.info().data.io[1]
+    return thread.info().data.io[1]
   end
 
   function io.input(file)
@@ -171,9 +173,9 @@ do
       file = io.open(file, "r")
     end
     if file then
-      process.info().data.io[0] = file
+      thread.info().data.io[0] = file
     end
-    return process.info().data.io[0]
+    return thread.info().data.io[0]
   end
 
   function io.lines(file, ...)
@@ -233,6 +235,7 @@ do
   end
 end
 
+
 -- os --
 
 do
@@ -248,13 +251,13 @@ do
     return true
   end
 
-  -- we define os.getenv and os.setenv here now, rather than in kernel/module/process
+  -- we define os.getenv and os.setenv here now, rather than in kernel/module/thread
   function os.getenv(k)
     if k then
-      return assert((kernel.process or require("process")).info()).data.env[k] or nil
+      return assert((kernel.thread or require("thread")).info()).data.env[k] or nil
     else -- return a copy of the env
       local e = {}
-      for k, v in pairs((kernel.process or require("process")).info().data.env) do
+      for k, v in pairs((kernel.thread or require("thread")).info().data.env) do
         e[k] = v
       end
       return e
@@ -264,9 +267,10 @@ do
   function os.setenv(k,v)
     --checkArg(1, k, "string", "number")
     --checkArg(2, v, "string", "number", "nil")
-    (kernel.process or require("process")).info().data.env[k] = v
+    (kernel.thread or require("thread")).info().data.env[k] = v
   end
 end
+
 
 -- component API metatable allowing component.filesystem and things --
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
@@ -290,6 +294,7 @@ end
 ---#include "module/initd.lua"
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
+
 -- `initsvc` lib. --
 
 function runlevel.max()
@@ -300,7 +305,7 @@ if runlevel.levels[maxrunlevel].services then
 
   local config = require("config")
   local fs = require("filesystem")
-  local process = require("process")
+  local thread = require("thread")
   local users = require("users")
   local scripts = "/lib/scripts/"
   local services = "/lib/services/"
@@ -315,7 +320,7 @@ if runlevel.levels[maxrunlevel].services then
     if users.uid() ~= 0 then
       return nil, "only root can do that"
     end
-    if svc[service] and process.info(svc[service]) then
+    if svc[service] and thread.info(svc[service]) then
       return nil, "service is already running"
     end
     local senv = setmetatable({}, {__index=_G})
@@ -326,10 +331,10 @@ if runlevel.levels[maxrunlevel].services then
     --[[pcall(ok) -- this isn't actually supported, heh
     if senv.start then -- OpenOS-y service
       osvc[service] = senv
-      process.spawn(senv.start, service, handler or print)
+      thread.spawn(senv.start, service, handler or print)
     end]]
-    local pid = process.spawn(ok, service, {default = handler or error})
-    process.orphan(pid)
+    local pid = thread.spawn(ok, service, handler or error)
+    thread.orphan(pid)
     svc[service] = pid
     return true
   end
@@ -361,7 +366,7 @@ if runlevel.levels[maxrunlevel].services then
     if type(svc[service]) == "table" then
       pcall(svc[service].stop)
     else
-      process.kill(svc[service])
+      thread.kill(svc[service])
     end
     svc[service] = nil
     return true
@@ -420,7 +425,6 @@ if runlevel.levels[maxrunlevel].services then
       end
     end
   end
-  --require("computer").pushSignal("init")
   coroutine.yield(0)
 end
 
@@ -429,7 +433,7 @@ if not ok then
   panic("GETTY load failed: " .. err)
 end
 --log("starting getty")
-require("process").spawn(ok, "/sbin/getty.lua", {default = error})
+require("thread").spawn(ok, "/sbin/getty.lua", error)
 
 
 kernel.logger.setShown(false)

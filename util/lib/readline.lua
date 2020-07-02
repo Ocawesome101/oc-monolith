@@ -1,7 +1,7 @@
 -- relatively flexible readline implementation --
 
 local component = require("component")
-local process = require("process")
+local thread = require("thread")
 local rl = {}
 
 local buffers = {}
@@ -59,7 +59,7 @@ local function listener()
   end
 end
 
-process.spawn(listener, "readline", {default = error})
+thread.spawn(listener, "readline", error)
 
 function rl.addscreen(screen, gpu)
   checkArg(1, screen, "string")

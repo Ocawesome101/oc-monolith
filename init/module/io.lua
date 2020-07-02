@@ -8,16 +8,16 @@ do
 
   local buffer = require("buffer")
   local fs = require("filesystem")
-  local process = require("process")
+  local thread = require("thread")
   local stream = require("stream")
 
   setmetatable(io, {__index = function(tbl, k)
     if k == "stdin" then
-      return process.info().data.io[0]
+      return thread.info().data.io[0]
     elseif k == "stdout" then
-      return process.info().data.io[1]
+      return thread.info().data.io[1]
     elseif k == "stderr" then
-      return process.info().data.io[2] or process.info().data.io[1]
+      return thread.info().data.io[2] or thread.info().data.io[1]
     end
   end})
 
@@ -43,9 +43,9 @@ do
       file = io.open(file, "w")
     end
     if file then
-      process.info().data.io[1] = file
+      thread.info().data.io[1] = file
     end
-    return process.info().data.io[1]
+    return thread.info().data.io[1]
   end
 
   function io.input(file)
@@ -54,9 +54,9 @@ do
       file = io.open(file, "r")
     end
     if file then
-      process.info().data.io[0] = file
+      thread.info().data.io[0] = file
     end
-    return process.info().data.io[0]
+    return thread.info().data.io[0]
   end
 
   function io.lines(file, ...)

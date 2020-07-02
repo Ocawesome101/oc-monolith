@@ -13,13 +13,13 @@ do
     return true
   end
 
-  -- we define os.getenv and os.setenv here now, rather than in kernel/module/process
+  -- we define os.getenv and os.setenv here now, rather than in kernel/module/thread
   function os.getenv(k)
     if k then
-      return assert((kernel.process or require("process")).info()).data.env[k] or nil
+      return assert((kernel.thread or require("thread")).info()).data.env[k] or nil
     else -- return a copy of the env
       local e = {}
-      for k, v in pairs((kernel.process or require("process")).info().data.env) do
+      for k, v in pairs((kernel.thread or require("thread")).info().data.env) do
         e[k] = v
       end
       return e
@@ -29,6 +29,6 @@ do
   function os.setenv(k,v)
     --checkArg(1, k, "string", "number")
     --checkArg(2, v, "string", "number", "nil")
-    (kernel.process or require("process")).info().data.env[k] = v
+    (kernel.thread or require("thread")).info().data.env[k] = v
   end
 end

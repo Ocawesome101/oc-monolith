@@ -1,6 +1,6 @@
 -- getty implementation --
 
-local process = require("process")
+local thread = require("thread")
 local component = require("component")
 local computer = require("computer")
 local vt100 = require("vt100")
@@ -73,7 +73,7 @@ function getty.scan()
   for addr, p in pairs(gpus) do
     if not dinfo[addr] then
       if p.bound then
-        process.signal(p.bound, thread.signals.kill)
+        thread.signal(p.bound, thread.signals.kill)
         screens[p.screen].bound = false
       end
       gpus[addr] = nil
@@ -83,7 +83,7 @@ function getty.scan()
   for addr, p in pairs(screens) do
     if not dinfo[addr] then
       if p.bound then
-        process.signal(p.bound, thread.signals.kill)
+        thread.signal(p.bound, thread.signals.kill)
         gpus[p.gpu].bound = false
       end
       screens[addr] = nil
@@ -99,9 +99,9 @@ function getty.scan()
       end
       local ios = makeStream(gpu, screen)
       require("devfs").register("tty" .. ttyn, ios)
-      io.output("/dev/tty" .. ttyn)
-      io.input("/dev/tty" .. ttyn)
-      local pid = process.spawn(ok, login, {default = error})
+      io.input(ios)
+      io.output(ios)
+      local pid = thread.spawn(ok, login, error)
       gpus[gpu].bound = pid
       gpus[gpu].screen = screen
       screens[screen].bound = pid
@@ -117,7 +117,7 @@ getty.scan()
 
 while true do
   local sig, pid, res = coroutine.yield()
-  if sig == "process_errored" then
+  if sig == "thread_errored" then
     io.stderr:write(pid .. ": " .. res)
   end
   if sig == "component_added" or sig == "component_removed" then

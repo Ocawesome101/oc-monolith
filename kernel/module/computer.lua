@@ -7,7 +7,7 @@ do
   kernel.filesystem.closeAll = nil
   function computer.shutdown(reboot)
     checkArg(1, reboot, "boolean", "nil")
-    local running = kernel.process.processes()
+    local running = kernel.thread.threads()
     computer.pushSignal("shutdown")
     kernel.logger.log("shutting down")
     coroutine.yield()

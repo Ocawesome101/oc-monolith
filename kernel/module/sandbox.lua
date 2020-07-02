@@ -16,31 +16,6 @@ function _G.error(e, l)
   err(e, l)
 end
 
-function _G.setmetatable(tbl, mt)
-  checkArg(1, tbl, "table")
-  checkArg(2, mt, "table")
-  local _mt = gmt(tbl)
-  if _mt and _mt.__ro then
-    error("table is read-only")
-  end
-  return smt(tbl, mt)
-end
-
-function _G.getmetatable(tbl)
-  checkArg(1, tbl, "table")
-  local mt = gmt(tbl)
-  local _mt = {
-    __index = mt,
-    __newindex = function()error("metatable is read-only")end,
-    __ro = true
-  }
-  if mt and mt.__ro then
-    return smt({}, _mt)
-  else
-    return mt
-  end
-end
-
 function _G.type(obj)
   local t = typ(obj)
   if t == "table" and getmetatable(obj) and getmetatable(obj).__type then
@@ -55,9 +30,11 @@ local sandbox = {}
 
 -- it is now time for an actually working sandbox!
 function kernel.table_copy(t)
+  checkArg(1, t, "table")
   local seen = {}
   local function copy(tbl)
     local ret = {}
+    tbl = tbl or {}
     for k, v in pairs(tbl) do
       if type(v) == "table" and not seen[v] then
         seen[v] = true

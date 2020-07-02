@@ -1,6 +1,7 @@
 local shell = require("shell")
 local fs = require("filesystem")
 local thread = require("thread")
+local aliases = shell.aliases
 
 shell.builtins = {
   [":"] = function() return 0 end,
@@ -97,7 +98,7 @@ shell.builtins = {
   set = function(...)
     local ts = {...}
     if #ts == 0 or ts[1] == "-p" then
-      for k, v in pairs(os.getenv()) do
+      for k, v in pairs(thread.info().data.env) do
         print(string.format("%s = %s", k, tostring(v):gsub("\27", "\\27")))
       end
     else
