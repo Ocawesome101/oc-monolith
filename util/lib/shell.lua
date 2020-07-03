@@ -169,7 +169,8 @@ end
 
 function shell.resolve(path, ext)
   checkArg(1, path, "string")
-  checkArg(2, ext, "string")
+  checkArg(2, ext, "string", "nil")
+  ext = ext or ""
   local PATH = os.getenv("PATH") or defaultPath
   if path:sub(1,1) == "/" then
     path = fs.canonical(path)
@@ -188,7 +189,7 @@ function shell.resolve(path, ext)
       return txt
     end
   end
-  return nil, path .. ": command not found"
+  return fs.canonical(path)
 end
 
 local function execute(...)

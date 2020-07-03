@@ -73,4 +73,9 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [ ] Apps
       - [ ] Settings
       - [ ] Terminal
-  - [ ] Memory optimization - `/lib/full` + `package.delay` ?
+  - [X] Memory optimization - `/lib/full` + `package.delay`
+  - [ ] Editors
+    - [X] Library (`/lib/editor.lua`)
+    - [X] Line editor (`/bin/ed.lua`)
+    - [X] Fullscreen editor (`/bin/fled.lua`)
+    - [ ] Visual editor (`/bin/vled.lua`)

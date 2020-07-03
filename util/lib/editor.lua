@@ -37,11 +37,10 @@ function ed.buffer:save(file)
 end
 
 local function drawline(y, n, l)
-  if l then
-    return io.write(string.format("\27[%d;1H\27[31m%4d\27[37m %s", y, n, l))
-  else
-    return io.write(string.format("\27[%d;1H\27[33m~   \27[37m"))
-  end
+  l = l or ""
+  n = tostring(n) or "~"
+  local nl = tostring(#buffers[cur].buffer):len()
+  io.write(string.format("\27[%dH%"..nl.."s %s", y, n, l))
 end
 
 function ed.buffer:draw()
@@ -70,12 +69,10 @@ function ed.getScreenSize()
 end
 
 function ed.new(file)
-  checkArg(1, file, "string")
+  checkArg(1, file, "string", "nil")
   local new = setmetatable({
     name = file,
     lines = {},
-    x = 1,
-    y = 1,
     scroll = {
       w = 0,
       h = 0

@@ -124,7 +124,8 @@ function rl.readline(prompt, opts)
   local buffer = opts.default or opts.text or ""
   local highlighter = opts.highlighter or opts.syntax or function(e)return e end
   local redraw
-  local acts = opts.acts or opts.actions or
+  local acts = opts.acts or opts.actions or {}
+  local dacts = 
     {
       up = function()
         if ent > 1 then
@@ -159,28 +160,30 @@ function rl.readline(prompt, opts)
         end
       end
     }
+  acts.up = acts.up or dacts.up
+  acts.down = acts.down = dacts.down
+  acts.left = acts.left or dacts.left
+  acts.right = acts.right or dacts.right
   local complete = opts.complete or function(x) return x end
   if not buffers[screen] then
-    return nil--rl.addscreen(screen, io.output().gpu)
+    return nil
   end
   io.output():write("\27[6n")
   local resp = ""
   repeat
     local char = rl.readlinebasic(screen, 1)
     resp = resp .. char
-    --print(char)
   until char == "R"
   if io.output().gpu.address ~= io.input().gpu.address or io.output().screen ~= io.input().screen then
     error("io gpu/screen mismatch")
   end
-  --print(resp)
   local y, x = resp:match("\27%[(%d+);(%d+)R")
   local w, h = io.output().gpu.getResolution() -- :^)
   local sy = tonumber(y) or 1
   prompt = ("\27[C"):rep((tonumber(x) or 1) - 1) .. (prompt or "")
   local lines = 1
   function redraw()
-    local write = buffer--highlighter(buffer)
+    local write = highlighter(buffer)
     if pwchar then write = pwchar:rep(#buffer) end
     local written = math.max(1, math.ceil((#buffer + #prompt) / w))
     if written > lines then
