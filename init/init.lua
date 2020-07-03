@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 0813666 (built Thu Jul 02 17:55:41 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe 4e073eb (built Thu Jul 02 21:00:41 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -297,7 +297,21 @@ do
   setmetatable(component, mt)
 end
 
----#include "module/initd.lua"
+log("Running scripts out of /lib/init/....")
+
+local files = kernel.filesystem.list("/lib/init/")
+if files then
+  table.sort(files)
+  for k, v in ipairs(files) do
+    log(v)
+    local full = kernel.filesystem.concat("/lib/init", v)
+    local ok, err = loadfile(full)
+    if not ok then
+      panic(err)
+    end
+  end
+end
+
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
 -- `initsvc` lib. --

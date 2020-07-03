@@ -57,7 +57,7 @@ do
   local function handleProcessError(thd, err)
     local h = getHandler(thd)
     threads[thd.pid] = nil
-    computer.pushSignal("thread_errored", thd.pid, err)
+    computer.pushSignal("thread_errored", thd.pid, string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
     h(thd.name .. ": " .. err)
   end
 
@@ -314,7 +314,6 @@ do
         end
         --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
         if (not ok) and p1 then
-          --component.sandbox.log("thread error", thd.name, ok, p1, p2)
           handleProcessError(thd, p1)
         elseif ok then
           if p1 and type(p1) == "number" then
@@ -327,7 +326,6 @@ do
 
         -- this might reduce performance, we shall see
         if computer.freeMemory() < 1024 then -- oh no, we're out of memory
-          --kernel.logger.log("low memory after thread " .. thd.name .. " - collecting garbage")
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
@@ -340,9 +338,6 @@ do
             kernel.logger.panic("out of memory")
           end
         end
-        --[[if #kernel.sandbox == 0 then
-          kernel.logger.panic("userspace sandbox empty")
-        end]]
       end
 
       cleanup()

@@ -4,8 +4,8 @@ local shell = require("shell")
 local fs = require("filesystem")
 
 local w, h = math.huge, math.huge
-if io.output().gpu then
-  w, h= io.output().gpu.getResolution()
+if io.stdout.gpu then
+  w, h = io.stdout.gpu.getResolution()
 end
 
 local colors = {
@@ -58,7 +58,6 @@ local function fsize(size)
   return r .. (" "):rep(6 - #r)
 end
 
-local w, h = io.output().gpu.getResolution()
 for i=1, #args, 1 do
   local dir = fs.canonical(args[i])
   if not fs.exists(dir) then

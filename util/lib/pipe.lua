@@ -70,7 +70,12 @@ function pipe.popen(prog, mode, env)
   local input, output = pipe.new()
   local mode = {}
   for m in mode:gmatch(".") do mode[m] = true end
-  require("thread").spawn(function()return ok(table.unpack(prog,2))end, prog[1], nil, env, mode.w and output, mode.r and output)
+  local orig_io = {i = io.input(), o = io.output()}
+  if mode.r then io.output(output) end
+  if mode.w then io.input(input) end
+  thread.spawn(function()return ok(table.unpack(prog,2))end, prog[1], nil, env)
+  io.input(orig_io.i)
+  io.output(orig_io.o)
   return input
 end
 
@@ -82,6 +87,9 @@ local streamX = {
     end
     if self.what then
       return self.whatIO:read(len)
+    end
+    while #self.buf[self.i] < len and not self.buf[self.i]:find("\0") do
+      coroutine.yield()
     end
     local ret = self.buf[self.i]:sub(1, len)
     self.buf[self.i] = self.buf[self.i]:sub(len + 1)
@@ -114,7 +122,7 @@ function pipe.chain(progs)
     local new = setmetatable({
       buf = buffers,
       i = i,
-      whatIO = i % 2 == 0 and last or io.input(),
+      whatIO = i % 2 == 0 and last or orig_io.input,
       what = i % 2 == 0
     }, {
       __index = streamX

@@ -119,7 +119,7 @@ while true do
   local sig, pid, res = coroutine.yield()
   if sig == "thread_errored" then
     if res:sub(-1) ~= "\n" then res = res .. "\n" end
-    io.write("\27[31m error in thread " .. pid .. ": " .. res)
+    io.write("\27[31m" .. res)
   end
   if sig == "component_added" or sig == "component_removed" then
     getty.scan()
