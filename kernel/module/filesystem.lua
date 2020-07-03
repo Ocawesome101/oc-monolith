@@ -2,18 +2,15 @@
 
 do
   local fs = {}
---local log = component.sandbox.log
   local mounts = {}
 
   local protected = {
     "/boot",
-    "/sbin",
-    "/initramfs.bin"
+    "/sbin"
   }
 
   local function split(path)
     local segments = {}
---  log("split " .. path)
     for seg in path:gmatch("[^/]+") do
       if seg == ".." then
         table.remove(segments, #segments)
@@ -37,15 +34,13 @@ do
   end
 
   local function resolve(path, noexist)
---  log("resolve " .. path)
-    if path == "." then path = os.getenv("PWD") or "/" end
-    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
+    if path == "." then path = kernel.thread.info().data.env.PWD or "/" end
+    if path:sub(1,1) ~= "/" then path = (kernel.thread.info().data.env.PWD or "/") .. path end
     local s = split(path)
     for i=#s, 1, -1 do
       local cur = "/" .. table.concat(s, "/", 1, i)
       local try = "/" .. table.concat(s, "/", i + 1)
       if mounts[cur] and (mounts[cur].exists(try) or noexist) then
-        --component.sandbox.log("found", try, "on mount", cur, mounts[cur].address)
         return mounts[cur], try
       end
     end
@@ -55,7 +50,6 @@ do
     if mounts["/"].exists(path) or noexist then
       return mounts["/"], path
     end
---  log("no such file or directory")
     return nil, path .. ": no such file or directory"
   end
 
@@ -63,12 +57,10 @@ do
   for k, v in pairs(basic) do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
---    log("called basic function " .. v .. " with argument " .. tostring(path))
       local mt, p = resolve(path, v == "makeDirectory")
       if path and not mt then
         return nil, p
       end
---    log("resolved to " .. mt.address .. ", path " .. p)
       return mt[v](p)
     end
   end
@@ -190,12 +182,11 @@ do
   function fs.canonical(path)
     checkArg(1, path, "string")
     if path == "." then
-      path = os.getenv("PWD") or "/"
+      path = kernel.thread.info().data.env.PWD or "/"
     elseif path:sub(1,1) ~= "/" then
-      path = (os.getenv("PWD") or "/") .. "/" .. path
+      path = (kernel.thread.info().data.env.PWD or "/") .. "/" .. path
     end
     local p = "/" .. table.concat(split(path), "/")
-    --component.sandbox.log(p)
     return p
   end
 
@@ -251,7 +242,6 @@ do
     checkArg(1, fsp, "string", "table")
     checkArg(2, path, "string")
     checkArg(2, ro, "boolean", "nil")
-    --path = fs.canonical(path)
     if path ~= "/" and not fs.exists(path) then fs.makeDirectory(path) end
     if type(fsp) == "string" then
       fsp = component.proxy(fsp)

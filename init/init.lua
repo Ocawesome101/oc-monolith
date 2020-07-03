@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe acd3fd2 (built Fri Jul 03 02:35:39 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 45dedf8 (built Fri Jul 03 15:39:19 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -9,7 +9,6 @@ local runlevel = kernel.runlevel
 local _log = function()end--component.sandbox.log
 
 log(_INITVERSION)
-
 
 -- `package` library --
 
@@ -129,7 +128,6 @@ package.loaded.syslog = {
 }
 package.loaded.users = require("users")
 _G.kernel = nil
-
 
 -- `io` library --
 
@@ -260,7 +258,6 @@ do
   end
 end
 
-
 -- os --
 
 do
@@ -296,7 +293,6 @@ do
   end
 end
 
-
 -- component API metatable allowing component.filesystem and things --
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
 
@@ -322,7 +318,6 @@ do
   setmetatable(component, mt)
 end
 
-
 log("Running scripts out of /lib/init/....")
 
 local files = kernel.filesystem.list("/lib/init/")
@@ -340,7 +335,6 @@ end
 
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
-
 -- `initsvc` lib. --
 
 function runlevel.max()

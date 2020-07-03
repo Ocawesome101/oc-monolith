@@ -1,4 +1,5 @@
 local text = require("text")
+local unicode = require("unicode")
 
 -- separate string value into an array of words delimited by whitespace
 -- groups by quotes

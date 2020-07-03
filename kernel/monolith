@@ -7,9 +7,9 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "acd3fd2"
-local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
-local _KERNEL_COMPILER = "luacomp 1.2.0"
+local _KERNEL_REVISION = "45dedf8"
+local _KERNEL_BUILDER = "ocawesome101@archlinux"
+local _KERNEL_COMPILER = "luacomp 1.2.2"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
 
@@ -26,8 +26,6 @@ if computer.setArchitecture then
   kernel.logger.log("Set architecture to Lua 5.3")
   computer.setArchitecture("Lua 5.3")
 end
-
--- --#include "module/logger.lua"
 
 -- component API metatable allowing component.filesystem, and component.get --
 
@@ -61,8 +59,6 @@ do
 
   setmetatable(component, mt)
 end
-
--- --#include "module/initfs.lua"
 
 -- users --
 
@@ -124,7 +120,6 @@ do
   kernel.users = u
 end
 
-
 -- kernel modules-ish --
 
 do
@@ -165,23 +160,19 @@ do
   kernel.module = m
 end
 
-
 -- filesystem management --
 
 do
   local fs = {}
---local log = component.sandbox.log
   local mounts = {}
 
   local protected = {
     "/boot",
-    "/sbin",
-    "/initramfs.bin"
+    "/sbin"
   }
 
   local function split(path)
     local segments = {}
---  log("split " .. path)
     for seg in path:gmatch("[^/]+") do
       if seg == ".." then
         table.remove(segments, #segments)
@@ -205,15 +196,13 @@ do
   end
 
   local function resolve(path, noexist)
---  log("resolve " .. path)
-    if path == "." then path = os.getenv("PWD") or "/" end
-    if path:sub(1,1) ~= "/" then path = (os.getenv("PWD") or "/") .. path end
+    if path == "." then path = kernel.thread.info().data.env.PWD or "/" end
+    if path:sub(1,1) ~= "/" then path = (kernel.thread.info().data.env.PWD or "/") .. path end
     local s = split(path)
     for i=#s, 1, -1 do
       local cur = "/" .. table.concat(s, "/", 1, i)
       local try = "/" .. table.concat(s, "/", i + 1)
       if mounts[cur] and (mounts[cur].exists(try) or noexist) then
-        --component.sandbox.log("found", try, "on mount", cur, mounts[cur].address)
         return mounts[cur], try
       end
     end
@@ -223,7 +212,6 @@ do
     if mounts["/"].exists(path) or noexist then
       return mounts["/"], path
     end
---  log("no such file or directory")
     return nil, path .. ": no such file or directory"
   end
 
@@ -231,12 +219,10 @@ do
   for k, v in pairs(basic) do
     fs[v] = function(path)
       checkArg(1, path, "string", "nil")
---    log("called basic function " .. v .. " with argument " .. tostring(path))
       local mt, p = resolve(path, v == "makeDirectory")
       if path and not mt then
         return nil, p
       end
---    log("resolved to " .. mt.address .. ", path " .. p)
       return mt[v](p)
     end
   end
@@ -358,12 +344,11 @@ do
   function fs.canonical(path)
     checkArg(1, path, "string")
     if path == "." then
-      path = os.getenv("PWD") or "/"
+      path = kernel.thread.info().data.env.PWD or "/"
     elseif path:sub(1,1) ~= "/" then
-      path = (os.getenv("PWD") or "/") .. "/" .. path
+      path = (kernel.thread.info().data.env.PWD or "/") .. "/" .. path
     end
     local p = "/" .. table.concat(split(path), "/")
-    --component.sandbox.log(p)
     return p
   end
 
@@ -419,7 +404,6 @@ do
     checkArg(1, fsp, "string", "table")
     checkArg(2, path, "string")
     checkArg(2, ro, "boolean", "nil")
-    --path = fs.canonical(path)
     if path ~= "/" and not fs.exists(path) then fs.makeDirectory(path) end
     if type(fsp) == "string" then
       fsp = component.proxy(fsp)
@@ -466,7 +450,6 @@ do
   kernel.filesystem = fs
 end
 
-
 -- computer.shutdown stuff --
 
 do
@@ -492,7 +475,6 @@ do
     shutdown(reboot)
   end
 end
-
 
 -- run levels --
 
@@ -542,7 +524,6 @@ do
 
   kernel.runlevel = rl
 end
-
 
 -- big fancy scheduler --
 
@@ -652,26 +633,6 @@ do
     threads[last] = new
     computer.pushSignal("thread_spawned", last)
     return last
-  end
-
-  function os.setenv(var, val)
-    checkArg(1, var, "string", "number")
-    checkArg(2, val, "string", "number", "boolean", "table", "nil", "function")
-    --kernel.logger.log("SET " .. var .. "=" .. tostring(val))
-    if threads[cur] then
-      threads[cur].env[var] = val
-    else
-      global_env[var] = val
-    end
-  end
-
-  function os.getenv(var)
-    checkArg(1, var, "string", "number")
-    if threads[cur] then
-      return threads[cur].env[var] or nil
-    else
-      return global_env[var] or nil
-    end
   end
 
   -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
@@ -836,7 +797,7 @@ do
 
       for i, thd in ipairs(run) do
         cur = thd.pid
-        local ok, p1, p2
+        local ok, p1, p2 = _, _, _ -- make it work with the minifier :/
         if #thd.ipc > 0 then
           local ipc = table.remove(thd.ipc, 1)
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(ipc))
@@ -892,7 +853,6 @@ do
   kernel.thread = thread
 end
 
-
 -- userspace sandbox and some security features --
 
 kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
@@ -900,9 +860,9 @@ kernel.logger.log("wrapping setmetatable, getmetatable for security, type for re
 local smt, gmt, typ, err = setmetatable, getmetatable, type, error
 
 function _G.error(e, l)
-  local pref = "/"
-  if kernel.filesystem.get("/").isReadOnly() then
-    pref = "/tmp/"
+  local pref = "/tmp/"
+  if flags.debug and not kernel.filesystem.get("/").isReadOnly() then
+    pref = "/"
   end
   local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
   handle:write(debug.traceback(e).."\n")
@@ -947,7 +907,6 @@ sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
-
 
 -- basic loadfile function --
 

@@ -108,26 +108,6 @@ do
     return last
   end
 
-  function os.setenv(var, val)
-    checkArg(1, var, "string", "number")
-    checkArg(2, val, "string", "number", "boolean", "table", "nil", "function")
-    --kernel.logger.log("SET " .. var .. "=" .. tostring(val))
-    if threads[cur] then
-      threads[cur].env[var] = val
-    else
-      global_env[var] = val
-    end
-  end
-
-  function os.getenv(var)
-    checkArg(1, var, "string", "number")
-    if threads[cur] then
-      return threads[cur].env[var] or nil
-    else
-      return global_env[var] or nil
-    end
-  end
-
   -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
@@ -290,7 +270,7 @@ do
 
       for i, thd in ipairs(run) do
         cur = thd.pid
-        local ok, p1, p2
+        local ok, p1, p2 = _, _, _ -- make it work with the minifier :/
         if #thd.ipc > 0 then
           local ipc = table.remove(thd.ipc, 1)
           ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(ipc))

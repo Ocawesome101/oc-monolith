@@ -5,9 +5,9 @@ kernel.logger.log("wrapping setmetatable, getmetatable for security, type for re
 local smt, gmt, typ, err = setmetatable, getmetatable, type, error
 
 function _G.error(e, l)
-  local pref = "/"
-  if kernel.filesystem.get("/").isReadOnly() then
-    pref = "/tmp/"
+  local pref = "/tmp/"
+  if flags.debug and not kernel.filesystem.get("/").isReadOnly() then
+    pref = "/"
   end
   local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
   handle:write(debug.traceback(e).."\n")

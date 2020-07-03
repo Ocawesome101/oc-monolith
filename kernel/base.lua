@@ -27,9 +27,7 @@ if computer.setArchitecture then
   computer.setArchitecture("Lua 5.3")
 end
 
--- --#include "module/logger.lua"
 --#include "module/component.lua"
--- --#include "module/initfs.lua"
 --#include "module/users.lua"
 --#include "module/module.lua"
 --#include "module/filesystem.lua"
