@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 4e073eb (built Thu Jul 02 21:00:41 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe acd3fd2 (built Fri Jul 03 02:35:39 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -9,6 +9,7 @@ local runlevel = kernel.runlevel
 local _log = function()end--component.sandbox.log
 
 log(_INITVERSION)
+
 
 -- `package` library --
 
@@ -34,7 +35,7 @@ do
   package.loaded = loaded
   local fs = kernel.filesystem
 
-  package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua"
+  package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua;/usr/compat/?.lua;/usr/compat/lib?.lua"
 
   local function libError(name, searched)
     local err = "module '%s' not found:\n\tno field package.loaded['%s']"
@@ -68,16 +69,31 @@ do
     })
   end
 
+  function package.delay(lib, file)
+    local mt = {
+      __index = function(tbl, key)
+        setmetatable(lib, nil)
+        setmetatable(lib.internal or {}, nil)
+        dofile(file)
+        return tbl[key]
+      end
+    }
+    if lib.internal then
+      setmetatable(lib.internal, mt)
+    end
+    setmetatable(lib, mt)
+  end
+
   function _G.dofile(file)
     checkArg(1, file, "string")
     file = fs.canonical(file)
     local ok, err = loadfile(file)
     if not ok then
-      return nil, err
+      error(err)
     end
     local stat, ret = xpcall(ok, debug.traceback)
     if not stat and ret then
-      return nil, ret
+      error(ret)
     end
     return ret
   end
@@ -113,6 +129,7 @@ package.loaded.syslog = {
 }
 package.loaded.users = require("users")
 _G.kernel = nil
+
 
 -- `io` library --
 
@@ -243,6 +260,7 @@ do
   end
 end
 
+
 -- os --
 
 do
@@ -278,13 +296,20 @@ do
   end
 end
 
+
 -- component API metatable allowing component.filesystem and things --
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
 
 do
   local component = require("component")
+  local overrides = {
+    gpu = function()return io.stdout.gpu end
+  }
   local mt = {
     __index = function(tbl, k)
+      if overrides[k] then
+        return overrides[k]()
+      end
       local addr = component.list(k, true)()
       if not addr then
         error("component of type '" .. k .. "' not found")
@@ -296,6 +321,7 @@ do
 
   setmetatable(component, mt)
 end
+
 
 log("Running scripts out of /lib/init/....")
 
@@ -314,6 +340,7 @@ end
 
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
+
 -- `initsvc` lib. --
 
 function runlevel.max()

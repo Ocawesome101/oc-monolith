@@ -8,8 +8,10 @@ local readline = require("readline")
 local stream = require("stream")
 local config = require("config")
 
-local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua"})
+local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua",cursorblink=true})
 local login = cfg.start or "/sbin/login.lua"
+local blink = cfg.cursorblink
+config.save(cfg, "/etc/getty.conf")
 if not require("runlevel").levels[require("runlevel").max()].multiuser then login = "/bin/sh.lua" package.loaded.users = setmetatable({
   user = function() return 'root' end,
   uid = function() return 0 end,
@@ -58,6 +60,7 @@ local function makeStream(gpu, screen)
 end
 
 local ttyn = 0
+local cursors = {}
 
 function getty.scan()
   dinfo = computer.getDeviceInfo()
@@ -74,8 +77,20 @@ function getty.scan()
       if p.bound then
         thread.signal(p.bound, thread.signals.kill)
         screens[p.screen].bound = false
+        cursors[p.pid] = nil
       end
       gpus[addr] = nil
+    else
+      if not (thread.info(p.pid)) then
+        kernel.logger.log("restarting terminal on GPU " .. addr)
+        io.input(cursors[p.pid])
+        io.output(cursors[p.pid])
+        local old = p.pid
+        p.pid = thread.spawn(loadfile(login), login, error)
+        screens[p.screen].pid = p.pid
+        cursors[p.pid] = cursors[old]
+        cursors[old] = nil
+      end
     end
   end
 
@@ -84,8 +99,20 @@ function getty.scan()
       if p.bound then
         thread.signal(p.bound, thread.signals.kill)
         gpus[p.gpu].bound = false
+        cursors[p.pid] = nil
       end
       screens[addr] = nil
+    else
+      if not (thread.info(p.pid)) then
+        kernel.logger.log("restarting terminal on screen " .. addr)
+        io.input(cursors[p.pid])
+        io.output(cursors[p.pid])
+        local old = p.pid
+        p.pid = thread.spawn(loadfile(login), login, error)
+        screens[p.screen].pid = p.pid
+        cursors[p.pid] = cursors[old]
+        cursors[old] = nil
+      end
     end
   end
 
@@ -102,6 +129,7 @@ function getty.scan()
       io.input(ios)
       io.output(ios)
       local pid = thread.spawn(ok, login, error)
+      cursors[pid] = ios
       gpus[gpu].bound = pid
       gpus[gpu].screen = screen
       screens[screen].bound = pid
@@ -115,13 +143,20 @@ end
 
 getty.scan()
 
+local last_blink = computer.uptime()
 while true do
-  local sig, pid, res = coroutine.yield()
+  local sig, pid, res = coroutine.yield((blink and (last_blink + 0.5) - computer.uptime()) or math.huge)
   if sig == "thread_errored" then
     if res:sub(-1) ~= "\n" then res = res .. "\n" end
     io.write("\27[31m" .. res)
   end
   if sig == "component_added" or sig == "component_removed" then
     getty.scan()
+  end
+  if computer.uptime() - last_blink >= 0.5 then
+    last_blink = computer.uptime()
+    for _,s in pairs(cursors) do
+      s:write("\27[255m")
+    end
   end
 end

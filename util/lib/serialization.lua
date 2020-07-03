@@ -33,7 +33,7 @@ local function internal(tbl, ident, seen)
     r = string.format("%s  %s = %s,\n", r, k, v)
   end
 
-  r = r .. "}"
+  r = r .. isp .. "}"
 
   return r
 end

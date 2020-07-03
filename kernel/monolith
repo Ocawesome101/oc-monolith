@@ -7,9 +7,9 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "4e073eb"
-local _KERNEL_BUILDER = "ocawesome101@archlinux"
-local _KERNEL_COMPILER = "luacomp 1.2.2"
+local _KERNEL_REVISION = "acd3fd2"
+local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
+local _KERNEL_COMPILER = "luacomp 1.2.0"
 
 _G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
 
@@ -28,6 +28,7 @@ if computer.setArchitecture then
 end
 
 -- --#include "module/logger.lua"
+
 -- component API metatable allowing component.filesystem, and component.get --
 
 do
@@ -62,6 +63,7 @@ do
 end
 
 -- --#include "module/initfs.lua"
+
 -- users --
 
 do
@@ -94,19 +96,6 @@ do
     return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
 
-  function u.login(uid, password)
-    local yes, why = u.authenticate(uid, password)
-    if not yes then
-      return yes, why or "invalid credentials"
-    end
-    cuid = uid
-    return yes
-  end
-
-  function u.uid()
-    return cuid
-  end
-
   function u.add(password, cansudo)
     checkArg(1, password, "string")
     checkArg(2, cansudo, "boolean", "nil")
@@ -134,6 +123,7 @@ do
 
   kernel.users = u
 end
+
 
 -- kernel modules-ish --
 
@@ -174,6 +164,7 @@ do
 
   kernel.module = m
 end
+
 
 -- filesystem management --
 
@@ -475,6 +466,7 @@ do
   kernel.filesystem = fs
 end
 
+
 -- computer.shutdown stuff --
 
 do
@@ -500,6 +492,7 @@ do
     shutdown(reboot)
   end
 end
+
 
 -- run levels --
 
@@ -549,6 +542,7 @@ do
 
   kernel.runlevel = rl
 end
+
 
 -- big fancy scheduler --
 
@@ -681,7 +675,6 @@ do
   end
 
   -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
-  local ulogin, ulogout, uuid = kernel.users.login, kernel.users.logout, kernel.users.uid
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
@@ -694,7 +687,7 @@ do
       threads[cur].user = uid
       return true
     end
-    return ulogin(uid, password)
+    return true
   end
 
   function kernel.users.logout()
@@ -899,6 +892,7 @@ do
   kernel.thread = thread
 end
 
+
 -- userspace sandbox and some security features --
 
 kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
@@ -953,6 +947,7 @@ sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
+
 
 -- basic loadfile function --
 

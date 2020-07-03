@@ -129,7 +129,6 @@ do
   end
 
   -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
-  local ulogin, ulogout, uuid = kernel.users.login, kernel.users.logout, kernel.users.uid
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
@@ -142,7 +141,7 @@ do
       threads[cur].user = uid
       return true
     end
-    return ulogin(uid, password)
+    return true
   end
 
   function kernel.users.logout()

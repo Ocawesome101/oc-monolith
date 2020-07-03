@@ -1,9 +1,12 @@
--- basically a clone of the OpenOS one, but slightly modified --
+-- payonel again :P --
 
 local buffer = require("buffer")
 local component = require("component")
+local event = require("event")
 
 local internet = {}
+
+-------------------------------------------------------------------------------
 
 function internet.request(url, data, headers, method)
   checkArg(1, url, "string")
@@ -11,6 +14,9 @@ function internet.request(url, data, headers, method)
   checkArg(3, headers, "table", "nil")
   checkArg(4, method, "string", "nil")
 
+  if not component.isAvailable("internet") then
+    error("no primary internet card found", 2)
+  end
   local inet = component.internet
 
   local post
@@ -30,9 +36,11 @@ function internet.request(url, data, headers, method)
 
   return setmetatable(
   {
+    ["()"] = "function():string -- Tries to read data from the socket stream and return the read byte array.",
     close = setmetatable({},
     {
-      __call = request.close
+      __call = request.close,
+      __tostring = function() return "function() -- closes the connection" end
     })
   },
   {
@@ -44,50 +52,51 @@ function internet.request(url, data, headers, method)
           if reason then
             error(reason, 2)
           else
-            return nil
+            return nil -- eof
           end
         elseif #data > 0 then
           return data
-        else
-          --error("download failed", 2)
         end
+        -- else: no data, block
         os.sleep(0)
       end
     end,
-    __index = request
+    __index = request,
   })
 end
 
-local socket = {}
+-------------------------------------------------------------------------------
 
-function socket:close()
+local socketStream = {}
+
+function socketStream:close()
   if self.socket then
     self.socket.close()
     self.socket = nil
   end
 end
 
-function socket:seek()
+function socketStream:seek()
   return nil, "bad file descriptor"
 end
 
-function socket:read(n)
+function socketStream:read(n)
   if not self.socket then
     return nil, "connection is closed"
   end
   return self.socket.read(n)
 end
 
-function socket:write(d)
+function socketStream:write(value)
   if not self.socket then
     return nil, "connection is closed"
   end
-  while #d > 0 do
-    local w, r = self.socket.write(d)
-    if not w then
-      return nil, r
+  while #value > 0 do
+    local written, reason = self.socket.write(value)
+    if not written then
+      return nil, reason
     end
-    d = d:sub(w + 1)
+    value = string.sub(value, written + 1)
   end
   return true
 end
@@ -100,19 +109,14 @@ function internet.socket(address, port)
   end
 
   local inet = component.internet
-  -- this was a typo but it works so I'm leaving it
-  local sicket, reason = inet.connect(address)
-  if not sicket then
+  local socket, reason = inet.connect(address)
+  if not socket then
     return nil, reason
   end
 
-  local stream = {
-    inet = inet, socket = sicket
-  }
-  local mt = {
-    __index = socket,
-    __metatable = "socketstream"
-  }
+  local stream = {inet = inet, socket = socket}
+  local metatable = {__index = socketStream,
+                     __metatable = "socketstream"}
   return setmetatable(stream, metatable)
 end
 
@@ -123,5 +127,7 @@ function internet.open(address, port)
   end
   return buffer.new("rwb", stream)
 end
+
+-------------------------------------------------------------------------------
 
 return internet

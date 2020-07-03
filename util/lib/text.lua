@@ -1,82 +1,143 @@
--- Text utils --
+-- written by Payonel for OpenOS --
 
 local unicode = require("unicode")
+local tx = require("transforms")
+
 local text = {}
+text.internal = {}
 
--- from https://lua-users.org/wiki/StringTrim, with argument checking
-function text.trim(value)
-  checkArg(1, value, "string")
-  local from = string.match(value, "^%s*()") -- these patterms are magic
-  return from > #value and "" or string.match(value, ".*%S", from) -- magic, I say!
+text.syntax = {"^%d?>>?&%d+","^%d?>>?",">>?","<%&%d+","<",";","&&","||?"}
+
+function text.trim(value) -- from http://lua-users.org/wiki/StringTrim
+  local from = string.match(value, "^%s*()")
+  return from > #value and "" or string.match(value, ".*%S", from)
 end
 
--- These two functions are copied from OpenOS' text lib for compatibility. Thanks, Payonel :)
-
--- Pretty sure this puts a \ in front of special chars, maybe a %
+-- used by lib/sh
 function text.escapeMagic(txt)
-  checkArg(1, txt, "string")
-  return txt:gsub("[%(%)%.%%%+%-%*%?%[%^%$]", "%%%1")
+  return txt:gsub('[%(%)%.%%%+%-%*%?%[%^%$]', '%%%1')
 end
 
--- These patterns are illegible
 function text.removeEscapes(txt)
-  checkArg(1, txt, "string")
-  return txt:gsub("%%([%9%0%.%%%+%-%*%?%[%^%$])", "%1")
+  return txt:gsub("%%([%(%)%.%%%+%-%*%?%[%^%$])","%1")
 end
 
-function text.tokenize(str)
-  checkArg(1, str, "string")
-  local words = {}
-  for word in str:gmatch("[^ ]+") do
-    words[#words + 1] = word
+function text.internal.tokenize(value, options)
+  checkArg(1, value, "string")
+  checkArg(2, options, "table", "nil")
+  options = options or {}
+  local delimiters = options.delimiters
+  local custom = not not options.delimiters
+  delimiters = delimiters or text.syntax
+
+  local words, reason = text.internal.words(value, options)
+
+  local splitter = text.escapeMagic(custom and table.concat(delimiters) or "<>|;&")
+  if type(words) ~= "table" or
+    #splitter == 0 or
+    not value:find("["..splitter.."]") then
+    return words, reason
   end
 
-  return words
+  return text.internal.splitWords(words, delimiters)
 end
 
--- text.split is present in the OpenOS API, but not documented on the wiki.
-function text.split(str, sep)
-  checkArg(1, str, "string")
-  checkArg(2, sep, "string", "nil")
-  local pattern = string.format("[^%s]+", sep)
-  local words = {}
-  for word in str:gmatch(pattern) do
-    words[#words + 1] = word
+-- tokenize input by quotes and whitespace
+function text.internal.words(input, options)
+  checkArg(1, input, "string")
+  checkArg(2, options, "table", "nil")
+  options = options or {}
+  local quotes = options.quotes
+  local show_escapes = options.show_escapes
+  local qr = nil
+  quotes = quotes or {{"'","'",true},{'"','"'},{'`','`'}}
+  local function append(dst, txt, _qr)
+    local size = #dst
+    if size == 0 or dst[size].qr ~= _qr then
+      dst[size+1] = {txt=txt, qr=_qr}
+    else
+      dst[size].txt = dst[size].txt..txt
+    end
   end
-  return words
+  -- token meta is {string,quote rule}
+  local tokens, token = {}, {}
+  local escaped, start = false, -1
+  for i = 1, unicode.len(input) do
+    local char = unicode.sub(input, i, i)
+    if escaped then -- escaped character
+      escaped = false
+      -- include escape char if show_escapes
+      -- or the followwing are all true
+      -- 1. qr active
+      -- 2. the char escaped is NOT the qr closure
+      -- 3. qr is not literal
+      if show_escapes or (qr and not qr[3] and qr[2] ~= char) then
+        append(token, '\\', qr)
+      end
+      append(token, char, qr)
+    elseif char == "\\" and (not qr or not qr[3]) then
+        escaped = true
+    elseif qr and qr[2] == char then -- end of quoted string
+      -- if string is empty, we can still capture a quoted empty arg
+      if #token == 0 or #token[#token] == 0 then
+        append(token, '', qr)
+      end
+      qr = nil
+    elseif not qr and tx.first(quotes,function(Q)
+      qr=Q[1]==char and Q or nil return qr end) then
+      start = i
+    elseif not qr and string.find(char, "%s") then
+      if #token > 0 then
+        table.insert(tokens, token)
+      end
+      token = {}
+    else -- normal char
+      append(token, char, qr)
+    end
+  end
+  if qr then
+    return nil, "unclosed quote at index " .. start
+  end
+
+  if #token > 0 then
+    table.insert(tokens, token)
+  end
+
+  return tokens
 end
 
--- There may be minor incompatibilities or inconsistencies in my code vs. OpenOS's.
-function text.detab(str, width)
-  checkArg(1, str, "string")
-  checkArg(2, width, "number", "nil")
-  local tab = (" "):rep(width or 2)
-  return str:gsub("\t", tab)
+function text.detab(value, tabWidth)
+  checkArg(1, value, "string")
+  checkArg(2, tabWidth, "number", "nil")
+  tabWidth = tabWidth or 8
+  local function rep(match)
+    local spaces = tabWidth - match:len() % tabWidth
+    return match .. string.rep(" ", spaces)
+  end
+  local result = value:gsub("([^\n]-)\t", rep) -- truncate results
+  return result
 end
 
-function text.padRight(str, len)
-  checkArg(1, str, "string", "nil")
-  checkArg(2, len, "number")
-  str = str or ""
-
-  return str .. string.rep(" ", len - unicode.wlen(str))
+function text.padLeft(value, length)
+  checkArg(1, value, "string", "nil")
+  checkArg(2, length, "number")
+  if not value or unicode.wlen(value) == 0 then
+    return string.rep(" ", length)
+  else
+    return string.rep(" ", length - unicode.wlen(value)) .. value
+  end
 end
 
-function text.padLeft(str, len)
-  checkArg(1, str, "string", "nil")
-  checkArg(2, len, "number")
-  str = str or ""
-
-  return string.rep(" ", len - unicode.wlen(str)) .. str
+function text.padRight(value, length)
+  checkArg(1, value, "string", "nil")
+  checkArg(2, length, "number")
+  if not value or unicode.wlen(value) == 0 then
+    return string.rep(" ", length)
+  else
+    return value .. string.rep(" ", length - unicode.wlen(value))
+  end
 end
 
--- TODO: implement these
-function text.wrap()
-  error("TOOD: implement text.wrap")
-end
-
-function text.wrappedLines()
-  error("TODO: implement text.wrappedLines")
-end
+package.delay(text, "/lib/full/text.lua")
 
 return text

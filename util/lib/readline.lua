@@ -237,5 +237,5 @@ function rl.readline(prompt, opts)
   end
 end
 
--- we don't need readlinebasic
+-- we don't need readlinebasic, readline does that and much more besides
 return { readline = rl.readline, addscreen = rl.addscreen, buffersize = rl.buffersize }

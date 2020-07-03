@@ -22,7 +22,7 @@ do
   package.loaded = loaded
   local fs = kernel.filesystem
 
-  package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua"
+  package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua;/usr/compat/?.lua;/usr/compat/lib?.lua"
 
   local function libError(name, searched)
     local err = "module '%s' not found:\n\tno field package.loaded['%s']"
@@ -56,16 +56,31 @@ do
     })
   end
 
+  function package.delay(lib, file)
+    local mt = {
+      __index = function(tbl, key)
+        setmetatable(lib, nil)
+        setmetatable(lib.internal or {}, nil)
+        dofile(file)
+        return tbl[key]
+      end
+    }
+    if lib.internal then
+      setmetatable(lib.internal, mt)
+    end
+    setmetatable(lib, mt)
+  end
+
   function _G.dofile(file)
     checkArg(1, file, "string")
     file = fs.canonical(file)
     local ok, err = loadfile(file)
     if not ok then
-      return nil, err
+      error(err)
     end
     local stat, ret = xpcall(ok, debug.traceback)
     if not stat and ret then
-      return nil, ret
+      error(ret)
     end
     return ret
   end

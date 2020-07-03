@@ -53,7 +53,7 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] `protect`
     - [X] `cp`
       - [X] `copy`
-    - [ ] `event`
+    - [X] `event`
     - [X] `uuid`
     - [X] `internet`
     - [ ] `network` (may integrate with `internet`)
@@ -73,3 +73,4 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [ ] Apps
       - [ ] Settings
       - [ ] Terminal
+  - [ ] Memory optimization - `/lib/full` + `package.delay` ?

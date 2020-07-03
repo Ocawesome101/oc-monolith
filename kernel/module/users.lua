@@ -30,19 +30,6 @@ do
     return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
 
-  function u.login(uid, password)
-    local yes, why = u.authenticate(uid, password)
-    if not yes then
-      return yes, why or "invalid credentials"
-    end
-    cuid = uid
-    return yes
-  end
-
-  function u.uid()
-    return cuid
-  end
-
   function u.add(password, cansudo)
     checkArg(1, password, "string")
     checkArg(2, cansudo, "boolean", "nil")

@@ -18,23 +18,6 @@ end
 
 local defaultPath = "/bin:/usr/bin:/usr/local/bin"
 
-shell.codes = {
-  misc = -1,
-  success = 0,
-  failure = 1,
-  argument = 2,
-  permission = 127
-}
-
-shell.errors = {
-  [shell.codes.misc] = "errored",
-  [shell.codes.failure] = "failed",
-  [shell.codes.argument] = "bad argument",
-  [shell.codes.permission] = "permission denied"
-}
-
-setmetatable(shell.errors, {__index = function()return "failed" end})
-
 shell.extensions = {
   lua = true
 }
@@ -53,42 +36,6 @@ shell.builtins = {
       shell.error("sh: cd", string.format("%s: is not a directory", path))
     end
   end,
-  exit = function(code)
-    shell.exit(tonumber(code or 0))
-  end,
-  pwd = function()
-    print(os.getenv("PWD"))
-  end,
-  kill = function(...)
-    local signals = require("signals")
-    local args, opts = shell.parse(...)
-    local pid = tonumber(args[1] or "")
-    if #args == 0 or not pid then
-      shell.error("sh: kill", "usage: kill [-<signal>] <PID>")
-      return shell.codes.argument
-    end
-    local sig
-    if opts.SIGKILL or opts[signals.kill] then
-      sig = signals.kill
-    elseif opts.SIGINT or opts[signals.interrupt] then
-      sig = signals.interrupt
-    elseif opts.USR1 or opts[signals.usr1] then
-      sig = signals.usr1
-    elseif opts.USR2 or opts[signals.usr2] then
-      sig = signals.usr2
-    elseif opts.SIGQUIT or opts[signals.quit] then
-      sig = signals.quit
-    elseif opts.SIGTERM or opts[signals.term] then
-      sig = signals.term
-    else
-      sig = signals.kill
-    end
-    local ok, err = thread.signal(pid, sig)
-    if not ok then
-      shell.error("sh: kill", err)
-      return shell.codes.failure
-    end
-  end,
   set = function(...)
     local set, opts = shell.parse(...)
     if #set == 0 or opts.p then
@@ -101,40 +48,6 @@ shell.builtins = {
         os.setenv(var, val:gsub("\\27", "\27"))
       end
     end
-  end,
-  unset = function(...)
-    local ust, opts = shell.parse(...)
-    for k, v in pairs(ust) do
-      os.setenv(v, nil)
-    end
-  end,
-  alias = function(...)
-    local ali, opts = shell.parse(...)
-    if #ali == 0 then
-      for k, v in pairs(aliases) do
-        print(string.format("alias %s='%s'", k, v))
-      end
-    else
-      for k, v in pairs(ali) do
-        local a, c = v:match("(.+)=(.+)")
-        if not c then
-          if aliases[a] then
-            print(string.format("alias %s='%s'", a, aliases[a]))
-          end
-        else
-          aliases[a] = c
-        end
-      end
-    end
-  end,
-  unalias = function(...)
-    local una, opts = shell.parse(...)
-    for k, v in pairs(una) do
-      aliases[v] = nil
-    end
-  end,
-  sleep = function(t)
-    os.sleep(tonumber(t) or 1)
   end,
   shutdown = function(...)
     local args, opts = shell.parse(...)
@@ -171,6 +84,8 @@ options:
     shell.execute("shutdown --poweroff")
   end
 }
+
+package.delay(shell.builtins, "/lib/full/builtins.lua")
 
 local function percent(s)
   local r = ""
@@ -222,17 +137,6 @@ function shell.parse(...)
     end
   end
   return args, opts
-end
-
-function shell.setAlias(k, v)
-  checkArg(1, k, "string")
-  checkArg(2, v, "string")
-  aliases[k] = v
-end
-
-function shell.unsetAlias(k)
-  checkArg(1, k, "string")
-  aliases[k] = nil
 end
 
 -- fancier split that deals with args like `prog print "this is cool" --text="this is also cool"`
@@ -334,5 +238,7 @@ function shell.execute(...)
     end
   end
 end
+
+package.delay(shell, "/lib/full/shell.lua")
 
 return shell

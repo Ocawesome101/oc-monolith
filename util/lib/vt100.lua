@@ -21,7 +21,7 @@ function vt.emu(gpu)
   local sx, sy = 1, 1
   local echo = true
   local dhist = false
---  local wrap = true
+  local shown = true
   local wbuf = ""
   local ebuf = ""
   local mode = 0 -- 0 normal, 1 escape, 2 command
@@ -198,6 +198,8 @@ function vt.emu(gpu)
                 fg = bright[n - 89]
               elseif n > 99 and n < 108 then
                 bg = bright[n - 99]
+              elseif n == 255 then
+                shown = not shown
               end
             end
             local depth = gpu.getDepth()
@@ -215,12 +217,14 @@ function vt.emu(gpu)
     end
     flush()
     checkCursor()
-    local char = gpu.get(cx, cy)
-    gpu.setForeground(bg)
-    gpu.setBackground(fg)
-    gpu.set(cx, cy, char)
-    gpu.setForeground(fg)
-    gpu.setBackground(bg)
+    if shown then
+      local char = gpu.get(cx, cy)
+      gpu.setForeground(bg)
+      gpu.setBackground(fg)
+      gpu.set(cx, cy, char)
+      gpu.setForeground(fg)
+      gpu.setBackground(bg)
+    end
     if resp ~= "" then
       computer.pushSignal("vt_response", gpu.getScreen(), resp)
       resp = ""
@@ -228,107 +232,6 @@ function vt.emu(gpu)
     --return resp, echo--, dhist
   end
   return vtwrite
-end
-
--- Create a session with i/o and everything. Returns read, write, and close functions.
--- This function is deprecated.
-function vt.session(gpu, screen)
-  checkArg(1, gpu, "string", "table")
-  checkArg(2, screen, "string")
-  error("vt100.session is deprecated and should not be used")
-  if type(gpu) == "string" then
-    gpu = component.proxy(gpu)
-  end
-  gpu.bind(screen)
-
-  local write = vt.emu(gpu)
-  local keyboards = {}
-  for _, addr in pairs(component.invoke(screen, "getKeyboards")) do
-    keyboards[addr] = true
-  end
-
-  local buf, echo, last, hist, hp, dh = "", true, computer.uptime(), {}, 1, false
-  local function proc()
-    while true do
-      local sig, kba, chr, cod = coroutine.yield(cto)
-      if sig == "key_down" and keyboards[kba] then
-        if chr == 13 then chr = 10 end
-        if chr == 8 then
-          if buf ~= "" then
-            if echo then write("\8 \8") end
-            buf = buf:sub(1, -2)
-          end
-        elseif chr > 0 then
-          if echo then write(string.char(chr)) end
-          buf = buf .. string.char(chr)
-        elseif chr == 0 then
-          if cod == 200 then
-            if dh then
-              if hp > 1 then hp = hp - 1 end
-              local nbuf = hist[hp] or ""
-              write(("\8 \8"):rep(#buf))
-              write(nbuf)
-              buf = nbuf
-            else
-              write("^[A")
-              buf = buf .. "\27[A\n"
-            end
-          elseif cod == 208 then
-            if dh then
-              if hp <= #hist then hp = hp + 1 end
-              local nbuf = (hist[hp] or ""):gsub("\n", "")
-              write(("\8 \8"):rep(#buf))
-              write(nbuf)
-              buf = nbuf
-            else
-              write("^[B")
-              buf = buf .. "\27[B\n"
-            end
-          --[[elseif cod == 205 then
-            c = "C"
-          elseif cod == 203 then
-            c = "D"]]
-          end
-          --[[if c then
-            local p = string.format("\27[%s", c)
-            if cpt then
-              akb[#akb + 1] = p
-            elseif echo then
-              write(p)
-            end
-          end]]
-        end
-      end
-    end
-  end
-  local pid = thread.spawn(proc, string.format("tty(%s:%s)", gpu.address:sub(1, 8), screen:sub(1, 8)))
-
-  local function sread()
-    while not buf:find("\n") do
-      coroutine.yield()
-    end
-    local n = buf:find("\n")
-    local ret = buf:sub(1, n - 1)
-    buf = buf:sub(n + 1)
-    if dh then hist[#hist + 1] = ret hp = #hist + 1
-      if #hist > 16 then table.remove(hist, 1) end end
-    return ret
-  end
-
-  local function swrite(str)
-    checkArg(1, str, "string")
-    local response, localEcho, doh = write(str)
-    if localEcho ~= nil then echo = localEcho end
-    if doh ~= nil then dh = doh end
-    return response
-  end
-
-  local function sclose()
-    os.kill(pid)
-    io.write("\27[2J\27[H")
-  end
-
-  return sread, swrite, sclose
 end
 
 return vt

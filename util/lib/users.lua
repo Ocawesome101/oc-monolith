@@ -2,7 +2,6 @@
 
 local users = {}
 
-local protect = require("protect")
 local config = require("config")
 local sha3 = require("sha3")
 local fs = require("filesystem")
