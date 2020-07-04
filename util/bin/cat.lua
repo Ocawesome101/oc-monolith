@@ -2,9 +2,10 @@ local shell = require("shell")
 
 local args, opts = shell.parse(...)
 if #args == 0 then
-  local data = io.read()
-  print(data)
-  return 0
+  while true do
+    local data = io.read()
+    print(data)
+  end
 else
   for k, v in ipairs(args) do
     local file, err = io.open(v, "r")

@@ -1,3 +1,4 @@
+local computer = require("computer")
 local shell = require("shell")
 local thread = require("thread")
 local builtins = shell.builtins
@@ -73,4 +74,10 @@ builtins.kill = function(...)
     shell.error("sh: kill", err)
     return shell.codes.failure
   end
+end
+builtins.time = function(...)
+  local start = computer.uptime()
+  shell.execute(...)
+  local total = computer.uptime() - start
+  print("real", total .. "s")
 end

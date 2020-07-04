@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2c596e7 (built Sat Jul 04 15:31:06 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe 92a9cb3 (built Sat Jul 04 18:56:28 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
@@ -126,7 +126,7 @@ package.loaded.kinfo = kernel.info
 package.loaded.syslog = {
   log = kernel.logger.log
 }
-package.loaded.users = require("users")
+package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil
 
 -- `io` library --
@@ -290,6 +290,31 @@ do
     --checkArg(1, k, "string", "number")
     --checkArg(2, v, "string", "number", "nil")
     (kernel.thread or require("thread")).info().data.env[k] = v
+  end
+
+  local filesystem = require("filesystem")
+
+  os.remove = filesystem.remove
+  os.rename = filesystem.rename
+
+  os.execute = function(command)
+    local shell = require("shell")
+    if not command then
+      return type(shell) == "table"
+    end
+    return shell.execute(command)
+  end
+
+  function os.tmpname()
+    local path = os.getenv("TMPDIR") or "/tmp"
+    if filesystem.exists(path) then
+      for _ = 1, 10 do
+        local name = filesystem.concat(path, tostring(math.random(1, 0x7FFFFFFF)))
+        if not filesystem.exists(name) then
+          return name
+        end
+      end
+    end
   end
 end
 

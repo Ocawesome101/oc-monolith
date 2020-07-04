@@ -39,9 +39,11 @@ end
 
 local function drawline(y, n, l, L)
   l = l or ""
-  n = (n and tostring(n)) or "\27[33m~"
+  n = (n and tostring(n)) or "\27[94m~"
   local nl = tostring(L):len()
-  io.write(require("text").padRight(string.format("\27[%d;1H\27[31m%"..nl.."s\27[37m %s", y, n, l), ed.getScreenSize()))
+  local out = string.format("\27[%d;1H\27[93m%"..nl.."s\27[37m %s", y, n, l)
+  out = out .. (" "):rep((ed.getScreenSize()))
+  io.write(out)
 end
 
 function ed.buffer:draw()
@@ -63,6 +65,14 @@ end
 
 function ed.new(file)
   checkArg(1, file, "string", "nil")
+  if file then
+    -- try to prevent opening multiple buffers containing the same file
+    for n, buf in pairs(ed.buffers) do
+      if buf.name == file then
+        return n 
+      end
+    end
+  end
   local new = setmetatable({
     name = file,
     lines = {""},

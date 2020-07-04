@@ -71,7 +71,7 @@ do
     if not mt then
       return nil, p
     end
-    local files = mt.list(p or "/")
+    local files = mt.list(p or "/") or {}
     local i = 0
     return setmetatable(files, {__call = function() i=i+1 return files[i] or nil end})
   end

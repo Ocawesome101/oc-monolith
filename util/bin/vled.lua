@@ -39,46 +39,84 @@ local rlopts_insert = {
   prompt = "~ ",
 }
 
+if file and opts.s or opts.highlight or opts.syntax then
+  local ext = file:match(".+%.(.-)$") or opts.syntax
+  if require("filesystem").exists("/lib/vled/"..ext..".lua") then
+    local ok,hl=pcall(require, "vled."..ext, true)
+    if not ok then
+      print("WARNING: failed loading syntax for file extension " .. ext)
+      os.sleep(1)
+      goto cont
+    end
+    rlopts_insert.highlighter = hl
+    editor.buffers[cur].highlighter = hl
+  end
+end
+::cont::
 local cmdhistory = {}
 local rlopts_cmd = {
   prompt = ":",
-  history = cmdhistory,
   tabact = function(b)
     cmd = false
     return nil, "return"
   end,
-  notrail = true
+  notrail = true,
+  actions = {
+    up = function()
+      local c = editor.buffers[cur]
+      if c.scroll.h > 3 then
+        c.scroll.h = c.scroll.h - 4
+      else
+        c.scroll.h = 1
+      end
+      c:draw()
+    end,
+    down = function()
+      local c = editor.buffers[cur]
+      if c.scroll.h < #c.lines + h - 5 then
+        c.scroll.h = c.scroll.h + 4
+      else
+        c.scroll.h = #c.lines + h - 2
+      end
+      c:draw()
+    end
+  }
 }
 
 local running = true
 -- this is very vi-inspired
 local ops = {
-  ["wq$"] = function()
+  ["wq$"] = function() -- write & quit
     editor.buffers[cur]:save()
+    editor.buffers[cur] = nil
     running = false
   end,
-  ["w$"] = function()
+  ["cq$"] = function() -- close & quit
+    editor.buffers[cur] = nil
+    running = false
+  end,
+  ["w$"] = function() -- write
     editor.buffers[cur]:save()
   end,
-  ["w (%S*)"] = function(f)
+  ["w (%S*)"] = function(f) -- write to file
     editor.buffers[cur]:save(f)
   end,
-  ["q$"] = function()
+  ["q$"] = function() -- quit
     running = false
   end,
-  ["d(%d*)"] = function(n)
+  ["d(%d*)"] = function(n) -- delete lines
     n = tonumber(n) or 1
     for i=1,n,1 do
       table.remove(editor.buffers[cur].lines, line)
     end
   end,
-  ["%%s/(%S+)/(%S*)/"] = function(f,r)
-    for _,line in ipairs(editor.buffers[cur].lines) do
-      line = line:gsub(f,r) or line
+  ["^%%s/(%S+)/(%S*)/"] = function(f,r) -- global substitute
+    for n,line in ipairs(editor.buffers[cur].lines) do
+      editor.buffers[cur].lines[n] = line:gsub(f,r) or line
     end
   end,
-  ["s/(%S+)/(%S*)/"] = function(f,r)
-    editor.buffers[cur].lines[line] = editor.buffers[cur].line:gsub(f,r) or editor.buffers[cur].line
+  ["^s/(%S+)/(%S*)/"] = function(f,r) -- current line substitute
+    editor.buffers[cur].lines[line] = editor.buffers[cur].lines[line]:gsub(f,r) or editor.buffers[cur].lines[line]
   end
 }
 
@@ -111,3 +149,5 @@ while running do
     if line == curl then line = line + 1 table.insert(editor.buffers[cur].lines, line, "") end
   end
 end
+
+io.write("\27[2J\27[1H")

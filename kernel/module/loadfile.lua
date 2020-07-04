@@ -10,8 +10,11 @@ local function loadfile(file, mode, env)
   if not handle then
     return nil, err
   end
-  --kernel.logger.log("loadfile " .. file)
-  local data = handle:read("*a")
+  local data = ""
+  repeat
+    local chunk = handle:read(math.huge)
+    data = data .. (chunk or "")
+  until not chunk
   handle:close()
   if data:sub(1,1) == "#" then -- crude shebang detection
     data = "--" .. data

@@ -114,5 +114,5 @@ package.loaded.kinfo = kernel.info
 package.loaded.syslog = {
   log = kernel.logger.log
 }
-package.loaded.users = require("users")
+package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil

@@ -44,5 +44,10 @@ local function search(page)
 end
 
 for i=1, #args, 1 do
-  less(assert(search(args[i])))
+  local ok, err = search(args[i])
+  if not ok then
+    print(err)
+  else
+    less(ok)
+  end
 end

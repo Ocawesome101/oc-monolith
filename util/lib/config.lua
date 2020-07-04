@@ -1,7 +1,6 @@
 -- config --
 
 local s = require("serialization")
-local fs = require("filesystem")
 
 local ser = s.serialize
 local uns = s.deserialize
@@ -13,7 +12,7 @@ function config.load(file, defaults)
   checkArg(2, defaults, "table", "nil")
   defaults = defaults or {}
 
-  local handle, err = fs.open(file, "r")
+  local handle, err = io.open(file, "r")
   if not handle then
     return {}, err
   end
@@ -39,7 +38,7 @@ function config.save(cfg, file)
     return nil, err
   end
 
-  local handle, err = fs.open(file, "w")
+  local handle, err = io.open(file, "w")
   if not handle then
     return nil, err
   end

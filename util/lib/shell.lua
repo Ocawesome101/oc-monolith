@@ -35,6 +35,7 @@ shell.builtins = {
     if not fs.isDirectory(path) then
       shell.error("sh: cd", string.format("%s: is not a directory", path))
     end
+    os.setenv("PWD", path)
   end,
   set = function(...)
     local set, opts = shell.parse(...)
@@ -115,12 +116,13 @@ shell.vars = shell.expand
 
 function shell.parse(...)
   local params = {...}
-  local inopt = false
+  local inopt = true
   local cropt = ""
   local args, opts = {}, {}
   for i=1, #params, 1 do
     local p = params[i]
-    if p:sub(1,2) == "--" then -- "long" option
+    if p == "--" then inopt = false end
+    if p:sub(1,2) == "--" and inopt then -- "long" option
       local o = p:sub(3)
       local op, vl = o:match("([%w]+)=([%w/,:]+)") -- I amaze myself with these patterns sometimes
       if op and vl then
@@ -128,7 +130,7 @@ function shell.parse(...)
       else
         opts[o] = true
       end
-    elseif p:sub(1,1) == "-" then -- "short" option
+    elseif p:sub(1,1) == "-" and inopt then -- "short" option
       for opt in p:gmatch(".") do
         opts[opt] = true
       end
@@ -139,6 +141,32 @@ function shell.parse(...)
   return args, opts
 end
 
+function shell.altparse(...)
+  local params = {...}
+  local inopt = true
+  local cropt = ""
+  local args, opts = {}, {}
+  for i=1, #params, 1 do
+    local p = params[i]
+    if p == "--" then inopt = false end
+    if p:sub(1,2) == "--" and inopt then -- "short" option
+      for opt in p:sub(3):gmatch(".") do
+        opts[opt] = true
+      end
+    elseif p:sub(1,1) == "-" and inopt then -- "long" option
+      local o = p:sub(2)
+      local op, vl = o:match("([%w]+)=([%w%/%,%:%s]+)") -- I amaze myself with these patterns sometimes
+      if op and vl then
+        opts[op] = vl or true
+      else
+        opts[o] = true
+      end
+    else
+      args[#args + 1] = p
+    end
+  end
+  return args, opts
+end
 -- fancier split that deals with args like `prog print "this is cool" --text="this is also cool"`
 function shell.split(str)
   checkArg(1, str, "string")
