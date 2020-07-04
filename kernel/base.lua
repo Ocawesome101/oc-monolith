@@ -30,7 +30,7 @@ end
 --#include "module/component.lua"
 --#include "module/users.lua"
 --#include "module/module.lua"
---#include "module/fs.lua"
+--#include "module/filesystem.lua"
 --#include "module/computer.lua"
 --#include "module/runlevel.lua"
 --#include "module/thread.lua"

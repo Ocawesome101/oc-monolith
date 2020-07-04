@@ -81,3 +81,10 @@ builtins.time = function(...)
   local total = computer.uptime() - start
   print("real", total .. "s")
 end
+builtins.builtin = function(b, ...)
+  if builtins[b] then
+    return builtins[b](...)
+  else
+    return shell.error("sh: builtin", "no such builtin")
+  end
+end

@@ -78,7 +78,7 @@ do
 
   local function fread(self, amount)
     checkArg(1, amount, "number", "string")
-    if amount == math.huge or amount == "*a" then
+    if amount == "*a" then
       local r = ""
       repeat
         local d = self.fs.read(self.handle, math.huge)

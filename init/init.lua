@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 6f33ce9 (built Sat Jul 04 18:58:49 EDT 2020 by ocawesome101@archlinux)"
+local _INITVERSION = "InitMe ceac032 (built Sat Jul 04 19:25:57 EDT 2020 by ocawesome101@archlinux)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log
