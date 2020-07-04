@@ -185,7 +185,6 @@ function vt.emu(gpu)
                 echo = true
               elseif n == 0 then
                 echo = true
-                --hist = false
                 fg = colors[8]
                 bg = colors[1]
               elseif n == 7 or n == 27 then
@@ -229,7 +228,6 @@ function vt.emu(gpu)
       computer.pushSignal("vt_response", gpu.getScreen(), resp)
       resp = ""
     end
-    --return resp, echo--, dhist
   end
   return vtwrite
 end

@@ -161,10 +161,10 @@ function rl.readline(prompt, opts)
       end
     }
   acts.up = acts.up or dacts.up
-  acts.down = acts.down = dacts.down
+  acts.down = acts.down or dacts.down
   acts.left = acts.left or dacts.left
   acts.right = acts.right or dacts.right
-  local complete = opts.complete or function(x) return x end
+  local tabact = opts.complete or opts.tab or opts.tabact or function(x) return x end
   if not buffers[screen] then
     return nil
   end
@@ -199,18 +199,24 @@ function rl.readline(prompt, opts)
   while true do
     redraw()
     local char, err = rl.readlinebasic(screen, 1)
-    --coroutine.yield()
     if char == "\27" then
       if arrows then -- ANSI escape start
         local esc = rl.readlinebasic(screen, 2)
+        local _, r
         if esc == "[A" and acts.up then
-          pcall(acts.up)
+          _, r = pcall(acts.up)
         elseif esc == "[B" and acts.down then
-          pcall(acts.down)
+          _, r = pcall(acts.down)
         elseif esc == "[C" then
-          pcall(acts.right, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
+          _, r = pcall(acts.right, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
         elseif esc == "[D" then
-          pcall(acts.left, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
+          _, r = pcall(acts.left, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
+        end
+        if r == "return" then -- HAX
+          table.insert(history, buffer)
+          io.write("\n")
+          if not opts.notrail then buffer = buffer .. "\n" end
+          return buffer, history
         end
       else
         buffer = buffer .. "^"
@@ -233,7 +239,16 @@ function rl.readline(prompt, opts)
         pos = 1
       end
     elseif char == "\t" then
-  --    buffer = complete(buffer)
+      local nbuf, act = tabact(buffer)
+      if nbuf then
+        buffer = nbuf
+      end
+      if act == "return" then
+        table.insert(history, buffer)
+        io.write("\n")
+        if not opts.notrail then buffer = buffer .. "\n" end
+        return buffer, history
+      end
     else
       buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub((#buffer - pos) + 2)
     end

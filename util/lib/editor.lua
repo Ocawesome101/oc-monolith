@@ -22,7 +22,7 @@ end
 
 function ed.buffer:save(file)
   checkArg(1, file, "string", "nil")
-  if not self.name or self.name = "" then
+  if not self.name or self.name == "" then
     checkArg(1, file, "string")
   end
   local handle, err = io.open(file, "w")
@@ -36,10 +36,10 @@ function ed.buffer:save(file)
   return true
 end
 
-local function drawline(y, n, l)
+local function drawline(y, n, l, L)
   l = l or ""
-  n = tostring(n) or "~"
-  local nl = tostring(#buffers[cur].buffer):len()
+  n = (n and tostring(n)) or "~"
+  local nl = tostring(L):len()
   io.write(string.format("\27[%dH%"..nl.."s %s", y, n, l))
 end
 
@@ -47,9 +47,9 @@ function ed.buffer:draw()
   local w, h = ed.getScreenSize()
   local y = 1
   for i=1+self.scroll.h, 1+self.scroll.h+h, 1 do
-    local line = self.lines[i] or nil
-    local n = drawline(y, i, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)))
-    y=y+n
+    local line = self.lines[i] or ""
+    local n = drawline(y, (self.lines[i] and i) or nil, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)), #self.lines)
+    y=y+1
     if y >= h then
       break
     end
@@ -57,15 +57,7 @@ function ed.buffer:draw()
 end
 
 function ed.getScreenSize()
-  io.write("\27[999;999H\27[6n")
-  local resp = ""
-  repeat
-    local c = io.read(1)
-    resp = resp .. c
-  until c == "R"
-  local h, w = resp:match("\27%[(%d+);(%d+)R")
-  h, w = tonumber(h), tonumber(w)
-  return w or 50, h or 16
+  return io.stdout.gpu.getResolution()
 end
 
 function ed.new(file)
