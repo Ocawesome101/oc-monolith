@@ -25,6 +25,7 @@ function ed.buffer:save(file)
   if not self.name or self.name == "" then
     checkArg(1, file, "string")
   end
+  file = file or self.name
   local handle, err = io.open(file, "w")
   if not handle then
     return nil, err
@@ -38,9 +39,9 @@ end
 
 local function drawline(y, n, l, L)
   l = l or ""
-  n = (n and tostring(n)) or "~"
+  n = (n and tostring(n)) or "\27[33m~"
   local nl = tostring(L):len()
-  io.write(string.format("\27[%dH%"..nl.."s %s", y, n, l))
+  io.write(require("text").padRight(string.format("\27[%d;1H\27[31m%"..nl.."s\27[37m %s", y, n, l), ed.getScreenSize()))
 end
 
 function ed.buffer:draw()
@@ -50,7 +51,7 @@ function ed.buffer:draw()
     local line = self.lines[i] or ""
     local n = drawline(y, (self.lines[i] and i) or nil, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)), #self.lines)
     y=y+1
-    if y >= h then
+    if y >= h - 1 then
       break
     end
   end
@@ -64,7 +65,7 @@ function ed.new(file)
   checkArg(1, file, "string", "nil")
   local new = setmetatable({
     name = file,
-    lines = {},
+    lines = {""},
     scroll = {
       w = 0,
       h = 0

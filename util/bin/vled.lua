@@ -36,7 +36,7 @@ local rlopts_insert = {
     cmd = true
     return nil, "return"
   end,
-  prompt = "~ "
+  prompt = "~ ",
 }
 
 local cmdhistory = {}
@@ -46,7 +46,8 @@ local rlopts_cmd = {
   tabact = function(b)
     cmd = false
     return nil, "return"
-  end
+  end,
+  notrail = true
 }
 
 local running = true
@@ -56,7 +57,10 @@ local ops = {
     editor.buffers[cur]:save()
     running = false
   end,
-  ["w$"] = function(f)
+  ["w$"] = function()
+    editor.buffers[cur]:save()
+  end,
+  ["w (%S*)"] = function(f)
     editor.buffers[cur]:save(f)
   end,
   ["q$"] = function()
@@ -81,21 +85,29 @@ local ops = {
 local function parsecmd(c)
   for pat, func in pairs(ops) do
     if c:match(pat) then
-      print(xpcall(func, c:match(pat)))
+      local a,b = pcall(func, c:match(pat))
+      io.write("\n",tostring(a),"\t",tostring(b))
       return
     end
   end
 end
 
+io.write("\27[2J")
 editor.buffers[cur]:draw()
 while running do
+  editor.buffers[cur]:draw()
   if cmd then
-    io.write(string.format("\27[%dH", h))
+    io.write(string.format("\27[%d;1H", h - 1))
     parsecmd(readline(rlopts_cmd))
   else
-    editor.buffers[cur]:draw()
-    rlopts_insert.prompt = string.format("%"..tostring(editor.buffers[cur].lines):len().."s ", line)
+    io.write(string.format("\27[%d;1H", line - editor.buffers[cur].scroll.h))
+    rlopts_insert.prompt = string.format("\27[31m%"..tostring(#editor.buffers[cur].lines):len().."d\27[37m ", line)
     rlopts_insert.text = editor.buffers[cur].lines[line]
-    local line = readline(rlopts_insert)
+    local curl = line
+    local text = readline(rlopts_insert)
+    editor.buffers[cur].lines[curl] = text
+    if line < 1 then line = 1 end
+    if line > #editor.buffers[cur].lines then line = #editor.buffers[cur].lines end
+    if line == curl then line = line + 1 table.insert(editor.buffers[cur].lines, line, "") end
   end
 end
