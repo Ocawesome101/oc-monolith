@@ -1,7 +1,7 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 369c2b2 (built Sun Jul 05 16:32:01 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 9a25d67 (built Sun Jul 05 18:14:07 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
 local log = kernel.logger.log

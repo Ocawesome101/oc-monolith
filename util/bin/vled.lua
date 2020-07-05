@@ -36,7 +36,7 @@ local rlopts_insert = {
     cmd = true
     return nil, "return"
   end,
-  prompt = "~ ",
+  prompt = "\27[93m~ \27[37m",
 }
 
 if file and opts.s or opts.highlight or opts.syntax then
@@ -44,7 +44,7 @@ if file and opts.s or opts.highlight or opts.syntax then
   if require("filesystem").exists("/lib/vled/"..ext..".lua") then
     local ok,hl=pcall(require, "vled."..ext, true)
     if not ok then
-      print("WARNING: failed loading syntax for file extension " .. ext)
+      print("WARNING: failed loading syntax for file extension " .. ext .. ": " .. hl)
       os.sleep(1)
       goto cont
     end
@@ -134,7 +134,11 @@ end
 io.write("\27[2J")
 editor.buffers[cur]:draw()
 while running do
+  if #editor.buffers[cur].lines == 0 then
+    editor.buffers[cur].lines[1] = "\n"
+  end
   editor.buffers[cur]:draw()
+  if line > #editor.buffers[cur].lines then line = #editor.buffers[cur].lines end
   if cmd then
     io.write(string.format("\27[%d;1H", h - 1))
     parsecmd(readline(rlopts_cmd))

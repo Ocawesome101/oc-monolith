@@ -2,7 +2,8 @@
         vled - Visual Lua EDitor
 
 *SYNOPSIS
-        vled& [?file&]
+        vled& [*-s&|*--syntax&|*--highlight&] [?file&]
+        *vled& *--syntax&=?lang& [?file&]
 
 *DESCRIPTION
         vled& is the successor to *ed&(*1&) and *fled&(*1&).  It provides a visual interface similar to both *fled& and the standard UNIX editor #vi&.
@@ -16,6 +17,8 @@
             - Proper support for scrolling when the cursor goes offscreen, and when entering visual mode the cursor will be moved within the screen;
 
         as well as others.
+
+        If the command-line flag *--syntax&, *-s&, or *--highlight& are specified, attempts to find a syntax highlighter for the file's extension.  IF *--syntax& is given a value and no other highlighting is found, attempts to load the specified highlighting.
 
         Unlike *ed& and *fled&, *vled& will automatically create a buffer if there is no existing buffer for the specified file, or if the specified file is not found.
 
@@ -44,3 +47,4 @@
 
 *SEE ALSO
         ed&(*1&), *fled&(*1&), *editor&(*3&)
+

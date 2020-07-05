@@ -220,8 +220,6 @@ function rl.readline(prompt, opts)
       if #buffer > 0 and pos <= #buffer then
         buffer = buffer:sub(1, (#buffer - pos)) .. buffer:sub((#buffer - pos) + 2)
       end
-    elseif char == "\127" then
-      buffer = buffer .. ""
     elseif char == "\13" or char == "\10" or char == "\n" then
       table.insert(history, buffer)
       io.write("\n")

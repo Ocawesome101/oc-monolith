@@ -3,6 +3,7 @@
 local args, opts = require("shell").parse(...)
 
 if opts.e then
+  print("Press Q to exit.")
   repeat
     local e = table.pack(coroutine.yield())
     print(table.unpack(e))

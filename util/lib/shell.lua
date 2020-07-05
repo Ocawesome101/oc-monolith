@@ -19,7 +19,8 @@ end
 local defaultPath = "/bin:/usr/bin:/usr/local/bin"
 
 shell.extensions = {
-  lua = true
+  lua = true,
+  sh = true
 }
 
 shell.builtins = {
@@ -109,6 +110,22 @@ function shell.expand(str)
   for var in str:gmatch("%$([%w_#@]+)") do
     str = str:gsub("%$" .. var, os.getenv(var) or "")
   end
+  -- basic asterisk expansion
+  if str:find("%*") then
+    local split = shell.split(str)
+    for i=2, #split, 1 do
+      if split[i]:sub(-1) == "*" then
+        local fpath = shell.resolve(split[i]:sub(1,-2))
+        if fpath and fs.isDirectory(fpath) then
+          split[i] = nil
+          for file in fs.list(fpath) do
+            table.insert(split, i, fs.concat(fpath, file))
+          end
+        end
+      end
+    end
+    str = table.concat(split, " ")
+  end
   return str
 end
 
@@ -180,7 +197,7 @@ function shell.split(str)
     elseif char == " " then
       if inblock then
         cur = cur .. " "
-      else
+      elseif cur ~= "" then
         ret[#ret + 1] = cur:gsub("\\27", "\27")
         cur = ""
       end
@@ -217,15 +234,19 @@ function shell.resolve(path, ext)
       return txt
     end
   end
+  if ext then
+    return path
+  end
   return fs.canonical(path)
 end
 
 local function execute(...)
-  local commands = text.split(table.concat({...}, " "), "|")
+  local commands = text.split(shell.expand(table.concat({...}, " ")), "|")
   local has_builtin = false
   local builtin = {}
   for k, v in pairs(commands) do
     commands[k] = shell.split(v)
+    if #commands[k] == 0 then return end
     if shell.builtins[commands[k][1]] then
       has_builtin = true
       builtin = commands[k]
