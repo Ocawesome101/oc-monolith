@@ -1,7 +1,7 @@
 -- kernel modules-ish --
 
 do
-  kernel.logger.log("initializing kernel module service")
+  kernel.logger.log("initializing dynamic kernel module service")
   local m = {}
   local l = {}
   kernel.modules = l
