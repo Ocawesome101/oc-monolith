@@ -133,6 +133,7 @@ function rl.readline(prompt, opts)
           buffer = (" "):rep(#buffer)
           redraw()
           buffer = history[ent] or ""
+          pos = 1
         end
       end,
       down = function()
@@ -141,6 +142,7 @@ function rl.readline(prompt, opts)
           buffer = (" "):rep(#buffer)
           redraw()
           buffer = history[ent] or ""
+          pos = 1
         end
       end,
       left = function(ctrl)

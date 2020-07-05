@@ -139,8 +139,8 @@ while running do
     parsecmd(readline(rlopts_cmd))
   else
     io.write(string.format("\27[%d;1H", line - editor.buffers[cur].scroll.h))
-    rlopts_insert.prompt = string.format("\27[31m%"..tostring(#editor.buffers[cur].lines):len().."d\27[37m ", line)
-    rlopts_insert.text = editor.buffers[cur].lines[line]
+    rlopts_insert.prompt = string.format("\27[93m%"..tostring(#editor.buffers[cur].lines):len().."d\27[37m ", line)
+    rlopts_insert.text = editor.buffers[cur].lines[line]:gsub("\n", "")
     local curl = line
     local text = readline(rlopts_insert)
     editor.buffers[cur].lines[curl] = text
