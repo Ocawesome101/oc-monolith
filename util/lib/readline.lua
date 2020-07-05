@@ -23,7 +23,7 @@ local keys = {
   rshift   = 0x36
 }
 
--- setup the metatable for convenience
+-- setup metatable for convenience
 setmetatable(replacements, {__index = function() return "" end})
 
 -- first, we need to set up the key listener
@@ -125,47 +125,40 @@ function rl.readline(prompt, opts)
   local highlighter = opts.highlighter or opts.syntax or function(e)return e end
   local redraw
   local acts = opts.acts or opts.actions or {}
-  local dacts = 
-    {
-      up = function()
-        if ent > 1 then
-          ent = ent - 1
-          buffer = (" "):rep(#buffer)
-          redraw()
-          buffer = history[ent] or ""
-          pos = 1
-        end
-      end,
-      down = function()
-        if ent <= #history then
-          ent = ent + 1
-          buffer = (" "):rep(#buffer)
-          redraw()
-          buffer = history[ent] or ""
-          pos = 1
-        end
-      end,
-      left = function(ctrl)
-        if ctrl then
-          pos = #buffer
-        end
-        if pos <= #buffer then
-          pos = pos + 1
-        end
-      end,
-      right = function(ctrl)
-        if ctrl then
-          pos = 1
-        end
-        if pos > 1 then
-          pos = pos - 1
-        end
+  setmetatable(acts, {__index = {
+    up = function()
+      if ent > 1 then
+        ent = ent - 1
+        buffer = (" "):rep(#buffer)
+        redraw()
+        buffer = history[ent] or ""
+        pos = 1
       end
-    }
-  acts.up = acts.up or dacts.up
-  acts.down = acts.down or dacts.down
-  acts.left = acts.left or dacts.left
-  acts.right = acts.right or dacts.right
+    end,
+    down = function()
+      if ent <= #history then
+        ent = ent + 1
+        buffer = (" "):rep(#buffer)
+        redraw()
+        buffer = history[ent] or ""
+        pos = 1
+      end
+    end,
+    left = function(ctrl)
+      if ctrl then
+        pos = #buffer
+      elseif pos <= #buffer then
+        pos = pos + 1
+      end
+    end,
+    right = function(ctrl)
+      if ctrl then
+        pos = 1
+      elseif pos > 1 then
+        pos = pos - 1
+      end
+    end
+  }})
   local tabact = opts.complete or opts.tab or opts.tabact or function(x) return x end
   if not buffers[screen] then
     return nil

@@ -49,6 +49,7 @@ end
 function ed.buffer:draw()
   local w, h = ed.getScreenSize()
   local y = 1
+  io.write("\27[1H\27[K")
   for i=1+self.scroll.h, 1+self.scroll.h+h, 1 do
     local line = self.lines[i] or ""
     local n = drawline(y, (self.lines[i] and i) or nil, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)), #self.lines)
@@ -69,7 +70,7 @@ function ed.new(file)
     -- try to prevent opening multiple buffers containing the same file
     for n, buf in pairs(ed.buffers) do
       if buf.name == file then
-        return n 
+        return n
       end
     end
   end

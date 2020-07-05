@@ -52,6 +52,7 @@ if file and opts.s or opts.highlight or opts.syntax then
     editor.buffers[cur].highlighter = hl
   end
 end
+
 ::cont::
 local cmdhistory = {}
 local rlopts_cmd = {
@@ -67,7 +68,7 @@ local rlopts_cmd = {
       if c.scroll.h > 3 then
         c.scroll.h = c.scroll.h - 4
       else
-        c.scroll.h = 1
+        c.scroll.h = 0
       end
       c:draw()
     end,
@@ -138,15 +139,25 @@ while running do
     io.write(string.format("\27[%d;1H", h - 1))
     parsecmd(readline(rlopts_cmd))
   else
+    if editor.buffers[cur].scroll.h - line > h then
+      line = editor.buffers[cur].scroll.h + 1
+    end
+    if line > editor.buffers[cur].scroll.h + h - 3 then
+      line = editor.buffers[cur].scroll.h + h - 3
+    end
     io.write(string.format("\27[%d;1H", line - editor.buffers[cur].scroll.h))
     rlopts_insert.prompt = string.format("\27[93m%"..tostring(#editor.buffers[cur].lines):len().."d\27[37m ", line)
-    rlopts_insert.text = editor.buffers[cur].lines[line]:gsub("\n", "")
+    rlopts_insert.text = editor.buffers[cur].lines[line]:gsub("[\n]+", "")
     local curl = line
     local text = readline(rlopts_insert)
-    editor.buffers[cur].lines[curl] = text
+    if not (text == "" or text == "\n") then
+      editor.buffers[cur].lines[curl] = text
+    end
     if line < 1 then line = 1 end
     if line > #editor.buffers[cur].lines then line = #editor.buffers[cur].lines end
-    if line == curl then line = line + 1 table.insert(editor.buffers[cur].lines, line, "") end
+    if line == curl and not cmd then line = line + 1 table.insert(editor.buffers[cur].lines, line, "") end
+    if line > editor.buffers[cur].scroll.h + h - 5 then editor.buffers[cur].scroll.h = editor.buffers[cur].scroll.h + 1 end
+    if line < editor.buffers[cur].scroll.h + 5 and editor.buffers[cur].scroll.h > 0 then editor.buffers[cur].scroll.h = editor.buffers[cur].scroll.h - 1 end
   end
 end
 

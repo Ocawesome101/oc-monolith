@@ -26,7 +26,6 @@ do
         break
       end
     end
---    kernel.logger.log("min timeout " .. min)
     return min
   end
 
@@ -302,23 +301,21 @@ do
           end
           thd.uptime = computer.uptime() - thd.started
         end
+      end
 
-        -- this might reduce performance, we shall see
-        if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+      if computer.freeMemory() < 1024 then -- oh no, we're out of memory
+        for i=1, 50 do -- invoke GC
+          computer.pullSignal(0)
+        end
+        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
           for i=1, 50 do -- invoke GC
             computer.pullSignal(0)
           end
-          if computer.freeMemory() < 512 then -- GC didn't help. Panic!
-            for i=1, 50 do -- invoke GC
-              computer.pullSignal(0)
-            end
-          end
-          if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
-            kernel.logger.panic("out of memory")
-          end
+        end
+        if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
+          kernel.logger.panic("out of memory")
         end
       end
-
       cleanup()
     end
   end
