@@ -9,6 +9,11 @@ cp.recurse = false
 local rootfs = fs.get("/")
 local seen = {}
 local opts = {}
+local startfs
+
+function cp.reset()
+  startfs = nil
+end
 
 function cp.copy(...)
   local args = {...}
@@ -23,7 +28,8 @@ function cp.copy(...)
       print(string.format("%s -> %s", path, to))
     end
     local cpath = fs.canonical(path)
-    if fs.get(cpath) ~= rootfs and cp.recurse then
+    startfs = startfs or fs.get(cpath)
+    if fs.get(cpath) ~= startfs and cp.recurse then
       print("cp: refusing to leave rootfs: not recursing to " .. cpath)
       return
     end
@@ -34,7 +40,6 @@ function cp.copy(...)
           return
         end
       end
-      --print("cp: not skipping " .. cpath .. " for " .. a)
     end
     if fs.isDirectory(cpath) and cp.recurse then
       if fs.exists(to) then

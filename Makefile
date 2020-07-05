@@ -10,7 +10,6 @@ all:
 	cp kernel/$(KERNEL) build/boot/
 	$(MAKE) -C init
 	cp init/init.lua build/sbin
-	rm -f build/Makefile build/DOCS.md
 	$(MAKE) -C man
 
 release: all
