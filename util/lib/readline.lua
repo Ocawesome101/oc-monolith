@@ -88,7 +88,7 @@ function rl.readlinebasic(screen, n)
   while #buf.buffer < n or (not n and not buf.buffer:find("\n")) do
     coroutine.yield()
   end
-  if buf.buffer:find("\4") then
+  if buf.buffer:find("\4") and buf.eofenabled then
     os.exit()
   end
   local n = n or buf.buffer:find("\n")
@@ -104,6 +104,16 @@ function rl.buffersize(screen)
     return nil, "no such screen"
   end
   return buffers[screen].buffer:len()
+end
+
+function rl.eof(b)
+  checkArg(1, b, "boolean", "nil")
+  local screen = io.stdout.screen
+  if b == nil then
+    return buffers[screen].eofenabled
+  end
+  buffers[screen].eofenabled = b
+  return true
 end
 
 -- fancier readline designed to be used directly
@@ -249,4 +259,4 @@ function rl.readline(prompt, opts)
 end
 
 -- we don't need readlinebasic, readline does that and much more besides
-return { readline = rl.readline, addscreen = rl.addscreen, buffersize = rl.buffersize }
+return { readline = rl.readline, eof = rl.eof, addscreen = rl.addscreen, buffersize = rl.buffersize }
