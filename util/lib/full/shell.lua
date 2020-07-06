@@ -20,10 +20,10 @@ setmetatable(shell.errors, {__index = function()return "failed" end})
 function shell.setAlias(k, v)
   checkArg(1, k, "string")
   checkArg(2, v, "string")
---  aliases[k] = v
+  shell.aliases[k] = v
 end
 
 function shell.unsetAlias(k)
   checkArg(1, k, "string")
-  --aliases[k] = nil
+  shell.aliases[k] = nil
 end

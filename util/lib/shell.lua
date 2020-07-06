@@ -9,6 +9,7 @@ local thread = require("thread")
 
 local shell = {}
 local aliases = {}
+shell.aliases = aliases
 
 function shell.error(cmd, err)
   checkArg(1, cmd, "string")
@@ -78,12 +79,6 @@ options:
     end
 
     return shell.codes.argument
-  end,
-  reboot = function()
-    shell.execute("shutdown --reboot")
-  end,
-  poweroff = function()
-    shell.execute("shutdown --poweroff")
   end
 }
 
@@ -141,7 +136,7 @@ function shell.parse(...)
     if p == "--" then inopt = false end
     if p:sub(1,2) == "--" and inopt then -- "long" option
       local o = p:sub(3)
-      local op, vl = o:match("([%w]+)=([%w/,:]+)") -- I amaze myself with these patterns sometimes
+      local op, vl = o:match([[([%w]+)=([%w%/%,%.%:%s%'%"%=]+)]]) -- I amaze myself with these patterns sometimes
       if op and vl then
         opts[op] = vl or true
       else
@@ -172,7 +167,7 @@ function shell.altparse(...)
       end
     elseif p:sub(1,1) == "-" and inopt then -- "long" option
       local o = p:sub(2)
-      local op, vl = o:match("([%w]+)=([%w%/%,%:%s]+)") -- I amaze myself with these patterns sometimes
+      local op, vl = o:match([["([%w]+)=([%w%/%,%.%:%s%'%"%=]+)]])
       if op and vl then
         opts[op] = vl or true
       else
@@ -247,6 +242,10 @@ local function execute(...)
   for k, v in pairs(commands) do
     commands[k] = shell.split(v)
     if #commands[k] == 0 then return end
+    if aliases[commands[k][1]] then
+      commands[k][1] = shell.expand(aliases[commands[k][1]])
+      commands[k] = shell.split(table.concat(commands[k], " "))
+    end
     if shell.builtins[commands[k][1]] then
       has_builtin = true
       builtin = commands[k]

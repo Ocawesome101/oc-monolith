@@ -251,6 +251,9 @@ function rl.readline(prompt, opts)
         io.write("\n")
         if not opts.notrail then buffer = buffer .. "\n" end
         return buffer, history
+      elseif act == "return_none" then
+        io.write("\n")
+        return "\n"
       end
     else
       buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub((#buffer - pos) + 2)

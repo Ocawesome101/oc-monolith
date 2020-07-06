@@ -2,7 +2,6 @@
 
 local ed = {}
 ed.buffers = {}
-
 ed.buffer = {}
 
 function ed.buffer:load(file)
@@ -46,13 +45,14 @@ local function drawline(y, n, l, L)
   io.write(out)
 end
 
-function ed.buffer:draw()
+function ed.buffer:draw(num)
   local w, h = ed.getScreenSize()
+  if num == false then num = false else num = true end
   local y = 1
   io.write("\27[1H\27[K")
   for i=1+self.scroll.h, 1+self.scroll.h+h, 1 do
     local line = self.lines[i] or ""
-    local n = drawline(y, (self.lines[i] and i) or nil, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)), #self.lines)
+    local n = drawline(y, (self.lines[i] and (num and i or "")) or nil, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)), #self.lines)
     y=y+1
     if y >= h - 1 then
       break

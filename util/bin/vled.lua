@@ -59,7 +59,7 @@ local rlopts_cmd = {
   prompt = ":",
   tabact = function(b)
     cmd = false
-    return nil, "return"
+    return nil, "return_none"
   end,
   notrail = true,
   actions = {

@@ -25,11 +25,10 @@ local colors = {
 
 -- match patterns with colors
 local patterns = {
-  ["(%S-)%("]                   = colors.bright.blue,
-  ["(%-%-[.-])"]                = colors.bright.blue,
-  ["(%-%-%[%[[.-]%]%])"]        = colors.bright.blue,
-  ["([%{%}])"]                  = colors.bright.green,
-  ["[\"'].-[\"']"]              = colors.red,
+  ["(%S-)%("]                     = colors.bright.blue,
+  ["(%-%-.+)"]                    = colors.bright.blue,
+  ["([%{%}])"]                    = colors.bright.green,
+  ["[\"'].-[\"']"]                = colors.red,
   ["[%s%)]?(function)[%s%(]+"]    = colors.bright.blue,
   ["[%s%)]?(end)[%s%(]+"]         = colors.bright.yellow,
   ["[%s%)]?(local)[%s%(]+"]       = colors.bright.yellow,

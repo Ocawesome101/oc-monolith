@@ -11,30 +11,28 @@ builtins.unset = function(...)
 end
 builtins.alias = function(...)
   local ali, opts = shell.parse(...)
-  return shell.error("sh: alias", "aliases not yet supported")
---[[  if #ali == 0 then
-    for k, v in pairs(aliases) do
+  if #ali == 0 then
+    for k, v in pairs(shell.aliases) do
       print(string.format("alias %s='%s'", k, v))
     end
   else
     for k, v in pairs(ali) do
       local a, c = v:match("(.+)=(.+)")
       if not c then
-        if aliases[a] then
-          print(string.format("alias %s='%s'", a, aliases[a]))
+        if shell.aliases[a] then
+          print(string.format("alias %s='%s'", a, shell.aliases[a]))
         end
       else
         aliases[a] = c
       end
     end
-  end]]
+  end
 end
 builtins.unalias = function(...)
-  return shell.error("sh: alias", "aliases not yet supported")
---[[  local una, opts = shell.parse(...)
+  local una, opts = shell.parse(...)
   for k, v in pairs(una) do
     aliases[v] = nil
-  end]]
+  end
 end
 builtins.sleep = function(t)
   os.sleep(tonumber(t) or 1)

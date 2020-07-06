@@ -60,7 +60,7 @@ local open = {}
 
 local function find(f)
   if f == "/" then return vfs end
-  local segs = text.split(f, "/")
+  local segs = text.split(f, "/", true)
   local cur = vfs
   for _, seg in ipairs(segs) do
     if cur.isDirectory and cur.children[seg] then
@@ -142,8 +142,7 @@ function fsc.exists(file)
   checkArg(1, file, "string")
   if file == "/" or file == "" then return true end
   local ok, err = find(file)
-  if not ok then return nil, err end
-  return true
+  return ok
 end
 
 function fsc.list(file)
@@ -168,11 +167,8 @@ local seen = {}
 function devfs.addComponent(addr)
   checkArg(1, addr, "string")
   local t = component.type(addr)
-  --component.sandbox.log("search adapter", t)
   local adapter = require("devfs.adapters." .. t)
-  --component.sandbox.log("got adapter", t)
   local inst = adapter.instance(addr)
-  --component.sandbox.log(o, inst)
   seen[t] = seen[t] or 0
   local n = adapter.name or t
   vfs.children[n..seen[t]] = (inst.isDirectory and inst) or {read = inst.read, write = inst.write, isDirectory = false}
@@ -184,7 +180,11 @@ end
 function devfs.register(name, stream)
   checkArg(1, name, "string")
   checkArg(2, stream, "table")
-  vfs.children[name] = stream
+  vfs.children[name] = {
+    isDirectory = false,
+    read = function(_,...)return stream:read(...) end,
+    write = function(_,...)return stream:write(...)end,
+  }
   return true
 end
 
