@@ -156,7 +156,7 @@ function rl.readline(prompt, opts)
     end,
     left = function(ctrl)
       if ctrl then
-        pos = #buffer
+        pos = #buffer + 1
       elseif pos <= #buffer then
         pos = pos + 1
       end
