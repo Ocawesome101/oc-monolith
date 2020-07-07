@@ -19,24 +19,26 @@ local blog, tmp, addr, invoke
 tmp = computer.tmpAddress() or computer.getBootAddress()
 
 do
-  local y, w, h = 0
+  kernel.logger.y = 0
+  local w, h
   local gpu = component.list("gpu")()
   local screen = component.list("screen")()
   local log = function() end
   local show = true
   if gpu and screen and not flags.quiet then
     gpu = component.proxy(gpu)
+    kernel.logger.gpu = gpu
     gpu.bind(screen)
     w, h = gpu.maxResolution()
     gpu.setResolution(w, h)
     gpu.setForeground(0xDDDDDD)
     gpu.fill(1, 1, w, h, " ")
     function log(msg)
-      if y == h then
+      if kernel.logger.y == h then
         gpu.copy(1, 2, w, h, 0, -1)
         gpu.fill(1, h, w, 1, " ")
       else
-        y = y + 1
+        kernel.logger.y = kernel.logger.y + 1
       end
       gpu.set(1, y, msg)
     end
@@ -45,8 +47,11 @@ do
     for line in msg:gmatch("[^\n]+") do
       line = string.format("[ %4.04f ] %s", computer.uptime() - _START, line)
       if show then log(line) end
-      invoke(tmp, "write", blog, line .. "\n")
+      kernel.logger.logwrite(line .. "\n")
     end
+  end
+  function kernel.logger.logwrite(d)
+    invoke(tmp, "write", blog, d)
   end
   function kernel.logger.setShown(b)
     checkArg(1, b, "boolean")
