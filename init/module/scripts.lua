@@ -1,11 +1,11 @@
-log("WAIT", "Running scripts in /lib/init")
+log("WAIT", "Running scripts from /lib/scripts/...")
 
-local files = kernel.filesystem.list("/lib/init/")
+local files = kernel.filesystem.list("/lib/scripts/")
 if files then
   table.sort(files)
   for k, v in ipairs(files) do
     log("WAIT", v)
-    local full = kernel.filesystem.concat("/lib/init", v)
+    local full = kernel.filesystem.concat("/lib/scripts/", v)
     local ok, err = loadfile(full)
     if not ok then
       panic(err)
@@ -19,4 +19,4 @@ if files then
   end
 end
 
-log("OK", "Run scripts in /lib/init")
+log("OK", "Run scripts from /lib/scripts/")

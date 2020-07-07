@@ -10,7 +10,6 @@ if runlevel.levels[maxrunlevel].services then
   local fs = require("filesystem")
   local thread = require("thread")
   local users = require("users")
-  local scripts = "/lib/scripts/"
   local services = "/lib/services/"
 
   local cfg = config.load("/etc/initsvc.cfg")
@@ -75,35 +74,24 @@ if runlevel.levels[maxrunlevel].services then
     return true
   end
 
-  function initsvc.enable(script, isService)
-    checkArg(1, script, "string")
-    checkArg(2, isService, "boolean", "nil")
-    local s = (isService and "service") or "script"
-    if cfg[script] then
+  function initsvc.enable(service)
+    checkArg(1, service, "string")
+    if cfg[service] then
       return true
     end
-    if isService then
-      if fs.exists(services .. script .. ".lua") then
-        cfg[script] = s
-        config.save(cfg, "/etc/initsvc.cfg")
-      else
-        return nil, "service not found"
-      end
+    if fs.exists(services .. script .. ".lua") then
+      cfg[script] = true
+      config.save(cfg, "/etc/initsvc.cfg")
     else
-      if fs.exists(scripts .. script .. ".lua") then
-        cfg[script] = s
-        config.save(cfg, "/etc/initsvc.cfg")
-      else
-        return nil, "script not found"
-      end
+      return nil, "service not found"
     end
     return true
   end
 
-  function initsvc.disable(script)
-    checkArg(1, script, "string")
-    if cfg[script] then
-      cfg[script] = nil
+  function initsvc.disable(service)
+    checkArg(1, service, "string")
+    if cfg[service] then
+      cfg[service] = nil
       config.save(cfg, "/etc/initsvc.cfg")
       return true
     else
@@ -113,20 +101,13 @@ if runlevel.levels[maxrunlevel].services then
 
   package.loaded.initsvc = initsvc
 
-  for sname, stype in pairs(cfg) do
-    log("running " .. stype .. " " .. sname)
-    if stype == "script" then
-      local path = scripts .. sname .. ".lua"
-      local ok, err = dofile(path)
-      if not ok and err then
-        panic(err)
-      end
-    elseif stype == "service" then
-      local ok, err = initsvc.start(sname, panic)
-      if not ok then
-        panic(err)
-      end
+  for sname in pairs(cfg) do
+    log("WAIT", "Starting service " .. sname)
+    local ok, err = initsvc.start(sname, panic)
+    if not ok then
+      panic(err)
     end
+    log("OK", "Started service " .. sname)
   end
   coroutine.yield(0)
   log("OK", "Initialized initsvc")

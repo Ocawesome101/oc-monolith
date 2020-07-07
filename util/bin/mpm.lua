@@ -46,7 +46,7 @@ end
 local function check(user, repo, pkg)
   local url     = string.format("%s/%s/%s/master/packages/%s.cpio", cfg.baseURL, user, repo, pkg)
   lprint("Checking URL:\27[94m", url, "\27[37m....")
-  local ok, err = pcall(download, url, "/dev/null") -- :^)
+  local ok, err = pcall(internet.request, url) -- :^)
   return ok
 end
 

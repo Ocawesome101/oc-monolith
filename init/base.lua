@@ -13,7 +13,7 @@ log("OK", "Starting " .. _INITVERSION)
 --#include "module/io.lua"
 --#include "module/os.lua"
 --#include "module/component.lua"
---#include "module/initd.lua"
+--#include "module/scripts.lua"
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
 --#include "module/initsvc.lua"
