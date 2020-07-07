@@ -1,7 +1,7 @@
 -- `io` library --
 
 do
-  log("InitMe: Initializing IO library")
+  log("WAIT", "Initializing IO library")
 
   _G.io = {}
   package.loaded.io = io
@@ -125,4 +125,6 @@ do
     end
     return io.stdout:write(tp .. "\n")
   end
+
+  log("OK", "Initialized IO library")
 end

@@ -52,3 +52,4 @@ sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
+sandbox.kernel.logger = kernel.logger -- ensure that any kernel logs are in the proper spot after init logging

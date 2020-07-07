@@ -1,14 +1,13 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe $[[git rev-parse --short HEAD]] (built $[[date +'%a %b %d %R:%S %Z %Y']] by $[[whoami]]@$[[hostname]])"
+local _INITVERSION = "InitMe 2020.6.6 (built $[[date +'%a %b %d %R:%S %Z %Y']] by $[[whoami]]@$[[hostname]])"
 local kernel = kernel
 local panic = kernel.logger.panic
-local log = kernel.logger.log
 local runlevel = kernel.runlevel
-local _log = function()end--component.sandbox.log
-
-log(_INITVERSION)
+--#include "module/logger.lua"
+local log = logger.log
+log("OK", "Starting " .. _INITVERSION)
 
 --#include "module/package.lua"
 --#include "module/io.lua"
@@ -20,6 +19,7 @@ runlevel.setrunlevel(3)
 --#include "module/initsvc.lua"
 
 kernel.logger.setShown(false)
+logger.setShown(false)
 
 _G._BOOT = require("computer").uptime() - _START
 

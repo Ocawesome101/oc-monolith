@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "d33f21e"
+local _KERNEL_REVISION = "2020.6.6"
 local _KERNEL_BUILDER = "ocawesome101@manjaro-pbp"
 local _KERNEL_COMPILER = "luacomp 1.2.0"
 
@@ -912,6 +912,7 @@ sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
+sandbox.kernel.logger = kernel.logger -- ensure that any kernel logs are in the proper spot after init logging
 
 
 -- basic loadfile function --

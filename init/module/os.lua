@@ -1,6 +1,8 @@
 -- os --
 
 do
+  log("WAIT", "Finalize 'os' API")
+
   local computer = computer or require("computer")
 
   function os.sleep(t)
@@ -56,4 +58,5 @@ do
       end
     end
   end
+  log("OK", "Finalized 'os' API")
 end

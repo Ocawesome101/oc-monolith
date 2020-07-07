@@ -7,7 +7,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "$[[git rev-parse --short HEAD]]"
+local _KERNEL_REVISION = "2020.6.6"
 local _KERNEL_BUILDER = "$[[whoami]]@$[[hostname]]"
 local _KERNEL_COMPILER = "luacomp $[[luacomp -v]]"
 

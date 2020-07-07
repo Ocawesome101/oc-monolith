@@ -40,7 +40,7 @@ do
       else
         kernel.logger.y = kernel.logger.y + 1
       end
-      gpu.set(1, y, msg)
+      gpu.set(1, kernel.logger.y, msg)
     end
   end
   function kernel.logger.log(msg)

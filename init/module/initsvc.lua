@@ -4,7 +4,7 @@ function runlevel.max()
   return maxrunlevel
 end
 if runlevel.levels[maxrunlevel].services then
-  log("InitMe: Initializing initsvc")
+  log("WAIT", "Initializing initsvc")
 
   local config = require("config")
   local fs = require("filesystem")
@@ -129,11 +129,13 @@ if runlevel.levels[maxrunlevel].services then
     end
   end
   coroutine.yield(0)
+  log("OK", "Initialized initsvc")
 end
 
+log("WAIT", "Starting /sbin/getty")
 local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
   panic("GETTY load failed: " .. err)
 end
---log("starting getty")
+log("OK", "Started /sbin/getty")
 require("thread").spawn(ok, "/sbin/getty.lua", error)

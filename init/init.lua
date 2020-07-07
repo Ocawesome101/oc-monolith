@@ -1,20 +1,75 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe d33f21e (built Mon Jul 06 01:50:44 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 2020.6.6 (built Mon Jul 06 23:34:51 EDT 2020 by ocawesome101@manjaro-pbp)"
 local kernel = kernel
 local panic = kernel.logger.panic
-local log = kernel.logger.log
 local runlevel = kernel.runlevel
-local _log = function()end--component.sandbox.log
 
-log(_INITVERSION)
+
+-- fancy-ish init bootlogger - certainly fancier than the kernel --
+
+local logger = {}
+do
+  local klog = kernel.logger
+  local shown = true
+  function logger.setShown(s)
+    shown = s
+  end
+
+  local stats = {
+    OK = 0x00FF00,
+    WAIT = 0xFFCC00,
+    FAIL = 0xFF0000
+  }
+  if not klog.gpu then
+    logger.log = klog.log
+  else
+    klog.y = klog.y + 1
+    local w, h = klog.gpu.getResolution()
+    local function pad(s)
+      local p = (' '):rep((8 - #s) / 2)
+      return p .. s .. p
+    end
+    local function log(status, msg)
+      local padded = pad(status)
+      klog.logwrite("[" .. padded .. "] " .. msg .. "\n")
+      if not shown then return end
+      klog.gpu.set(1, klog.y, "[")
+      if stats[status] then
+        klog.gpu.setForeground(stats[status])
+      end
+      klog.gpu.set(2, klog.y, padded)
+      klog.gpu.setForeground(0xDDDDDD)
+      klog.gpu.set(10, klog.y, "] " .. msg)
+      if klog.y > h then
+        klog.gpu.copy(1,1,w,h,0,-1)
+        klog.gpu.fill(1,h,w,1," ")
+        klog.y = h
+      else
+        klog.y = klog.y + 1
+      end
+    end
+    function logger.log(status, ...)
+      local msg = table.concat({...}, " ")
+      for line in msg:gmatch("[^\n]+") do
+        log(status, line)
+      end
+    end
+  end
+end
+
+logger.log("OK", "Initialized init logger")
+
+
+local log = logger.log
+log("OK", "Starting " .. _INITVERSION)
 
 
 -- `package` library --
 
 do
-  log("InitMe: Initializing package library")
+  log("WAIT", "Initializing package library")
 
   _G.package = {}
 
@@ -116,8 +171,9 @@ do
       return ok
     end
   end
+  log("OK", "Initialized package library")
 end
-log("InitMe: setting up libraries")
+log("WAIT", "Setting up libraries")
 package.loaded.filesystem = kernel.filesystem
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
@@ -125,16 +181,17 @@ package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
 package.loaded.syslog = {
-  log = kernel.logger.log
+  log = function(s,m)if not m then m, s = s, "OK"end log(s,m) end
 }
 package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil
+log("OK", "Set up libraries")
 
 
 -- `io` library --
 
 do
-  log("InitMe: Initializing IO library")
+  log("WAIT", "Initializing IO library")
 
   _G.io = {}
   package.loaded.io = io
@@ -258,12 +315,16 @@ do
     end
     return io.stdout:write(tp .. "\n")
   end
+
+  log("OK", "Initialized IO library")
 end
 
 
 -- os --
 
 do
+  log("WAIT", "Finalize 'os' API")
+
   local computer = computer or require("computer")
 
   function os.sleep(t)
@@ -319,6 +380,7 @@ do
       end
     end
   end
+  log("OK", "Finalized 'os' API")
 end
 
 
@@ -326,6 +388,7 @@ end
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
 
 do
+  log("WAIT", "Set up components")
   local component = require("component")
   local overrides = {
     gpu = function()return io.stdout.gpu end
@@ -345,23 +408,32 @@ do
   }
 
   setmetatable(component, mt)
+  log("OK", "Set up components")
 end
 
 
-log("Running scripts out of /lib/init/....")
+log("WAIT", "Running scripts in /lib/init")
 
 local files = kernel.filesystem.list("/lib/init/")
 if files then
   table.sort(files)
   for k, v in ipairs(files) do
-    log(v)
+    log("WAIT", v)
     local full = kernel.filesystem.concat("/lib/init", v)
     local ok, err = loadfile(full)
     if not ok then
       panic(err)
     end
+    local s, r = xpcall(ok, debug.traceback)
+    if not s and r then
+      log("FAIL", v)
+      panic(r)
+    end
+    log("OK", v)
   end
 end
+
+log("OK", "Run scripts in /lib/init")
 
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
@@ -372,7 +444,7 @@ function runlevel.max()
   return maxrunlevel
 end
 if runlevel.levels[maxrunlevel].services then
-  log("InitMe: Initializing initsvc")
+  log("WAIT", "Initializing initsvc")
 
   local config = require("config")
   local fs = require("filesystem")
@@ -497,17 +569,20 @@ if runlevel.levels[maxrunlevel].services then
     end
   end
   coroutine.yield(0)
+  log("OK", "Initialized initsvc")
 end
 
+log("WAIT", "Starting /sbin/getty")
 local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
   panic("GETTY load failed: " .. err)
 end
---log("starting getty")
+log("OK", "Started /sbin/getty")
 require("thread").spawn(ok, "/sbin/getty.lua", error)
 
 
 kernel.logger.setShown(false)
+logger.setShown(false)
 
 _G._BOOT = require("computer").uptime() - _START
 

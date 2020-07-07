@@ -1,0 +1,1 @@
+return {["views"]={[1]={["scroll"]={["y"]=21,["x"]=0},["selection"]={[1]=25,[2]=1,[3]=25,[4]=1},["text"]=false,["filename"]="init/module/logger.lua",["type"]="doc",["active"]=true}},["type"]="leaf",["active_view"]=1}
