@@ -1,8 +1,8 @@
 -- userspace sandbox and some security features --
 
-kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
+kernel.logger.log("wrapping type(), error()")
 
-local smt, gmt, typ, err = setmetatable, getmetatable, type, error
+local typ, err = type, error
 
 function _G.error(e, l)
   local pref = "/tmp/"
@@ -11,7 +11,6 @@ function _G.error(e, l)
   end
   local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
   handle:write(debug.traceback(e).."\n")
-  --kernel.logger.log(debug.traceback(e))
   handle:close()
   err(e, l)
 end
@@ -51,6 +50,6 @@ end
 sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
-sandbox.checkArg = checkArg
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
 sandbox.kernel.logger = kernel.logger -- ensure that any kernel logs are in the proper spot after init logging
+kernel.logger.log("sandbox finalized")

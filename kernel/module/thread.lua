@@ -1,6 +1,4 @@
--- big fancy scheduler --
-
--- this may not be the best but at least it's pretty reliable
+-- big fancy scheduler. this may not be the best but at least it's pretty reliable! --
 
 do
   kernel.logger.log("initializing scheduler")
@@ -108,7 +106,8 @@ do
     return last
   end
 
-  -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
+  kernel.logger.log("(re)defining login, logout to be thread-local")
+  -- define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
@@ -242,15 +241,6 @@ do
     kill      = 9
   }
 
-  function os.exit(code)
-    checkArg(1, code, "string", "number", "nil")
-    code = code or 0
-    thread.signal(thread.current(), thread.signals.kill)
-    if thread.info(thread.current()).parent then
-      thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
-    end
-  end
-
   function thread.kill(pid, sig)
     return thread.signal(pid, sig or thread.signals.term)
   end
@@ -318,4 +308,5 @@ do
   end
 
   kernel.thread = thread
+  kernel.logger.log("scheduler initialized")
 end

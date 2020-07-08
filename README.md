@@ -31,6 +31,7 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] `package`
     - [X] `io`
     - [X] Service management (`initsvc`)
+    - [X] Script management (`scripts`, not directly user-facing)
   - [ ] Services
     - [X] `getty`
     - [X] `mountd`
@@ -78,4 +79,4 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] Library (`/lib/editor.lua`)
     - [X] Line editor (`/bin/ed.lua`)
     - [X] Fullscreen editor (`/bin/fled.lua`)
-    - [ ] Visual editor (`/bin/vled.lua`)
+    - [X] Visual editor (`/bin/vled.lua`)

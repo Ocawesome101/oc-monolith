@@ -1,9 +1,11 @@
 -- filesystem management --
 
 do
+  kernel.logger.log("fs: initializing")
   local fs = {}
   local mounts = {}
 
+  kernel.logger.log("TODO: do something about file protection")
   local protected = {
     "/boot",
     "/sbin"
@@ -33,6 +35,7 @@ do
     return fs.canonical(table.concat(s, "/", 1, #s - 1))
   end
 
+  kernel.logger.log("fs: initializing path resolution")
   local function resolve(path, noexist)
     if path == "." then path = kernel.thread.info().data.env.PWD or "/" end
     if path:sub(1,1) ~= "/" then path = (kernel.thread.info().data.env.PWD or "/") .. path end
@@ -282,7 +285,9 @@ do
     return resolve(path)
   end
 
+  kernel.logger.log("fs: mounted rootfs at /")
   fs.mount(computer.getBootAddress(), "/")
+  kernel.logger.log("fs: mounted tmpfs at /tmp")
   fs.mount(computer.tmpAddress(), "/tmp")
 
   kernel.filesystem = fs

@@ -1,7 +1,7 @@
 -- computer.shutdown stuff --
 
 do
-  --local log = component.sandbox.log
+  kernel.logger.log("wrapping computer.shutdown")
   local shutdown = computer.shutdown
   local closeAll = kernel.filesystem.closeAll
   kernel.filesystem.closeAll = nil

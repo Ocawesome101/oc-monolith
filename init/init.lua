@@ -328,6 +328,7 @@ do
   log("INFO", "Finalizing 'os' API")
 
   local computer = computer or require("computer")
+  local thread = thread or require("thread")
 
   function os.sleep(t)
     checkArg(1, t, "number", "nil")
@@ -382,6 +383,15 @@ do
           return name
         end
       end
+    end
+  end
+
+  function os.exit(code)
+    checkArg(1, code, "string", "number", "nil")
+    code = code or 0
+    thread.signal(thread.current(), thread.signals.kill)
+    if thread.info(thread.current()).parent then
+      thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
     end
   end
 

@@ -27,6 +27,7 @@ end
 -- component API metatable allowing component.filesystem, and component.get --
 
 do
+  kernel.logger.log("component: initializing API")
   function component.get(addr)
     checkArg(1, addr, "string")
     for ca, ct in component.list() do
@@ -43,6 +44,7 @@ do
     return ok
   end
 
+  kernel.logger.log("component: initializing metatables")
   local mt = {
     __index = function(tbl, k)
       local addr = component.list(k, true)()
@@ -61,7 +63,7 @@ end
 -- users --
 
 do
-  kernel.logger.log("initializing user subsystem")
+  kernel.logger.log("users: initializing subsystem")
   local cuid = 0
 
   local u = {}
@@ -69,6 +71,7 @@ do
   u.sha = {}
   u.passwd = {}
   u.psave = function()end
+  kernel.logger.log("NOTE: some blanks here are expected to be filled by init")
 
   local sha = u.sha
   local function hex(s)
@@ -85,7 +88,7 @@ do
     kernel.logger.log("kernel: check user ID " .. uid)
     if not u.passwd[uid] then
       kernel.logger.log("UID mismatch, no entry")
-      return nil, "no user with UID " .. uid
+      return nil, "no such user"
     end
     return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
@@ -115,6 +118,7 @@ do
     return true
   end
 
+  kernel.logger.log("users: subsystem initialized")
   kernel.users = u
 end
 
@@ -163,9 +167,11 @@ end
 -- filesystem management --
 
 do
+  kernel.logger.log("fs: initializing")
   local fs = {}
   local mounts = {}
 
+  kernel.logger.log("TODO: do something about file protection")
   local protected = {
     "/boot",
     "/sbin"
@@ -195,6 +201,7 @@ do
     return fs.canonical(table.concat(s, "/", 1, #s - 1))
   end
 
+  kernel.logger.log("fs: initializing path resolution")
   local function resolve(path, noexist)
     if path == "." then path = kernel.thread.info().data.env.PWD or "/" end
     if path:sub(1,1) ~= "/" then path = (kernel.thread.info().data.env.PWD or "/") .. path end
@@ -444,7 +451,9 @@ do
     return resolve(path)
   end
 
+  kernel.logger.log("fs: mounted rootfs at /")
   fs.mount(computer.getBootAddress(), "/")
+  kernel.logger.log("fs: mounted tmpfs at /tmp")
   fs.mount(computer.tmpAddress(), "/tmp")
 
   kernel.filesystem = fs
@@ -454,7 +463,7 @@ end
 -- computer.shutdown stuff --
 
 do
-  --local log = component.sandbox.log
+  kernel.logger.log("wrapping computer.shutdown")
   local shutdown = computer.shutdown
   local closeAll = kernel.filesystem.closeAll
   kernel.filesystem.closeAll = nil
@@ -481,6 +490,7 @@ end
 -- run levels --
 
 do
+  kernel.logger.log("innitializing runlevels")
   local rl = {}
   rl.levels = {
     [0] = {
@@ -525,12 +535,11 @@ do
   end
 
   kernel.runlevel = rl
+  kernel.logger.log("runlevels initialized")
 end
 
 
--- big fancy scheduler --
-
--- this may not be the best but at least it's pretty reliable
+-- big fancy scheduler. this may not be the best but at least it's pretty reliable! --
 
 do
   kernel.logger.log("initializing scheduler")
@@ -638,7 +647,8 @@ do
     return last
   end
 
-  -- (re)define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
+  kernel.logger.log("(re)defining login, logout to be thread-local")
+  -- define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
     checkArg(2, password, "string")
@@ -772,15 +782,6 @@ do
     kill      = 9
   }
 
-  function os.exit(code)
-    checkArg(1, code, "string", "number", "nil")
-    code = code or 0
-    thread.signal(thread.current(), thread.signals.kill)
-    if thread.info(thread.current()).parent then
-      thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
-    end
-  end
-
   function thread.kill(pid, sig)
     return thread.signal(pid, sig or thread.signals.term)
   end
@@ -848,14 +849,15 @@ do
   end
 
   kernel.thread = thread
+  kernel.logger.log("scheduler initialized")
 end
 
 
 -- userspace sandbox and some security features --
 
-kernel.logger.log("wrapping setmetatable, getmetatable for security, type for reasons")
+kernel.logger.log("wrapping type(), error()")
 
-local smt, gmt, typ, err = setmetatable, getmetatable, type, error
+local typ, err = type, error
 
 function _G.error(e, l)
   local pref = "/tmp/"
@@ -864,7 +866,6 @@ function _G.error(e, l)
   end
   local handle = kernel.filesystem.open(pref .. "err_" .. os.date():gsub("[ :\\/]", "_"), "a")
   handle:write(debug.traceback(e).."\n")
-  --kernel.logger.log(debug.traceback(e))
   handle:close()
   err(e, l)
 end
@@ -904,9 +905,9 @@ end
 sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
-sandbox.checkArg = checkArg
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
 sandbox.kernel.logger = kernel.logger -- ensure that any kernel logs are in the proper spot after init logging
+kernel.logger.log("sandbox finalized")
 
 
 -- basic loadfile function --

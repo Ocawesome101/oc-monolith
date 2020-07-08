@@ -1,7 +1,7 @@
 -- users --
 
 do
-  kernel.logger.log("initializing user subsystem")
+  kernel.logger.log("users: initializing subsystem")
   local cuid = 0
 
   local u = {}
@@ -9,6 +9,7 @@ do
   u.sha = {}
   u.passwd = {}
   u.psave = function()end
+  kernel.logger.log("NOTE: some blanks here are expected to be filled by init")
 
   local sha = u.sha
   local function hex(s)
@@ -25,7 +26,7 @@ do
     kernel.logger.log("kernel: check user ID " .. uid)
     if not u.passwd[uid] then
       kernel.logger.log("UID mismatch, no entry")
-      return nil, "no user with UID " .. uid
+      return nil, "no such user"
     end
     return hex(u.sha.sha256(password)) == u.passwd[uid].p, "invalid password"
   end
@@ -55,5 +56,6 @@ do
     return true
   end
 
+  kernel.logger.log("users: subsystem initialized")
   kernel.users = u
 end
