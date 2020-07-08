@@ -5,24 +5,18 @@ local users = {}
 local config = require("config")
 local sha3 = require("sha3")
 local fs = require("filesystem")
-local syslog = require("syslog").log
 
 local old = kernel.users
 
 old.sha = sha3
 old.passwd = config.load("/etc/passwd")
-for k, v in pairs(old.passwd) do
-  syslog(k .. " (UID) " .. v.n)
-end
 
 local function getuid(name)
   if type(name) == "number" then
     return name
   end
   for uid, data in pairs(old.passwd) do
-    syslog("check " .. name .. " == " .. data.n .. " for UID " .. uid)
     if data.n == name then
-      syslog("MATCH")
       return uid
     end
   end

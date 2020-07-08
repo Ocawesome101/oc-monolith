@@ -22,5 +22,6 @@ do
   }
 
   setmetatable(component, mt)
+  kernel.logger.y = kernel.logger.y - 1
   log("OK", "Set up components")
 end

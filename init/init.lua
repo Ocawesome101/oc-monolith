@@ -1,12 +1,11 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.6.6 (built Tue Jul 07 14:06:15 EDT 2020 by ocawesome101@manjaro-pbp)"
+local _INITVERSION = "InitMe 2020.7.7"
 local kernel = kernel
 local panic = kernel.logger.panic
 local runlevel = kernel.runlevel
-
--- fancy-ish init bootlogger - certainly fancier than the kernel --
+-- fancy-ish init logger - certainly fancier than the kernel --
 
 local logger = {}
 do
@@ -18,6 +17,7 @@ do
 
   local stats = {
     OK = 0x00FF00,
+    INFO = 0x00AAFF,
     WAIT = 0xFFCC00,
     FAIL = 0xFF0000
   }
@@ -61,8 +61,8 @@ end
 logger.log("OK", "Initialized init logger")
 
 local log = logger.log
-log("OK", "Starting " .. _INITVERSION)
 
+log("INFO", "Starting " .. _INITVERSION)
 
 -- `package` library --
 
@@ -169,9 +169,10 @@ do
       return ok
     end
   end
-  log("OK", "Initialized package library")
+  kernel.logger.y = kernel.logger.y - 1
+  log("OK", "Initialized package library    ")
 end
-log("WAIT", "Setting up libraries")
+log("INFO", "Setting up libraries")
 package.loaded.filesystem = kernel.filesystem
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
@@ -183,13 +184,12 @@ package.loaded.syslog = {
 }
 package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil
-log("OK", "Set up libraries")
-
+--log("OK", "Set up libraries")
 
 -- `io` library --
 
 do
-  log("WAIT", "Initializing IO library")
+  log("INFO", "Initializing IO library")
 
   _G.io = {}
   package.loaded.io = io
@@ -314,14 +314,14 @@ do
     return io.stdout:write(tp .. "\n")
   end
 
-  log("OK", "Initialized IO library")
+  kernel.logger.y = kernel.logger.y - 1
+  log("OK", "Initialized IO library ")
 end
-
 
 -- os --
 
 do
-  log("WAIT", "Finalize 'os' API")
+  log("INFO", "Finalizing 'os' API")
 
   local computer = computer or require("computer")
 
@@ -337,6 +337,7 @@ do
 
   -- we define os.getenv and os.setenv here now, rather than in kernel/module/thread
   function os.getenv(k)
+    checkArg(1, k, "string", "number")
     if k then
       return assert((kernel.thread or require("thread")).info()).data.env[k] or nil
     else -- return a copy of the env
@@ -349,8 +350,9 @@ do
   end
 
   function os.setenv(k,v)
-    --checkArg(1, k, "string", "number")
-    --checkArg(2, v, "string", "number", "nil")
+    checkArg(1, k, "string", "number")
+    checkArg(2, v, "string", "number", "nil")
+    ; -- god dammit Lua
     (kernel.thread or require("thread")).info().data.env[k] = v
   end
 
@@ -378,9 +380,10 @@ do
       end
     end
   end
-  log("OK", "Finalized 'os' API")
-end
 
+  kernel.logger.y = kernel.logger.y - 1
+  log("OK", "Finalized 'os' API ")
+end
 
 -- component API metatable allowing component.filesystem and things --
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
@@ -406,11 +409,11 @@ do
   }
 
   setmetatable(component, mt)
+  kernel.logger.y = kernel.logger.y - 1
   log("OK", "Set up components")
 end
 
-
-log("WAIT", "Running scripts from /lib/scripts/...")
+log("INFO", "Running scripts from /lib/scripts/...")
 
 local files = kernel.filesystem.list("/lib/scripts/")
 if files then
@@ -424,18 +427,17 @@ if files then
     end
     local s, r = xpcall(ok, debug.traceback)
     if not s and r then
+      kernel.logger.y = kernel.logger.y - 1
       log("FAIL", v)
       panic(r)
     end
+    kernel.logger.y = kernel.logger.y - 1
     log("OK", v)
   end
 end
 
-log("OK", "Run scripts from /lib/scripts/")
-
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
-
 -- `initsvc` lib. --
 
 function runlevel.max()
@@ -545,7 +547,8 @@ if runlevel.levels[maxrunlevel].services then
     if not ok then
       panic(err)
     end
-    log("OK", "Started service " .. sname)
+    kernel.logger.y = kernel.logger.y - 1
+    log("OK", "Started service " .. sname .. "   ")
   end
   coroutine.yield(0)
   log("OK", "Initialized initsvc")
@@ -556,8 +559,9 @@ local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
   panic("GETTY load failed: " .. err)
 end
-log("OK", "Started /sbin/getty")
+kernel.logger.y = kernel.logger.y - 1
 require("thread").spawn(ok, "/sbin/getty.lua", error)
+log("OK", "Started /sbin/getty    ")
 
 
 kernel.logger.setShown(false)

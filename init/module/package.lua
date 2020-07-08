@@ -103,9 +103,10 @@ do
       return ok
     end
   end
-  log("OK", "Initialized package library")
+  kernel.logger.y = kernel.logger.y - 1
+  log("OK", "Initialized package library    ")
 end
-log("WAIT", "Setting up libraries")
+log("INFO", "Setting up libraries")
 package.loaded.filesystem = kernel.filesystem
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
@@ -117,4 +118,4 @@ package.loaded.syslog = {
 }
 package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil
-log("OK", "Set up libraries")
+--log("OK", "Set up libraries")

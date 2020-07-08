@@ -1,7 +1,7 @@
 -- os --
 
 do
-  log("WAIT", "Finalize 'os' API")
+  log("INFO", "Finalizing 'os' API")
 
   local computer = computer or require("computer")
 
@@ -17,6 +17,7 @@ do
 
   -- we define os.getenv and os.setenv here now, rather than in kernel/module/thread
   function os.getenv(k)
+    checkArg(1, k, "string", "number")
     if k then
       return assert((kernel.thread or require("thread")).info()).data.env[k] or nil
     else -- return a copy of the env
@@ -29,8 +30,9 @@ do
   end
 
   function os.setenv(k,v)
-    --checkArg(1, k, "string", "number")
-    --checkArg(2, v, "string", "number", "nil")
+    checkArg(1, k, "string", "number")
+    checkArg(2, v, "string", "number", "nil")
+    ; -- god dammit Lua
     (kernel.thread or require("thread")).info().data.env[k] = v
   end
 
@@ -58,5 +60,7 @@ do
       end
     end
   end
-  log("OK", "Finalized 'os' API")
+
+  kernel.logger.y = kernel.logger.y - 1
+  log("OK", "Finalized 'os' API ")
 end

@@ -7,19 +7,15 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "2020.6.6"
-local _KERNEL_BUILDER = "$[[whoami]]@$[[hostname]]"
-local _KERNEL_COMPILER = "luacomp $[[luacomp -v]]"
+local _KERNEL_REVISION = "2020.7.7"
 
-_G._OSVERSION = string.format("%s revision %s (%s, %s)", _KERNEL_NAME, _KERNEL_REVISION, _KERNEL_BUILDER, _KERNEL_COMPILER)
+_G._OSVERSION = string.format("%s version %s", _KERNEL_NAME, _KERNEL_REVISION)
 
 kernel.logger.log("Starting " .. _OSVERSION)
 
 kernel.info = {
   name          = _KERNEL_NAME,
-  revision      = _KERNEL_REVISION,
-  builder       = _KERNEL_BUILDER,
-  compiler      = _KERNEL_COMPILER
+  version       = _KERNEL_REVISION
 }
 
 if computer.setArchitecture then

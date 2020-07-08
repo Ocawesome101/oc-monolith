@@ -1,7 +1,7 @@
 -- `io` library --
 
 do
-  log("WAIT", "Initializing IO library")
+  log("INFO", "Initializing IO library")
 
   _G.io = {}
   package.loaded.io = io
@@ -126,5 +126,6 @@ do
     return io.stdout:write(tp .. "\n")
   end
 
-  log("OK", "Initialized IO library")
+  kernel.logger.y = kernel.logger.y - 1
+  log("OK", "Initialized IO library ")
 end

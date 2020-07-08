@@ -107,7 +107,8 @@ if runlevel.levels[maxrunlevel].services then
     if not ok then
       panic(err)
     end
-    log("OK", "Started service " .. sname)
+    kernel.logger.y = kernel.logger.y - 1
+    log("OK", "Started service " .. sname .. "   ")
   end
   coroutine.yield(0)
   log("OK", "Initialized initsvc")
@@ -118,5 +119,6 @@ local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
   panic("GETTY load failed: " .. err)
 end
-log("OK", "Started /sbin/getty")
+kernel.logger.y = kernel.logger.y - 1
 require("thread").spawn(ok, "/sbin/getty.lua", error)
+log("OK", "Started /sbin/getty    ")

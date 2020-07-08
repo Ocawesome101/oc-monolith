@@ -1,13 +1,14 @@
 -- Monolith's init --
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.6.6 (built $[[date +'%a %b %d %R:%S %Z %Y']] by $[[whoami]]@$[[hostname]])"
+local _INITVERSION = "InitMe 2020.7.7"
 local kernel = kernel
 local panic = kernel.logger.panic
 local runlevel = kernel.runlevel
 --#include "module/logger.lua"
 local log = logger.log
-log("OK", "Starting " .. _INITVERSION)
+
+log("INFO", "Starting " .. _INITVERSION)
 
 --#include "module/package.lua"
 --#include "module/io.lua"

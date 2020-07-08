@@ -1,4 +1,4 @@
-log("WAIT", "Running scripts from /lib/scripts/...")
+log("INFO", "Running scripts from /lib/scripts/...")
 
 local files = kernel.filesystem.list("/lib/scripts/")
 if files then
@@ -12,11 +12,11 @@ if files then
     end
     local s, r = xpcall(ok, debug.traceback)
     if not s and r then
+      kernel.logger.y = kernel.logger.y - 1
       log("FAIL", v)
       panic(r)
     end
+    kernel.logger.y = kernel.logger.y - 1
     log("OK", v)
   end
 end
-
-log("OK", "Run scripts from /lib/scripts/")

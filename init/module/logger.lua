@@ -1,4 +1,4 @@
--- fancy-ish init bootlogger - certainly fancier than the kernel --
+-- fancy-ish init logger - certainly fancier than the kernel --
 
 local logger = {}
 do
@@ -10,6 +10,7 @@ do
 
   local stats = {
     OK = 0x00FF00,
+    INFO = 0x00AAFF,
     WAIT = 0xFFCC00,
     FAIL = 0xFF0000
   }

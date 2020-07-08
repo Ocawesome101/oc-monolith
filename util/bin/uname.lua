@@ -26,7 +26,7 @@ if nna then
 end
 
 if rev then
-  out = out .. kinfo.revision .. " "
+  out = out .. kinfo.version .. " "
 end
 
 if mch then
