@@ -5,6 +5,7 @@ local _INITVERSION = "InitMe 2020.7.7"
 local kernel = kernel
 local panic = kernel.logger.panic
 local runlevel = kernel.runlevel
+
 -- fancy-ish init logger - certainly fancier than the kernel --
 
 local logger = {}
@@ -63,6 +64,7 @@ logger.log("OK", "Initialized init logger")
 local log = logger.log
 
 log("INFO", "Starting " .. _INITVERSION)
+
 
 -- `package` library --
 
@@ -185,6 +187,7 @@ package.loaded.syslog = {
 package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil
 --log("OK", "Set up libraries")
+
 
 -- `io` library --
 
@@ -318,6 +321,7 @@ do
   log("OK", "Initialized IO library ")
 end
 
+
 -- os --
 
 do
@@ -385,6 +389,7 @@ do
   log("OK", "Finalized 'os' API ")
 end
 
+
 -- component API metatable allowing component.filesystem and things --
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
 
@@ -413,6 +418,7 @@ do
   log("OK", "Set up components")
 end
 
+
 log("INFO", "Running scripts from /lib/scripts/...")
 
 local files = kernel.filesystem.list("/lib/scripts/")
@@ -438,6 +444,7 @@ end
 
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
+
 -- `initsvc` lib. --
 
 function runlevel.max()

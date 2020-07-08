@@ -1,8 +1,9 @@
 #!/usr/bin/lua5.3
 -- VT100-formatted man-page generator --
 
-print(...)
 local args = {...}
+
+print(table.concat({"[ \27[94mINFO\27[39m ] docgen", args[1], "->", args[2]}, " "))
 
 local inp = args[1]
 local out = args[2]
@@ -25,6 +26,8 @@ while true do
   line = line:gsub("%`", "#") -- and another one
   outh:write(line .. "\n")
 end
+
+print("\27[A\27[2K[ \27[92m OK \27[39m ] generated manpage " .. args[1])
 
 inph:close()
 outh:close()

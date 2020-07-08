@@ -87,25 +87,25 @@ local rlopts_cmd = {
 local running = true
 -- this is very vi-inspired
 local ops = {
-  ["wq$"] = function() -- write & quit
+  ["^wq$"] = function() -- write & quit
     editor.buffers[cur]:save()
     editor.buffers[cur] = nil
     running = false
   end,
-  ["cq$"] = function() -- close & quit
+  ["^cq$"] = function() -- close & quit
     editor.buffers[cur] = nil
     running = false
   end,
-  ["w$"] = function() -- write
+  ["^w$"] = function() -- write
     editor.buffers[cur]:save()
   end,
-  ["w (%S*)"] = function(f) -- write to file
+  ["^w (%S*)"] = function(f) -- write to file
     editor.buffers[cur]:save(f)
   end,
-  ["q$"] = function() -- quit
+  ["^q$"] = function() -- quit
     running = false
   end,
-  ["d(%d*)"] = function(n) -- delete lines
+  ["^d(%d*)"] = function(n) -- delete lines
     n = tonumber(n) or 1
     for i=1,n,1 do
       table.remove(editor.buffers[cur].lines, line)

@@ -23,6 +23,7 @@ if computer.setArchitecture then
   computer.setArchitecture("Lua 5.3")
 end
 
+
 -- component API metatable allowing component.filesystem, and component.get --
 
 do
@@ -55,6 +56,7 @@ do
 
   setmetatable(component, mt)
 end
+
 
 -- users --
 
@@ -116,6 +118,7 @@ do
   kernel.users = u
 end
 
+
 -- kernel modules-ish --
 
 do
@@ -155,6 +158,7 @@ do
 
   kernel.module = m
 end
+
 
 -- filesystem management --
 
@@ -446,6 +450,7 @@ do
   kernel.filesystem = fs
 end
 
+
 -- computer.shutdown stuff --
 
 do
@@ -471,6 +476,7 @@ do
     shutdown(reboot)
   end
 end
+
 
 -- run levels --
 
@@ -521,6 +527,7 @@ do
   kernel.runlevel = rl
 end
 
+
 -- big fancy scheduler --
 
 -- this may not be the best but at least it's pretty reliable
@@ -528,10 +535,11 @@ end
 do
   kernel.logger.log("initializing scheduler")
   local thread, threads, sbuf, last, cur = {}, {}, {}, 0, 0
-  local lastKey = math.huge
+  local pullSignal = computer.pullSignal
+  local liveCoro = coroutine.create(function()end)
 
   local function checkDead(thd)
-    local p = threads[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
+    local p = threads[thd.parent] or {dead = false, coro = liveCoro}
     if thd.dead or p.dead or coroutine.status(thd.coro) == "dead" or coroutine.status(p.coro) == "dead" then
       return true
     end
@@ -565,7 +573,7 @@ do
     end
 
     local timeout = getMinTimeout()
-    local sig = {computer.pullSignal(timeout)}
+    local sig = {pullSignal(timeout)}
     if #sig > 0 then
       sbuf[#sbuf + 1] = sig
     end
@@ -829,7 +837,7 @@ do
       if computer.freeMemory() < 1024 then -- oh no, we're out of memory
         kernel.logger.log("Low memory - collecting garbage")
         for i=1, 10 do -- invoke GC
-          computer.pullSignal(0)
+          pullSignal(0)
         end
         if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
           kernel.logger.panic("out of memory")
@@ -841,6 +849,7 @@ do
 
   kernel.thread = thread
 end
+
 
 -- userspace sandbox and some security features --
 
@@ -898,6 +907,7 @@ sandbox.computer.pullSignal = coroutine.yield
 sandbox.checkArg = checkArg
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
 sandbox.kernel.logger = kernel.logger -- ensure that any kernel logs are in the proper spot after init logging
+
 
 -- basic loadfile function --
 

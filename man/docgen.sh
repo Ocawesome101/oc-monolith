@@ -1,7 +1,7 @@
 #!/bin/bash
 # Automated manual page generation in lieu of a proper Makefile
 
-echo "Generating man-page documentation...."
+/bin/echo -e "\033[39m[ \033[94mINFO\033[39m ] Generating man-page documentation...."
 set -e
 
 for file in $(find man -type f); do
