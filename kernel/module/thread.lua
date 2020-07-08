@@ -6,9 +6,10 @@ do
   kernel.logger.log("initializing scheduler")
   local thread, threads, sbuf, last, cur = {}, {}, {}, 0, 0
   local pullSignal = computer.pullSignal
+  local liveCoro = coroutine.create(function()end)
 
   local function checkDead(thd)
-    local p = threads[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
+    local p = threads[thd.parent] or {dead = false, coro = liveCoro}
     if thd.dead or p.dead or coroutine.status(thd.coro) == "dead" or coroutine.status(p.coro) == "dead" then
       return true
     end
