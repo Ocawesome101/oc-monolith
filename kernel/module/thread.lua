@@ -5,7 +5,7 @@
 do
   kernel.logger.log("initializing scheduler")
   local thread, threads, sbuf, last, cur = {}, {}, {}, 0, 0
-  local lastKey = math.huge
+  local pullSignal = computer.pullSignal
 
   local function checkDead(thd)
     local p = threads[thd.parent] or {dead = false, coro = coroutine.create(function()end)}
@@ -42,7 +42,7 @@ do
     end
 
     local timeout = getMinTimeout()
-    local sig = {computer.pullSignal(timeout)}
+    local sig = {pullSignal(timeout)}
     if #sig > 0 then
       sbuf[#sbuf + 1] = sig
     end
@@ -304,13 +304,9 @@ do
       end
 
       if computer.freeMemory() < 1024 then -- oh no, we're out of memory
-        for i=1, 50 do -- invoke GC
-          computer.pullSignal(0)
-        end
-        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
-          for i=1, 50 do -- invoke GC
-            computer.pullSignal(0)
-          end
+        kernel.logger.log("Low memory - collecting garbage")
+        for i=1, 10 do -- invoke GC
+          pullSignal(0)
         end
         if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
           kernel.logger.panic("out of memory")
