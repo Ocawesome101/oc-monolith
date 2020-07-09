@@ -16,17 +16,19 @@
         *stop&(*service&:~string&): ?boolean& or *nil&, ~string&
                 Attempts to stop service ~service&.  May have compatibility with OpenOS services.
 
-        *enable&(*script&:~string&[, *isService&:?boolean&]): ?boolean& or *nil&, ~string&
-                Attempts to enable service or startup script ~script&.  If ?isService& is true, *initsvc& will treat ~script& as the name of a service.  Otherwise, ~script& is treated as the name of a script.
+        *enable&(*service&:~string&): ?boolean& or *nil&, ~string&
+                Attempts to enable service ~service&.
 
-        *disable&(*script&:~string&)
-                Disable script or service ~script&.
+        *disable&(*service&:~string&)
+                Disable service ~script&.
 
 *NOTES&
-        Due to the manner in which *initsvc&'s configuration is formatted, a script and a service cannot have the same name.  This may change in the future.
+        [Until 2020.7.9]  Due to the manner in which *initsvc&'s configuration is formatted, a script and a service cannot have the same name.  This may change in the future.
+
+        [2020.7.9]  This has been fixed.  Startup scripts are now run in order, before services, from #/lib/scripts/&.
 
 *COPYRIGHT
-        Monolith System Interfaces& (c) 2020 Ocawesome101 under the MIT license.
+        Monolith System Interfaces& (c) 2020 Ocawesome101 under the Apache license.
 
 *SEE ALSO
         init&(*1&), *init&(*5&)

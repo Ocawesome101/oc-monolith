@@ -235,8 +235,8 @@ function shell.resolve(path, ext)
   return fs.canonical(path)
 end
 
-local function execute(...)
-  local commands = text.split(shell.expand(table.concat({...}, " ")), "|")
+local function execute(cmd)
+  local commands = text.split(shell.expand(cmd), "|")
   local has_builtin = false
   local builtin = {}
   for k, v in pairs(commands) do
@@ -279,11 +279,15 @@ local function execute(...)
 end
 
 function shell.execute(...)
-  local commands = text.split(table.concat({...}, " "), ";")
+  local args = table.pack(...)
+  if args[2] == nil or type(args[2]) == "table" then -- discard the 'env' argument OpenOS programs may supply
+    pcall(table.remove, args, 2)
+  end
+  local commands = text.split(table.concat(args, " "), ";")
   for i=1, #commands, 1 do
     local x = execute(commands[i])
     if x and x ~= 0 then
-      return
+      return x
     end
   end
 end
