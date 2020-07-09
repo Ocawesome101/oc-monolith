@@ -6,6 +6,9 @@ INFO = "\27[39m[ \27[94mINFO\27[39m ] luacomp:"
 OK   = "\27[39m[ \27[92m OK \27[39m ] luacomp:"
 FAIL = "\27[39m[ \27[91mFAIL\27[39m ] luacomp:"
 
+print(INFO .. " LuaComp is written first and foremost by AdorableCatgirl. This version is slightly modified to have custom logging, in order to match the rest of the Monolith build system.")
+print(INFO .. " LuaComp is copyright (c) 2019 AdorableCatgirl.")
+
 --[[
 	staticinit.lua - Main file of LuaComp, directly includes argparse.
 
