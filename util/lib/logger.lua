@@ -23,6 +23,8 @@ logger.prefixes = {
   }
 }
 
+logger.style = logger.prefixes.bracket
+
 function logger:ok(...)
   print(table.concat({self.style.ok, ...}))
 end
@@ -40,6 +42,8 @@ function logger:fail(...)
 end
 
 function logger.new(style)
+  checkArg(1, style, "string", "nil")
+  style = style or 'bracket'
   if not logger.prefixes[style] then
     return nil, "no such style"
   end
