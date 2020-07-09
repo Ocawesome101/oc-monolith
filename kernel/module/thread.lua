@@ -11,7 +11,7 @@ do
     if thd.dead or p.dead or coroutine.status(thd.coro) == "dead" or coroutine.status(p.coro) == "dead" then
       return true
     end
-    return false
+    --return false
   end
 
   local function getMinTimeout()

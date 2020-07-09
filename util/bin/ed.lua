@@ -1,178 +1,123 @@
--- ed clone in pure Lua --
+#!/usr/bin/lua5.3
+-- lua version of, you guessed it, ed --
+-- written entirely in standard lua 5.3 --
 
-local buffers = {}
+local args={...}
 
-local help = [[LuaEd 0.4.0 (c) 2020 Ocawesome101. MIT License.
-Commands:
-'h':     Show this help
-'e':     Open a file
-'a':     Append to a file
-'o':     Overwrite a file
-'i' <l>: Insert at line
-'s' [f]: Save the current buffer
-'c':     Close the current buffer
-'b' [n]: List buffers or, select buffer
-'n' [n]: Create buffer
-'r' <n>: Rename the current buffer
-'p' [l] [l]: Print contents of current buffer from line to line
-'l' [l]: Overwrite line
-]]
-
-local function promptread()
-  io.write("\27[33med: \27[37m")
-  return io.read()
-end
-
-local function lineread(line)
-  io.write("\27[31m " .. line .. "\27[37m ")
-  return io.read()
-end
-
-local function split(w)
-  local W = {}
-  for _w in w:gmatch("[^ \n]+") do
-    table.insert(W, _w)
-  end
-  return W
-end
-
-local function fload(f)
-  local handle, err = io.open(f, 'r')
-  if not handle then
-    return nil, err
-  end
-  local nbuf = #buffers + 1
-  local buf = {}
-  for line in handle:lines() do
-    buf[#buf + 1] = line .. "\n"
-  end
+local buf={""}
+local cur=1
+local prompt=false
+local file = args[1]
+local handle = io.open(file or "")
+if handle then
+  local data = handle:read("a")
   handle:close()
-  buffers[nbuf] = {buffer = buf, name = f}
-  return nbuf
+  buf={}
+  for line in handle:gmatch("[^\n]+")do
+    buf[#buf+1]=line.."\n"
+  end
 end
 
-local function fsave(b, f)
-  if not buffers[b] then
-    return nil, "no such buffer"
-  end
-  local handle, err = io.open(f or buffers[b].name, "w")
-  if not handle then
-    return nil, err
-  end
-  for i=1, #buffers[b].buffer, 1 do
-    handle:write(buffers[b].buffer[i])
-  end
-  handle:close()
+local commands = {}
+function commands.a(n)
+  commands.i((n or#buf)+1)
 end
-
-local function bnew(name)
-  local nbuf = #buffers + 1
-  buffers[nbuf] = {buffer = {}, name = "<new>"}
-  buffers[nbuf].name = name or "buffer: " .. tostring(buffers[nbuf].buffer):gsub("[^%x]+", "")
-  return true
+function commands.c(a,b)
+  commands.d(a,b)
+  commands.i(a)
 end
-
-local function bname(b, n)
-  if not buffers[b] then
-    return nil, "no such buffer"
+function commands.d(a,b)
+  for i=a,b,1 do
+    table.remove(buf,a)
   end
-  buffers[b].name = n
 end
-
-local function blist()
-  for i=1, #buffers, 1 do
-    io.write(string.format(" \27[31m%d \27[37m%s\n", i, buffers[i].name))
-  end
-  return true
-end
-
-local function bprint(b, l1, l2)
-  if not buffers[b] then
-    return nil, "no such buffer"
-  end
-  for i=(l1 or 1), (l2 or #buffers[b].buffer), 1 do
-    io.write(string.format(" \27[31m%d \27[37m%s", i, buffers[b].buffer[i]))
-  end
-  io.write("\n")
-  return true
-end
-
-local function bedit(b, m, c)
-  if not buffers[b] then
-    return nil, "no such buffer"
-  end
-  local buf = buffers[b].buffer
-  local ln
-  if m == "a" then
-    ln = #buf
-  elseif m == "o" then
-    buf = {}
-    ln = 1
-  elseif m == "i" then
-    ln = c
-  elseif m == "l" then
-    ln = c
-    local line = lineread(ln):gsub("\n", "")
-    buffers[b].buffer[ln] = line .. "\n"
-    return true, buffers[b].buffer[ln]
-  else
-    return nil, "wrong mode"
-  end
+function commands.i(n)
+  n=tonumber(n)or cur
   while true do
-    local line = lineread(ln):gsub("\n", "")
-    if line == "." then
-      buffers[b].buffer = buf
-      return true
-    else
-      table.insert(buf, ln, line .. "\n")
-      ln = ln + 1
-    end
+    local l=io.read()
+    if l=="."or l==".\n" then break end
+    table.insert(buf,n,l.."\n")
+    n=n+1
   end
-  return true
+  cur=n
+end
+function commands.l()
+  print(#buf)
+end
+function commands.p(a,b)
+  for i=a,b,1 do
+    io.write(buf[i]or"\n")
+  end
+end
+function commands.P()
+  prompt=not prompt
+end
+function commands.q()
+  os.exit()
+end
+function commands.s(a,b,r)
+  local old,new = r:match("/(%S*)/(%S*)/")
+  for i=a, b, 1 do
+    buf[i] = buf[i]:gsub(old,new)
+  end
+end
+function commands.w(_,_,f)
+  f=f or file
+  f=f:gsub(" ","")
+  if not f then
+    print("?")
+    return
+  end
+  local h=io.open(f,"w")
+  local w=table.concat(buf)
+  print(#w)
+  h:write(w)
+  h:close()
 end
 
-local cur = 0
-while true do
-  local cin = split(promptread())
-  if #cin > 0 then
-    if cin[1] == 'h' then
-      print(help)
-    elseif cin[1] == 'e' then
-      if not cin[2] then print(nil, "not enough parameters")
-      else print(fload(cin[2])) end
-    elseif cin[1] == 'o' then
-      print(bedit(cur, "o"))
-    elseif cin[1] == 'a' then
-      print(bedit(cur, "a"))
-    elseif cin[1] == 'i' then
-      if not tonumber(cin[2]) then print(nil, "not enough parameters")
-      else print(bedit(cur, 'i', tonumber(cin[2]))) end
-    elseif cin[1] == 's' then
-      print(fsave(cur, cin[2]))
-    elseif cin[1] == 'c' then
-      buffers[cur] = nil
-    elseif cin[1] == 'b' then
-      if cin[2] then
-        local n = tonumber(cin[2])
-        if buffers[n] then
-          cur = n
-        else
-          print(nil, "no such buffer")
-        end
-      else
-        blist()
-      end
-    elseif cin[1] == 'n' then
-      print(bnew(cin[2]))
-    elseif cin[1] == 'r' then
-      if not cin[2] then print(nil, "not enough parameters")
-      else print(bname(cur, cin[2])) end
-    elseif cin[1] == 'x' then
-      break
-    elseif cin[1] == 'p' then
-      print(bprint(cur, tonumber(cin[2]), tonumber(cin[3])))
-    elseif cin[1] == 'l' then
-      print(bedit(cur, 'l', tonumber(cin[2])))
+local pattern = "^(%d*)(,?)(%d*)(.)(%S*)$"
+
+local function exec(c)
+  if c:sub(1,1)=="#"then
+    return
+  end
+  local l1,ca,l2,cm,rg=c:match(pattern)
+  l1,l2=tonumber(l1),tonumber(l2)
+  ca=ca==","
+  if cm==""then
+    if l1 then
+      cur=l1
+    end
+    return
+  end
+  rg=(rg~=""and rg) or nil
+  if not (l1 or l2) then
+    if ca then
+      l1=1
+      l2=#buf
+    else
+      l1=cur
+      l2=cur
+    end
+  elseif l1 and not l2 then
+    if ca then
+      l2=#buf
+    else
+      l2=l1
     end
   end
+  --print(l1,ca,l2,cm,rg)
+  if commands[cm] then
+    local ok, err = pcall(commands[cm], l1,l2,rg)
+    if not ok and err then
+      print("?")
+    end
+  else
+    print("?")
+  end
+end
+
+while true do
+  if prompt then io.write("*")end
+  exec(io.read():gsub("\n",""))
 end

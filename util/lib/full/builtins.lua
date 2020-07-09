@@ -86,3 +86,6 @@ builtins.builtin = function(b, ...)
     return shell.error("sh: builtin", "no such builtin")
   end
 end
+builtins.whoami = function()
+  print(os.getenv("USER"))
+end
