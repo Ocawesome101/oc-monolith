@@ -565,9 +565,10 @@ do
   local function checkDead(thd)
     local p = threads[thd.parent] or {dead = false, coro = liveCoro}
     if thd.dead or p.dead or coroutine.status(thd.coro) == "dead" or coroutine.status(p.coro) == "dead" then
+      p = nil
       return true
     end
-    --return false
+    p = nil
   end
 
   local function getMinTimeout()

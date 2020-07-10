@@ -34,7 +34,7 @@ do
       klog.gpu.set(2, klog.y, padded)
       klog.gpu.setForeground(0xDDDDDD)
       klog.gpu.set(10, klog.y, "] " .. msg)
-      if klog.y > h then
+      if klog.y >= h then
         klog.gpu.copy(1,1,w,h,0,-1)
         klog.gpu.fill(1,h,w,1," ")
         klog.y = h

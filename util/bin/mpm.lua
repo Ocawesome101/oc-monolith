@@ -5,22 +5,19 @@ local  config  = require (  "config"  )
 local   cpio   = require (   "cpio"   )
 local    fs    = require ("filesystem")
 local internet = require ( "internet" )
+local  logger  = require (  "logger"  ).new("arrow")
 local    cp    = loadfile("/bin/cp.lua")
 local    rm    = loadfile("/bin/rm.lua")
+
+logger:ok("Initializing MPM")
 
 local cfg = config.load("/etc/mpm/mpm.cfg")
 cfg.names = cfg.names or {"ocawesome101"}
 cfg.baseURL = cfg.baseURL or "https://raw.githubusercontent.com"
 config.save(cfg, "/etc/mpm/mpm.cfg")
 
-local function lprint(...)
-  print("\27[93m-> \27[37m", ...)
-end
-
-lprint("Initializing MPM")
-
 local function download(url, file)
-  lprint("Downloading", url, "as", file)
+  logger:wait("Downloading", url, "as", file)
   local handle = internet.request(url)
   local out, err = io.open(file, "w")
   if not out then
@@ -31,6 +28,7 @@ local function download(url, file)
     out:write(chunk)
   end
   out:close()
+  logger:ok("Downloaded")
 end
 
 local function getParts(s)
@@ -45,26 +43,26 @@ end
 
 local function check(user, repo, pkg)
   local url     = string.format("%s/%s/%s/master/packages/%s.cpio", cfg.baseURL, user, repo, pkg)
-  lprint("Checking URL:\27[94m", url, "\27[37m....")
+  logger:info("Checking URL:\27[94m", url, "\27[37m....")
   local ok, err = pcall(internet.request, url) -- :^)
   return ok
 end
 
 local function getPackageConfig(package)
   local user, repo, pkg = getParts(package)
-  lprint(package, user, repo, pkg)
+  logger:info(package, user, repo, pkg)
   if not user then
-    lprint("No username provided - checking name list from configuration")
+    logger:info("No username provided - checking name list from configuration")
     for _, v in pairs(cfg.names) do
       local ok = check(v, repo, pkg)
       if ok then
-        lprint("Found user with matching repository and package:", v)
+        logger:ok("Found user with matching repository and package:", v)
         user = v
         break
       end
     end
     if not user then
-      lprint("\27[91mError: Could not find a user with a matching repository and package")
+      logger:fail("\27[91mError: Could not find a user with a matching repository and package")
       error()
     end
   end
@@ -77,55 +75,55 @@ local function getPackageConfig(package)
 end
 
 local function install(package)
-  lprint("Installing package", package)
+  logger:info("Installing package", package)
   local installed = config.load("/etc/mpm/installed.cfg")
   local path, urp, cfg = getPackageConfig(package)
   if not (cfg.name and cfg.creator and cfg.files) then
-    lprint("\27[91mError: Invalid package configuration file (missing one of: name, creator, files)")
+    logger:fail("\27[91mError: Invalid package configuration file (missing one of: name, creator, files)")
     return shell.codes.failure
   end
-  lprint("Registering package....")
+  logger:info("Registering package....")
   installed[urp:lower()] = {
     name = cfg.name,
     creator = cfg.creator,
     files = cfg.files,
     description = cfg.description or "MPM Package"
   }
-  lprint("Saving configuration....")
+  logger:info("Saving configuration....")
   config.save(installed, "/etc/mpm/installed.cfg")
-  lprint("Copying files....")
+  logger:info("Copying files....")
   for _, file in pairs(cfg.files) do
     local src = fs.concat(path, file)
     local dest = file
     cp("-rvi", src, dest)
   end
-  lprint("Done.")
+  logger:ok("Done.")
 end
 
 local function remove(package)
-  lprint("Removing package", package)
+  logger:info("Removing package", package)
   local installed = config.load("/etc/mpm/installed.cfg")
   if not installed[package:lower()] then
-    lprint("\27[91mError: Package", package, "is not installed!")
+    logger:fail("\27[91mError: Package", package, "is not installed!")
     error()
   end
   local ent = installed[package:lower()]
-  lprint("Removing files....")
+  logger:info("Removing files....")
   for _, file in pairs(ent.files) do
     rm("-rvi", file)
   end
-  lprint("Unregistering package....")
+  logger:info("Unregistering package....")
   installed[package:lower()] = nil
-  lprint("Saving configuration....")
+  logger:info("Saving configuration....")
   config.save(installed, "/etc/mpm/installed.cfg")
-  lprint("Done.")
+  logger:ok("Done.")
 end
 
 local function list()
-  lprint("Loading configuration....")
+  logger:info("Loading configuration....")
   local installed = config.load("/etc/mpm/installed.cfg")
   for k, v in pairs(installed) do
-    lprint(string.format("\27[92m%s: %s\n  \27[37m%s", v.creator, k, v.description))
+    logger:info(string.format("\27[92m%s: %s\n  \27[37m%s", v.creator, k, v.description))
   end
 end
 
@@ -139,7 +137,7 @@ Usage:
 Available commands are:
   install <package>     Where <package> is in the form of [<user>/]<repo>/<package>, installs <package>. Does not resolve dependencies.
   list                  Show all installed packages.
-  search  <package>     Where <package> is in the form of [<user>/]<repo>/<package>
+  search  <package>     Where <package> is in the form of [<user>/]<repo>/<package>.  Self explanatory.
   remove  <package>     Where <package> is in the form of <user>/<repo>/<package>, removes <package>. Does not remove dependencies or warn if <package> is a dependency.
 ]]
 

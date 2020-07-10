@@ -93,7 +93,6 @@ function getty.scan()
       end
       local ios = makeStream(gpu, screen)
       ios.tty = true
-      require("devfs").register("tty" .. ttyn, ios)
       io.input(ios)
       io.output(ios)
       local pid = thread.spawn(ok, login, error)

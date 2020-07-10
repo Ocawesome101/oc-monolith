@@ -16,9 +16,9 @@ end
 for n, pid in ipairs(thd) do
   local info = thread.info(pid)
   if not mode then
-    print(string.format("%4x |   %4x | %12s | %s", pid, info.parent, users.getname(info.owner), info.name))
+    print(string.format("%4d |   %4d | %12s | %s", pid, info.parent, users.getname(info.owner), info.name))
   elseif mode == "a" then
-    print(string.format("%4x |   %4x | %12s | %8s | %8s | %s", pid, info.parent, users.getname(info.owner), time(info.started, "s", false), time(info.uptime, "s", false), info.name))
+    print(string.format("%4d |   %4d | %12s | %8s | %8s | %s", pid, info.parent, users.getname(info.owner), time(info.started, "s", false), time(info.uptime, "s", false), info.name))
   end
 end
 
