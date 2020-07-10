@@ -1,0 +1,44 @@
+*NAME&
+        Lua - the Lua programming language
+
+*NOTE
+        ~This manual page is incomplete.  If you feel that you can make contributions to it, please do, and create a pull request.
+
+*OVERVIEW/INTRODUCTION&
+        This manual page attempts to give an overview of the basics of Lua.  It assumes that the reader has previous experience with programming and is familiar with *if&/*else& blocks, *while& and *for& loops; in essence, the basics of computer programming.  I do NOT attempt to teach the basic grounding concepts of programming which I have previously mentioned.
+
+        For complete function documentation on the Lua programming language, see ^https://lua.org/manual/5.3/manual.html&.
+
+*THE LANGUAGE&
+        *Types&
+            Lua provides six basic types: *string&, *table&, *number&, *function&, *boolean&, and *nil&.  A seventh type, *userdata&, is sometimes used but will not be covered here.
+
+        *Global Environment&
+            Lua's global environment takes the form of a table (see below).  This simpifies program flow and allows for easier sandbox creation (more on this later).
+
+        *Variables&
+            In Lua, unless explicitly declared as #local&, all variables are global - that is, not affected by scope.  Local variables are usually faster to access, and are lighter on memory as they are cleared when the scope is exited and garbage-collected.
+
+            Variable names can contain any combination, except certain reserved keywords, of alphanumeric characters plus the underscore.  Variable names may not begin with a number and may be of any practical length - in my testing I was able to assign a roughly 28,700-character variable name.
+
+        *Tables&
+            Lua's tables are simple collections of key-value pairs, similar to Python's *dictionary& or, loosely, C's *struct&.  Both keys and values can be of any type.
+
+            Tables are declared using curly braces (*{}&) and indexed using square braces (*[]&).  Table keys provide value indices, and if a key is a syntactically valid variable name it can be indexed with the syntax *table&.*key& rather than *table&[*key&].
+
+        *Metatables&
+            Metatables are tables containing specific fields which declare otherwise undefined behavior on certain objects.  Excepting tables, every type has a single shared metatable which cannot be changed (except through *debug.setmetatable&, which is not available in OpenComputers).
+
+            For example, metatables may be used to implement object-oriented programming (see the *class&(*3&) library included with Monolith).
+
+            Monolith facilitates using the *__type& field of metatables to implement custom types, through an override of the *type& function in the kernel.
+
+        *Threading&
+
+        *Scoping&
+
+*NON-STANDARD LUA APIS PROVIDED BY OPENCOMPUTERS&
+        OpenComputers provides a few extra APIs and one extra function, to aid in writing programs.  These are the *component&(*2&) and *computer&(*2&) APIs, as well as the ^checkArg&(*2&) function.
+
+*COPYRIGHT
+        Lua& is copyright (c) 1994-2018 Lua.org, PUC-Rio
