@@ -164,14 +164,19 @@ end
 fs.mount(fsc, "/dev")
 
 local seen = {}
+local generic = require("devfs.adapters.generic")
+local function getadapter(ctype)
+  local ok, ret = pcall(require, "devfs.adapters." .. ctype)
+  if ok and ret then return ret, false else return generic, true end
+end
 function devfs.addComponent(addr)
   checkArg(1, addr, "string")
   local t = component.type(addr)
-  local adapter = require("devfs.adapters." .. t)
+  local adapter, isgeneric = getadapter(t)
   local inst = adapter.instance(addr)
   seen[t] = seen[t] or 0
   local n = adapter.name or t
-  vfs.children[n..seen[t]] = (inst.isDirectory and inst) or {read = inst.read, write = inst.write, isDirectory = false}
+  if not isgeneric then vfs.children[n..seen[t]] = (inst.isDirectory and inst) or {read = inst.read, write = inst.write, isDirectory = false} end
   vfs.children.components.children[addr:sub(1,3)] = (inst.isDirectory and inst) or {read = inst.read, write = inst.write, isDirectory = false, nodename = n..seen[t]}
   seen[t] = seen[t]+1
   return true
