@@ -5,8 +5,6 @@ local readline = require("readline").readline
 
 local args, opts = shell.parse(...)
 
---error("less is broken currently, sorry :/")
-
 if #args == 0 then
   return shell.codes.argument
 end

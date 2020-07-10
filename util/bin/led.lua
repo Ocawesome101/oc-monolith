@@ -2,7 +2,7 @@
 
 local buffers = {}
 
-local help = [[LuaEd 0.4.0 (c) 2020 Ocawesome101. MIT License.
+local help = [[LuaEd 0.4.0 copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
 Commands:
 'h':     Show this help
 'e':     Open a file

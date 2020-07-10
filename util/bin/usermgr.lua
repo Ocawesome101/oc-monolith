@@ -57,7 +57,10 @@ end
 
 if #args == 0 then -- enter interactive mode
   interactive = true
-  print("usermgr (c) 2020 Ocawesome101 under the MIT license.")
+  print([[usermgr Copyright (C) 2020 Ocawesome101 under the GNU GPLv3.
+This program comes with ABSOLUTELY NO WARRANTY.
+This is free software, and you are welcome to redistribute it
+under certain conditions.]])
   while interactive do
     io.write("usermgr> ")
     local cmd = require("text").tokenize(io.read():gsub("\n",""))

@@ -6,15 +6,13 @@ local svc = require("initsvc")
 local args, opts = shell.parse(...)
 
 if #args < 1 or args[1] ~= "list" and #args < 2 then
-  shell.error("usage", "svc enable-<script|service>|disable|start|stop <service>\n       or: svc <service> <operation> ...\n       or: svc list")
+  shell.error("usage", "svc enable|disable|start|stop <service>\n       or: svc <service> <operation> ...\n       or: svc list")
   return shell.codes.argument
 end
 
 local ok, err
-if args[1] == "enable-service" then
-  ok, err = svc.enable(args[2], true)
-elseif args[1] == "enable-script" then
-  ok, err = svc.enable(args[2], false)
+if args[1] == "enable" then
+  ok, err = svc.enable(args[2])
 elseif args[1] == "disable" then
   ok, err = svc.disable(args[2])
 elseif args[1] == "start" then

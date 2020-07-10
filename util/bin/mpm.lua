@@ -132,7 +132,7 @@ end
 local function search()
 end
 
-local usage = [[MPM - the Monolith Package Manager, (c) 2020 Ocawesome101 under the MIT license.
+local usage = [[MPM - the Monolith Package Manager, copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
 Usage:
   mpm <command> ...
 

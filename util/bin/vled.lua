@@ -13,7 +13,14 @@ local args, opts = shell.parse(...)
 
 local help = opts.help or false
 if opts.help then
-  print()
+  print([[
+vled / Visual Lua EDitor Copyright (C) 2020 Ocawesome101 under the GNU GPLv3.
+usage:
+  vled [options] [file]
+
+options:
+  -s  --syntax[=LANG]   Force syntax highlighting on.
+  ]])
   return
 end
 

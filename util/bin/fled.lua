@@ -153,7 +153,7 @@ local function brep(b,l)
   opts.text = ""
 end
 
-local help = [[FLED - Fullscreen Lua EDitor (c) 2020 Ocawesome101 under the MIT license.
+local help = [[FLED - Fullscreen Lua EDitor copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
 Commands:
   o | open <file>       Open <file> for editing. <file> must exist in your filesystem.
   n | new  [name]       Create a new buffer with filename [name]. If no [name] is provided you will be prompted when saving.

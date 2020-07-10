@@ -11,7 +11,7 @@ local args, opts = shell.parse(...)
 local from = opts.from or args[1] or false
 local to = opts.to or args[2] or false
 
-local help = [[install (c) 2020 Ocawesome101 under the MIT license.
+local help = [[install copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
 usage:
     install --from=<from> --to=<to>
 or: install <from> <to>]]
