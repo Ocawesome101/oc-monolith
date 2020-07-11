@@ -15,7 +15,7 @@
         You should have received a copy of the GNU General Public License
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
-_G._START = computer.uptime()
+kernel._START = computer.uptime()
 
 local flags = ... or {}
 flags.init = flags.init or "/sbin/init.lua"
@@ -962,4 +962,5 @@ end
 
 kernel.thread.spawn(function()return ok(flags.runlevel or 3) end, flags.init, kernel.logger.panic)
 kernel.runlevel.setrunlevel(1)
+sandbox.kernel._FINISH = computer.uptime()
 kernel.thread.start()

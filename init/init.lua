@@ -17,6 +17,7 @@
 
 local maxrunlevel = ...
 local _INITVERSION = "InitMe 2020.7.10"
+local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
 local runlevel = kernel.runlevel
@@ -599,7 +600,14 @@ log("OK", "Started /sbin/getty    ")
 kernel.logger.setShown(false)
 logger.setShown(false)
 
-_G._BOOT = require("computer").uptime() - _START
+local _INITFINISH = package.loaded.computer.uptime()
+
+package.loaded.times = {
+  kernel_start  = kernel._START,
+  kernel_finish = kernel._FINISH,
+  init_start    = _INITSTART,
+  init_finish   = _INITFINISH
+}
 
 while true do
   coroutine.yield()

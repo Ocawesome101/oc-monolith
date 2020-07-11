@@ -3,6 +3,7 @@
 local thread = require("thread")
 local component = require("component")
 local computer = require("computer")
+package.loaded.times.getty_start = computer.uptime()
 local vt100 = require("vt100")
 local readline = require("readline")
 local stream = require("stream")
@@ -109,12 +110,10 @@ end
 
 getty.scan()
 
+package.loaded.times.getty_finish = computer.uptime()
+
 while true do
   local sig, pid, res = coroutine.yield()
-  if sig == "thread_errored" then
-    if res:sub(-1) ~= "\n" then res = res .. "\n" end
-    io.write("\27[31m" .. res)
-  end
   if sig == "component_added" or sig == "component_removed" then
     getty.scan()
   end

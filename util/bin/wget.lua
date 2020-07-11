@@ -5,7 +5,7 @@ local shell = require("shell")
 local text = require("text")
 
 if not component.isAvailable("internet") then
-  io.stderr:write("This program requires an internet card to run.")
+  io.stderr:write("This program requires an internet card to run.\n")
   return
 end
 
