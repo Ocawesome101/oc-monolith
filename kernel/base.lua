@@ -22,7 +22,7 @@ flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "2020.7.10"
+local _KERNEL_REVISION = "@[[os.date('%Y.%m.%d')]]"
 
 _G._OSVERSION = string.format("%s version %s", _KERNEL_NAME, _KERNEL_REVISION)
 
