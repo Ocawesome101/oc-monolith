@@ -12,6 +12,26 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "release",
+            "type": "shell",
+            "command": "./assemble.sh release",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "ocvm run",
+            "type": "shell",
+            "command": "./run",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

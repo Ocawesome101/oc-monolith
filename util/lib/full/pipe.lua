@@ -53,9 +53,9 @@ function pipe.new()
   return setmetatable(tbl, {__index = streamA}), setmetatable(tbl, {__index = streamB})
 end
 
-function pipe.popen(prog, mode, env)
+function pipe.popen(prog, pmode, env)
   checkArg(1, prog, "string")
-  checkArg(2, mode, "string", "nil")
+  checkArg(2, pmode, "string", "nil")
   mode = mode or "rw"
   prog = require("text").split(prog, " ")
   prog[1] = "/bin/" .. prog[1] .. ".lua"
@@ -65,7 +65,7 @@ function pipe.popen(prog, mode, env)
   end
   local input, output = pipe.new()
   local mode = {}
-  for m in mode:gmatch(".") do mode[m] = true end
+  for m in pmode:gmatch(".") do mode[m] = true end
   local orig_io = {i = io.input(), o = io.output()}
   if mode.r then io.output(output) end
   if mode.w then io.input(input) end
