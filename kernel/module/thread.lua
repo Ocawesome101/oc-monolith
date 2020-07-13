@@ -297,9 +297,7 @@ do
 
       if computer.freeMemory() < 1024 then -- oh no, we're out of memory
         kernel.logger.log("Low memory - collecting garbage")
-        for i=1, 10 do -- invoke GC
-          pullSignal(0)
-        end
+        collectgarbage()
         if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
           kernel.logger.panic("out of memory")
         end

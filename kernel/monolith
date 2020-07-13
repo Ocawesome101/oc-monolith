@@ -38,6 +38,19 @@ if computer.setArchitecture then
   computer.setArchitecture("Lua 5.3")
 end
 
+function collectgarbage()
+  local missed = {}
+  for i=1,10,1 do
+    local sig = table.pack(computer.pullSignal(0))
+    if sig.n > 0 then
+      table.insert(missed, sig)
+    end
+  end
+  for i=#missed,1,-1 do
+    computer.pushSignal(table.unpack(missed[i]))
+  end
+end
+
 
 -- component API metatable allowing component.filesystem, and component.get --
 
@@ -853,9 +866,7 @@ do
 
       if computer.freeMemory() < 1024 then -- oh no, we're out of memory
         kernel.logger.log("Low memory - collecting garbage")
-        for i=1, 10 do -- invoke GC
-          pullSignal(0)
-        end
+        collectgarbage()
         if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
           kernel.logger.panic("out of memory")
         end

@@ -38,6 +38,19 @@ if computer.setArchitecture then
   computer.setArchitecture("Lua 5.3")
 end
 
+function collectgarbage()
+  local missed = {}
+  for i=1,10,1 do
+    local sig = table.pack(computer.pullSignal(0))
+    if sig.n > 0 then
+      table.insert(missed, sig)
+    end
+  end
+  for i=#missed,1,-1 do
+    computer.pushSignal(table.unpack(missed[i]))
+  end
+end
+
 --#include "module/component.lua"
 --#include "module/users.lua"
 --#include "module/module.lua"
