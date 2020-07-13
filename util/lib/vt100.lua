@@ -192,6 +192,8 @@ function vt.emu(gpu)
                 fg, bg = bg, fg
               elseif n > 29 and n < 38 then
                 fg = colors[n - 29]
+              elseif n == 39 then
+                fg = colors[8]
               elseif n > 39 and n < 48 then
                 bg = colors[n - 39]
               elseif n > 89 and n < 98 then

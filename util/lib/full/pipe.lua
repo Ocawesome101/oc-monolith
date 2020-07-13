@@ -1,4 +1,5 @@
 local pipe = require("pipe")
+local shell = require("shell")
 
 local streamA = {
   read = function(self, len)
