@@ -20,7 +20,7 @@ for i=1, #args, 1 do
       return 1
     end
     if not fs.exists(parent) then
-      shell.error("mkdir", string.format("cannot create directory '%s': no such file or directory", args[i]))
+      shell.error("mkdir", string.format("cannot create directory '%s': no such file or directory", parent))
       return 1
     end
   end
