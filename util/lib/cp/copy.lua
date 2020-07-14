@@ -11,10 +11,6 @@ local seen = {}
 local opts = {}
 local startfs
 
-function cp.reset()
-  startfs = nil
-end
-
 function cp.copy(...)
   local args = {...}
   if type(args[1]) == "table" then opts = table.remove(args, 1) end
@@ -57,7 +53,7 @@ function cp.copy(...)
     elseif fs.isDirectory(cpath) then
       print("cp: -r not specified: skipping " .. path)
     else
-      fs.copy(cpath, to)
+      fs.copy(cpath, fs.concat(to, path))
     end
   end
 end

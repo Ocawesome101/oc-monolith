@@ -21,7 +21,7 @@
     exec=function()
       log("info","Building Monolith")
       PWD=os.getenv("PWD")
-      PROC=require(_LB_PROC)
+      PROC=function(...)os.execute(_LB_PROC,...)end
       BUILD=PWD.."/build/"
       UTIL=PWD.."/util/"
       KERN=PWD.."/kernel/"
@@ -34,7 +34,9 @@
       log("info","Assembling utilities")
       os.execute("rm -rf "..BUILD)
       os.execute("mkdir -p "..BUILD.." "..BUILD.."usr/man/")
-      os.execute("cp -r util/* "..BUILD)
+      os.execute("cd "..UTIL)
+      os.execute("cp -rv * "..BUILD)
+      os.execute("cd "..PWD)
       log("ok","Assembled utilities")
     end
   },

@@ -292,7 +292,7 @@ function shell.execute(...)
   if args[2] == nil or type(args[2]) == "table" then -- discard the 'env' argument OpenOS programs may supply
     pcall(table.remove, args, 2)
   end
-  local commands = text.split(table.concat(args, " "), ";")
+  local commands = text.split(shell.expand(table.concat(args, " ")), ";")
   for i=1, #commands, 1 do
     local x = execute(commands[i])
     if x and x ~= 0 then

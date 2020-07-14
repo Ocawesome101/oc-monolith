@@ -14,7 +14,7 @@ end
 for i=1, #args, 1 do
   local makeme = fs.canonical(args[i])
   local parent = fs.path(makeme)
-  if NO then
+  if not NO then
     if fs.exists(makeme) then
       shell.error("mkdir", string.format("cannot create directory '%s': file exists", args[i]))
       return 1
