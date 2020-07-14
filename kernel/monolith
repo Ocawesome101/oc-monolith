@@ -664,7 +664,7 @@ do
       io      = {                               -- thread I/O streams
         [0] = current.data.io[0],
         [1] = current.data.io[1],
-        [2] = current.data.io[2]
+        [2] = current.data.io[2] or current.data.io[1]
       }
     }
     if not new.env.PWD then

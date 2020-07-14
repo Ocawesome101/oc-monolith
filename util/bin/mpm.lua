@@ -1,6 +1,6 @@
 -- mpm - the Monolith Package Manager --
 
-local   shell  = require (   "shell"  )
+local  shell   = require (   "shell"  )
 local  config  = require (  "config"  )
 local   cpio   = require (   "cpio"   )
 local    fs    = require ("filesystem")
@@ -17,7 +17,7 @@ cfg.baseURL = cfg.baseURL or "https://raw.githubusercontent.com"
 config.save(cfg, "/etc/mpm/mpm.cfg")
 
 local function download(url, file)
-  logger:wait("Downloading", url, "as", file)
+  logger:warn("Downloading", url, "as", file)
   local handle = internet.request(url)
   local out, err = io.open(file, "w")
   if not out then
@@ -32,7 +32,11 @@ local function download(url, file)
 end
 
 local function getParts(s)
-  return s:match("(.+)[/+](.+)[/+](.+)") or nil, s:match("(.+)[/+](.+)")
+  local a, b, c = s:match("(.+)[/+](.+)[/+](.+)")
+  if not (a and b and c) then
+    return nil, s:match("(.+)[/+](.+)")
+  end
+  return a, b, c
 end
 
 local function randomFileName()
@@ -48,9 +52,8 @@ local function check(user, repo, pkg)
   return ok
 end
 
-local function getPackageConfig(package)
-  local user, repo, pkg = getParts(package)
-  logger:info(package, user, repo, pkg)
+local function getPackageConfig(pakg)
+  local user, repo, pkg = getParts(pakg)
   if not user then
     logger:info("No username provided - checking name list from configuration")
     for _, v in pairs(cfg.names) do
@@ -70,14 +73,15 @@ local function getPackageConfig(package)
   local exTo = string.format("/tmp/%s", pkg)
   local file = string.format("/tmp/%s.cpio", pkg)
   download(url, file)
+  logger:info("Extracting", file, "to", exTo)
   cpio.extract(file, exTo)
   return exTo, string.format("%s/%s/%s", user, repo, pkg), config.load(string.format("%s/package.cfg", exTo))
 end
 
-local function install(package)
-  logger:info("Installing package", package)
+local function install(pack)
+  logger:info("Installing package", pack)
   local installed = config.load("/etc/mpm/installed.cfg")
-  local path, urp, cfg = getPackageConfig(package)
+  local path, urp, cfg = getPackageConfig(pack)
   if not (cfg.name and cfg.creator and cfg.files) then
     logger:fail("\27[91mError: Invalid package configuration file (missing one of: name, creator, files)")
     return shell.codes.failure
