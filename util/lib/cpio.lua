@@ -38,7 +38,7 @@ function cpio.extract(file, dir)
     if (_dir) then
       filesystem.makeDirectory(dir.."/".._dir)
     end
-    local hand = io.open(dent.name, "w")
+    local hand = assert(io.open(dir.."/"..dent.name, "w"))
     hand:write(file:read(dent.filesize))
     hand:close()
   end

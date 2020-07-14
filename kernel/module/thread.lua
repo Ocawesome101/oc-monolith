@@ -49,7 +49,7 @@ do
   end
 
   local function getHandler(thd)
-    local p = threads[thd.parent] or {handler = kernel.logger.panic}
+    local p = threads[thd.parent] or {}
     return thd.handler or p.handler or getHandler(p) or kernel.logger.panic
   end
 

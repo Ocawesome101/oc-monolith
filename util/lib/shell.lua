@@ -273,7 +273,14 @@ local function execute(cmd)
         running = true
       end
     end
-    coroutine.yield(0.01)
+    local sig = table.pack(coroutine.yield(0)) -- effectively busywait
+    if sig[1] == "thread_errored" then
+      for k,v in pairs(pids) do
+        if sig[2] == v then
+          print("\27[31m" .. sig[3] .. "\27[37m")
+        end
+      end
+    end
   end
   return true
 end
