@@ -268,9 +268,11 @@ local function execute(cmd)
   local running = true
   while running do
     running = false
-    for _, pid in pairs(pids) do
+    for i, pid in pairs(pids) do
       if thread.info(pid) then
         running = true
+      else
+        pids[i] = nil
       end
     end
     local sig = table.pack(coroutine.yield(0)) -- effectively busywait

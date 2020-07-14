@@ -603,6 +603,7 @@ do
     for pid, thd in pairs(threads) do
       if checkDead(thd) then
         computer.pushSignal("thread_died", pid)
+        kernel.logger.log("thread died: " .. pid .. " - " .. thd.name)
         dead[#dead + 1] = pid
       end
     end
@@ -626,6 +627,7 @@ do
     local h = getHandler(thd)
     threads[thd.pid] = nil
     computer.pushSignal("thread_errored", thd.pid, string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
+    kernel.logger.log("thread errored: " .. string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
     h(thd.name .. ": " .. err)
   end
 

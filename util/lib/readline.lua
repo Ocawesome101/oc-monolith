@@ -89,6 +89,8 @@ function rl.readlinebasic(screen, n)
     coroutine.yield()
   end
   if buf.buffer:find("\4") and buf.eofenabled then
+    buf.buffer = ""
+    io.write("\n")
     os.exit()
   end
   local n = n or buf.buffer:find("\n")

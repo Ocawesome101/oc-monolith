@@ -409,6 +409,7 @@ do
     if thread.info(thread.current()).parent then
       thread.ipc(thread.info(thread.current()).parent, "child_exited", thread.current())
     end
+    coroutine.yield(0)
   end
 
   kernel.logger.y = kernel.logger.y - 1
