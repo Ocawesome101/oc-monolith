@@ -135,22 +135,25 @@ end
 local function search()
 end
 
-local usage = [[MPM - the Monolith Package Manager, copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
+local usage = [[
+MPM - the Monolith Package Manager, copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
 Usage:
   mpm <command> ...
 
 Available commands are:
   install <package>     Where <package> is in the form of [<user>/]<repo>/<package>, installs <package>. Does not resolve dependencies.
   list                  Show all installed packages.
-  search  <package>     Where <package> is in the form of [<user>/]<repo>/<package>.  Self explanatory.
+  search  <package>     Where <package> is in the form of [<user>/]<repo>/<package>. Self explanatory.
   remove  <package>     Where <package> is in the form of <user>/<repo>/<package>, removes <package>. Does not remove dependencies or warn if <package> is a dependency.
+  clean                 Clean the package cache. Equivalent to `rm -r /var/cache/mpm/`.
 ]]
 
 local ops = {
   install = install,
   list = list,
   search = search,
-  remove = remove
+  remove = remove,
+  clean = function()shell.execute("rm -r /var/cache/mpm")end
 }
 
 local args, opts = shell.parse(...)
