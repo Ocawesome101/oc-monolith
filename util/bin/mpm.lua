@@ -15,6 +15,7 @@ local cfg = config.load("/etc/mpm/mpm.cfg")
 cfg.names = cfg.names or {"ocawesome101"}
 cfg.baseURL = cfg.baseURL or "https://raw.githubusercontent.com"
 config.save(cfg, "/etc/mpm/mpm.cfg")
+fs.makeDirectory("/var/cache/mpm")
 
 local function download(url, file)
   logger:warn("Downloading", url, "as", file)
@@ -70,8 +71,8 @@ local function getPackageConfig(pakg)
     end
   end
   local url = string.format("%s/%s/%s/master/packages/%s.cpio", cfg.baseURL, user, repo, pkg)
-  local exTo = string.format("/tmp/%s", pkg)
-  local file = string.format("/tmp/%s.cpio", pkg)
+  local exTo = string.format("/var/cache/mpm/%s", pkg)
+  local file = string.format("/var/cache/mpm/%s.cpio", pkg)
   download(url, file)
   logger:info("Extracting", file, "to", exTo)
   cpio.extract(file, exTo)
