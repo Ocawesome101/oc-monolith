@@ -9,11 +9,16 @@ local readline = require("readline")
 local stream = require("stream")
 local config = require("config")
 
-local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua",cursorblink=true})
+local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua"})
 local login = cfg.start or "/sbin/login.lua"
-local blink = cfg.cursorblink
 config.save(cfg, "/etc/getty.conf")
-if not require("runlevel").levels[require("runlevel").max()].multiuser then login = "/bin/sh.lua"  end
+if not require("runlevel").levels[require("runlevel").max()].multiuser then
+  login = "/bin/sh.lua"
+  local users = require("users")
+  users.getname(0)
+  os.setenv("UID", 0)
+  os.setenv("USER", "root")
+end
 
 local getty = {}
 

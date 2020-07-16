@@ -1,12 +1,15 @@
 -- boot loader for the Monolith kernel. ensures compatibility with OpenLoader. --
 
+-- Kernel flags. DO NOT EDIT ANYTHING OTHER THAN THIS TABLE.
+local flags = {
+  init = "/sbin/init.lua",  -- string: script to load as init
+  quiet = false,            -- boolean: disable boot logging?
+  runlevel = 3              -- number: maximum system runlevel
+}
+-- Below this line, do not touch this file except for debugging purposes!
+
 _G._START = computer.uptime()
 
-local flags = {
-  init = "/sbin/init.lua",
-  quiet = false,
-  runlevel = 3
-}
 
 _G.kernel = {}
 

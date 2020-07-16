@@ -20,6 +20,7 @@ kernel._START = computer.uptime()
 local flags = ... or {}
 flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
+flags.runlevel = flags.runlevel or 3
 
 local _KERNEL_NAME = "Monolith"
 local _KERNEL_REVISION = "@[{os.date('%Y.%m.%d')}]"
@@ -46,7 +47,7 @@ function collectgarbage()
       table.insert(missed, sig)
     end
   end
-  for i=#missed,1,-1 do
+  for i=1,#missed,1 do
     computer.pushSignal(table.unpack(missed[i]))
   end
 end

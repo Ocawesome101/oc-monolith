@@ -152,6 +152,7 @@ do
     for pid, _ in pairs(threads) do
       t[#t + 1] = pid
     end
+    table.sort(t, function(a,b) return a < b end)
     return t
   end
 

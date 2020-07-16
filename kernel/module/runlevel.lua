@@ -41,7 +41,7 @@ do
     return true
   end
 
-  function rl.getlevel()
+  function rl.getrunlevel()
     return level
   end
 
