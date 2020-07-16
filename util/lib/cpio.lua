@@ -38,7 +38,6 @@ function cpio.extract(file, dir)
   local function fwrite()
     local _dir = dent.name:match("(.+)/.*%.?.+")
     if (_dir) then
-      print("MKDIR: "..dir.."/".._dir)
       filesystem.makeDirectory(dir.."/".._dir)
     end
     local hand = assert(io.open(dir.."/"..dent.name, "w"))
@@ -63,7 +62,7 @@ function cpio.extract(file, dir)
     local name = file:read(dent.namesize):sub(1, dent.namesize-1)
     if (name == "TRAILER!!!") then break end
     dent.name = name
-    print(name)
+    print(dir.."/"..name)
     table.insert(extracted, name)
     if (dent.namesize % 2 ~= 0) then
       file:seek("cur", 1)
