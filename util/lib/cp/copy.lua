@@ -53,7 +53,7 @@ function cp.copy(...)
     elseif fs.isDirectory(cpath) then
       print("cp: -r not specified: skipping " .. path)
     else
-      fs.copy(cpath, fs.concat(to, path))
+      fs.copy(cpath, to)
     end
   end
 end

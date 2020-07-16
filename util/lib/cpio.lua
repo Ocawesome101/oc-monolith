@@ -10,6 +10,8 @@ function cpio.extract(file, dir)
   dir = dir or os.getenv("PWD")
   local file = io.open(file, "rb")
   local extracted = {}
+  print(dir)
+  filesystem.makeDirectory(dir)
 
   local dent = {
     magic = 0,
@@ -36,6 +38,7 @@ function cpio.extract(file, dir)
   local function fwrite()
     local _dir = dent.name:match("(.+)/.*%.?.+")
     if (_dir) then
+      print("MKDIR: "..dir.."/".._dir)
       filesystem.makeDirectory(dir.."/".._dir)
     end
     local hand = assert(io.open(dir.."/"..dent.name, "w"))

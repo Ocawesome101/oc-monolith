@@ -15,7 +15,11 @@ local cfg = config.load("/etc/mpm/mpm.cfg")
 cfg.names = cfg.names or {"ocawesome101"}
 cfg.baseURL = cfg.baseURL or "https://raw.githubusercontent.com"
 config.save(cfg, "/etc/mpm/mpm.cfg")
-fs.makeDirectory("/var/cache/mpm")
+local ok, err = fs.makeDirectory("/var/cache/mpm")
+if not ok then
+  shell.error("mpm", err)
+  os.exit(-1)
+end
 
 local function download(url, file)
   logger:warn("Downloading", url, "as", file)
@@ -23,7 +27,8 @@ local function download(url, file)
   local out, err = io.open(file, "w")
   if not out then
     handle.close()
-    error(err)
+    shell.error("mpm", err)
+    os.exit(-1)
   end
   for chunk in handle do
     out:write(chunk)
