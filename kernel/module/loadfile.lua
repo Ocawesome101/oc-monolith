@@ -1,5 +1,7 @@
 -- basic loadfile function --
 
+kernel.logger.log("initializing loadfile")
+
 local function loadfile(file, mode, env)
   checkArg(1, file, "string")
   checkArg(2, mode, "string", "nil")
@@ -23,3 +25,5 @@ local function loadfile(file, mode, env)
 end
 
 sandbox.loadfile = loadfile
+
+kernel.logger.log("loadfile done")

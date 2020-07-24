@@ -1,7 +1,7 @@
 -- kernel modules-ish --
 
 do
-  kernel.logger.log("initializing dynamic kernel module service")
+  kernel.logger.log("dkms: initializing dynamic kernel module service")
   local m = {}
   local l = {}
   kernel.modules = l
@@ -12,6 +12,7 @@ do
     if kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
+    kernel.logger.log("dkms: loading module: " .. mod)
     local handle, err = kernel.filesystem.open("/lib/modules/" .. mod .. ".lua", "r")
     if not handle then
       return nil, err
@@ -31,9 +32,12 @@ do
     if kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
+    kernel.logger.log("dkms: unloading module: " .. mod)
     l[mod] = nil
     return true
   end
 
   kernel.module = m
+
+  kernel.logger.log("dkms: done")
 end

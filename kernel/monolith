@@ -23,7 +23,7 @@ flags.quiet = flags.quiet or false
 flags.runlevel = flags.runlevel or 3
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "2020.07.15"
+local _KERNEL_REVISION = "2020.07.23"
 
 _G._OSVERSION = string.format("%s version %s", _KERNEL_NAME, _KERNEL_REVISION)
 
@@ -39,8 +39,15 @@ if computer.setArchitecture then
   computer.setArchitecture("Lua 5.3")
 end
 
+if _VERSION ~= "Lua 5.3" then
+  kernel.logger.panic("Lua 5.3 is not available but is required")
+end
+
+kernel.logger.log("CPU architecture is Lua 5.3")
+
 function collectgarbage()
   local missed = {}
+  kernel.logger.log("Collecting garbage")
   for i=1,10,1 do
     local sig = table.pack(computer.pullSignal(0))
     if sig.n > 0 then
@@ -86,13 +93,15 @@ do
   }
 
   setmetatable(component, mt)
+
+  kernel.logger.log("component: done")
 end
 
 
 -- users --
 
 do
-  kernel.logger.log("users: initializing subsystem")
+  kernel.logger.log("users: initializing user subsystem")
   local cuid = 0
 
   local u = {}
@@ -101,6 +110,7 @@ do
   u.passwd = {}
   u.psave = function()end
   kernel.logger.log("NOTE: some blanks here are expected to be filled by init")
+  kernel.logger.log("NOTE: users.sha, users.passwd, and u.psave are blank!")
 
   local sha = u.sha
   local function hex(s)
@@ -155,7 +165,7 @@ end
 -- kernel modules-ish --
 
 do
-  kernel.logger.log("initializing dynamic kernel module service")
+  kernel.logger.log("dkms: initializing dynamic kernel module service")
   local m = {}
   local l = {}
   kernel.modules = l
@@ -166,6 +176,7 @@ do
     if kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
+    kernel.logger.log("dkms: loading module: " .. mod)
     local handle, err = kernel.filesystem.open("/lib/modules/" .. mod .. ".lua", "r")
     if not handle then
       return nil, err
@@ -185,11 +196,14 @@ do
     if kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
+    kernel.logger.log("dkms: unloading module: " .. mod)
     l[mod] = nil
     return true
   end
 
   kernel.module = m
+
+  kernel.logger.log("dkms: done")
 end
 
 
@@ -200,11 +214,7 @@ do
   local fs = {}
   local mounts = {}
 
-  kernel.logger.log("TODO: do something about file protection")
-  local protected = {
-    "/boot",
-    "/sbin"
-  }
+  kernel.logger.log("TODO: do something about file permissions!")
 
   local function split(path)
     local segments = {}
@@ -230,7 +240,7 @@ do
     return fs.canonical(table.concat(s, "/", 1, #s - 1))
   end
 
-  kernel.logger.log("fs: initializing path resolution")
+  kernel.logger.log("fs: path resolution")
   local function resolve(path, noexist)
     if path == "." then path = kernel.thread.info().data.env.PWD or "/" end
     if path:sub(1,1) ~= "/" then path = (kernel.thread.info().data.env.PWD or "/") .. path end
@@ -274,6 +284,7 @@ do
     return setmetatable(files, {__call = function() i=i+1 return files[i] or nil end})
   end
 
+  kernel.logger.log("fs: file handles")
   local function fread(self, amount)
     checkArg(1, amount, "number", "string")
     if amount == "*a" then
@@ -486,13 +497,15 @@ do
   fs.mount(computer.tmpAddress(), "/tmp")
 
   kernel.filesystem = fs
+
+  kernel.logger.log("fs: done")
 end
 
 
 -- computer.shutdown stuff --
 
 do
-  kernel.logger.log("wrapping computer.shutdown")
+  kernel.logger.log("computer: wrapping computer.shutdown")
   local shutdown = computer.shutdown
   local closeAll = kernel.filesystem.closeAll
   kernel.filesystem.closeAll = nil
@@ -513,13 +526,14 @@ do
     kernel.logger.log("shut down")
     shutdown(reboot)
   end
+  kernel.logger.log("computer: done")
 end
 
 
 -- run levels --
 
 do
-  kernel.logger.log("innitializing runlevels")
+  kernel.logger.log("runlevel: setting up system runlevels")
   local rl = {}
   rl.levels = {
     [0] = {
@@ -564,14 +578,14 @@ do
   end
 
   kernel.runlevel = rl
-  kernel.logger.log("runlevels initialized")
+  kernel.logger.log("runlevel: done")
 end
 
 
 -- big fancy scheduler. this may not be the best but at least it's pretty reliable! --
 
 do
-  kernel.logger.log("initializing scheduler")
+  kernel.logger.log("thread: initializing cooperative scheduler")
   local thread, threads, sbuf, last, cur = {}, {}, {}, 0, 0
   local pullSignal = computer.pullSignal
   local liveCoro = coroutine.create(function()end)
@@ -679,7 +693,7 @@ do
     return last
   end
 
-  kernel.logger.log("(re)defining login, logout to be thread-local")
+  kernel.logger.log("thread: (re)defining login, logout to be thread-local")
   -- define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
@@ -821,6 +835,7 @@ do
 
   function thread.start()
     thread.start = nil
+    kernel.logger.log("thread: starting main loop")
     while #threads > 0 do
       local run = {}
       for pid, thd in pairs(threads) do
@@ -877,10 +892,11 @@ do
       end
       cleanup()
     end
+    kernel.logger.log("thread: exited cleanly! this SHOULD NOT HAPPEN!")
   end
 
   kernel.thread = thread
-  kernel.logger.log("scheduler initialized")
+  kernel.logger.log("thread: initialized scheduler")
 end
 
 
@@ -890,6 +906,7 @@ kernel.logger.log("wrapping type(), error()")
 
 local typ, err = type, error
 
+kernel.logger.log("error: forced stack tracebacks")
 function _G.error(e, l)
   local pref = "/tmp/"
   if flags.debug and not kernel.filesystem.get("/").isReadOnly() then
@@ -901,6 +918,7 @@ function _G.error(e, l)
   err(e, l)
 end
 
+kernel.logger.log("type: custom types")
 function _G.type(obj)
   local t = typ(obj)
   if t == "table" and getmetatable(obj) and getmetatable(obj).__type then
@@ -936,12 +954,16 @@ end
 sandbox = kernel.table_copy(_G)
 sandbox._G = sandbox
 sandbox.computer.pullSignal = coroutine.yield
+kernel.logger.log("sandbox: add kernel-space users module")
 sandbox.kernel.users = kernel.users -- this is a hack fix for a weird annoying bug
+kernel.logger.log("sandbox: add kernel-space logger module")
 sandbox.kernel.logger = kernel.logger -- ensure that any kernel logs are in the proper spot after init logging
 kernel.logger.log("sandbox finalized")
 
 
 -- basic loadfile function --
+
+kernel.logger.log("initializing loadfile")
 
 local function loadfile(file, mode, env)
   checkArg(1, file, "string")
@@ -955,7 +977,7 @@ local function loadfile(file, mode, env)
   end
   local data = ""
   repeat
-    local chunk = handle:read(math.huge)
+    local chunk = handle:read(64)
     data = data .. (chunk or "")
   until not chunk
   handle:close()
@@ -966,6 +988,8 @@ local function loadfile(file, mode, env)
 end
 
 sandbox.loadfile = loadfile
+
+kernel.logger.log("loadfile done")
 
 
 kernel.logger.log("loading init from " .. flags.init)

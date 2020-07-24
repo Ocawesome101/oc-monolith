@@ -1,7 +1,7 @@
 -- users --
 
 do
-  kernel.logger.log("users: initializing subsystem")
+  kernel.logger.log("users: initializing user subsystem")
   local cuid = 0
 
   local u = {}
@@ -10,6 +10,7 @@ do
   u.passwd = {}
   u.psave = function()end
   kernel.logger.log("NOTE: some blanks here are expected to be filled by init")
+  kernel.logger.log("NOTE: users.sha, users.passwd, and u.psave are blank!")
 
   local sha = u.sha
   local function hex(s)

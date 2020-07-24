@@ -1,12 +1,13 @@
 -- computer.shutdown stuff --
 
 do
-  kernel.logger.log("wrapping computer.shutdown")
+  kernel.logger.log("computer: wrapping computer.shutdown")
   local shutdown = computer.shutdown
   local closeAll = kernel.filesystem.closeAll
   kernel.filesystem.closeAll = nil
   function computer.shutdown(reboot)
     checkArg(1, reboot, "boolean", "nil")
+    kernel.logger.setShown(true)
     local running = kernel.thread.threads()
     computer.pushSignal("shutdown")
     kernel.logger.log("shutting down")
@@ -22,4 +23,5 @@ do
     kernel.logger.log("shut down")
     shutdown(reboot)
   end
+  kernel.logger.log("computer: done")
 end

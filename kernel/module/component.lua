@@ -31,4 +31,6 @@ do
   }
 
   setmetatable(component, mt)
+
+  kernel.logger.log("component: done")
 end

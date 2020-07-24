@@ -1,7 +1,7 @@
 -- big fancy scheduler. this may not be the best but at least it's pretty reliable! --
 
 do
-  kernel.logger.log("initializing scheduler")
+  kernel.logger.log("thread: initializing cooperative scheduler")
   local thread, threads, sbuf, last, cur = {}, {}, {}, 0, 0
   local pullSignal = computer.pullSignal
   local liveCoro = coroutine.create(function()end)
@@ -109,7 +109,7 @@ do
     return last
   end
 
-  kernel.logger.log("(re)defining login, logout to be thread-local")
+  kernel.logger.log("thread: (re)defining login, logout to be thread-local")
   -- define kernel.users stuff to be thread-local. Not done in module/users.lua as it requires low-level thread access.
   function kernel.users.login(uid, password)
     checkArg(1, uid, "number")
@@ -251,6 +251,7 @@ do
 
   function thread.start()
     thread.start = nil
+    kernel.logger.log("thread: starting main loop")
     while #threads > 0 do
       local run = {}
       for pid, thd in pairs(threads) do
@@ -307,8 +308,9 @@ do
       end
       cleanup()
     end
+    kernel.logger.log("thread: exited cleanly! this SHOULD NOT HAPPEN!")
   end
 
   kernel.thread = thread
-  kernel.logger.log("scheduler initialized")
+  kernel.logger.log("thread: initialized scheduler")
 end

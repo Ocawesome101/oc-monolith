@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.07.15"
+local _INITVERSION = "InitMe 2020.07.23"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
@@ -477,6 +477,7 @@ runlevel.setrunlevel(3)
 function runlevel.max()
   return maxrunlevel
 end
+
 if runlevel.levels[maxrunlevel].services then
   log("WAIT", "Initializing initsvc")
 
@@ -542,7 +543,7 @@ if runlevel.levels[maxrunlevel].services then
     if type(svc[service]) == "table" then
       pcall(svc[service].stop)
     else
-      thread.kill(svc[service])
+      thread.kill(svc[service], 9)
     end
     svc[service] = nil
     return true

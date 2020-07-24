@@ -5,11 +5,7 @@ do
   local fs = {}
   local mounts = {}
 
-  kernel.logger.log("TODO: do something about file protection")
-  local protected = {
-    "/boot",
-    "/sbin"
-  }
+  kernel.logger.log("TODO: do something about file permissions!")
 
   local function split(path)
     local segments = {}
@@ -35,7 +31,7 @@ do
     return fs.canonical(table.concat(s, "/", 1, #s - 1))
   end
 
-  kernel.logger.log("fs: initializing path resolution")
+  kernel.logger.log("fs: path resolution")
   local function resolve(path, noexist)
     if path == "." then path = kernel.thread.info().data.env.PWD or "/" end
     if path:sub(1,1) ~= "/" then path = (kernel.thread.info().data.env.PWD or "/") .. path end
@@ -79,6 +75,7 @@ do
     return setmetatable(files, {__call = function() i=i+1 return files[i] or nil end})
   end
 
+  kernel.logger.log("fs: file handles")
   local function fread(self, amount)
     checkArg(1, amount, "number", "string")
     if amount == "*a" then
@@ -291,4 +288,6 @@ do
   fs.mount(computer.tmpAddress(), "/tmp")
 
   kernel.filesystem = fs
+
+  kernel.logger.log("fs: done")
 end

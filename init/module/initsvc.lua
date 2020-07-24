@@ -3,6 +3,7 @@
 function runlevel.max()
   return maxrunlevel
 end
+
 if runlevel.levels[maxrunlevel].services then
   log("WAIT", "Initializing initsvc")
 
@@ -68,7 +69,7 @@ if runlevel.levels[maxrunlevel].services then
     if type(svc[service]) == "table" then
       pcall(svc[service].stop)
     else
-      thread.kill(svc[service])
+      thread.kill(svc[service], 9)
     end
     svc[service] = nil
     return true
