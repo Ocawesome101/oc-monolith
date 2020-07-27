@@ -59,7 +59,7 @@ local function listener()
   end
 end
 
-thread.spawn(listener, "readline", error)
+thread.spawn(listener, "[readline]", error)
 
 function rl.addscreen(screen, gpu)
   checkArg(1, screen, "string")

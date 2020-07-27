@@ -67,7 +67,7 @@ function pipe.chain(progs)
           table.unpack(prog, 2, #prog)
         )
       end,
-      prog[1],                          --name
+      table.concat(prog, " "),          --name
       handler                           --handler
     ))
   end

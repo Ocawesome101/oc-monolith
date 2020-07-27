@@ -529,7 +529,7 @@ if runlevel.levels[maxrunlevel].services then
       osvc[service] = senv
       thread.spawn(senv.start, service, handler or print)
     end]]
-    local pid = thread.spawn(ok, service, handler or error)
+    local pid = thread.spawn(ok, "["..service.."]", handler or error)
     thread.orphan(pid)
     svc[service] = pid
     return true
@@ -608,14 +608,14 @@ if runlevel.levels[maxrunlevel].services then
   log("OK", "Initialized initsvc")
 end
 
-log("WAIT", "Starting /sbin/getty")
+log("WAIT", "Starting getty")
 local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
   panic("GETTY load failed: " .. err)
 end
 kernel.logger.y = kernel.logger.y - 1
-require("thread").spawn(ok, "/sbin/getty.lua", error)
-log("OK", "Started /sbin/getty    ")
+require("thread").spawn(ok, "getty", error)
+log("OK", "Started getty    ")
 
 
 kernel.logger.setShown(false)

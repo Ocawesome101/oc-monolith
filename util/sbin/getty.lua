@@ -10,7 +10,10 @@ local stream = require("stream")
 local config = require("config")
 
 local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua"})
-local login = cfg.start or "/sbin/login.lua"
+local login = cfg.login or "/sbin/login.lua"
+local login_name = cfg.login_name or "login"
+cfg.login_name = login_name
+cfg.login = login
 config.save(cfg, "/etc/getty.conf")
 if not require("runlevel").levels[require("runlevel").max()].multiuser then
   login = "/bin/sh.lua"
@@ -101,7 +104,7 @@ function getty.scan()
       ios.tty = true
       io.input(ios)
       io.output(ios)
-      local pid = thread.spawn(ok, login, error)
+      local pid = thread.spawn(ok, login_name or login, error)
       gpus[gpu].bound = pid
       gpus[gpu].screen = screen
       screens[screen].bound = pid

@@ -2,6 +2,7 @@ local computer = require("computer")
 local shell = require("shell")
 local thread = require("thread")
 local builtins = shell.builtins
+local aliases = shell.aliases
 
 builtins.unset = function(...)
   local ust, opts = shell.parse(...)
@@ -88,4 +89,9 @@ builtins.builtin = function(b, ...)
 end
 builtins.whoami = function()
   print(os.getenv("USER"))
+end
+builtins.builtins = function()
+  for k, v in pairs(builtins) do
+    print(k)
+  end
 end

@@ -1,0 +1,10 @@
+EDITOR=/bin/vled.lua
+PS1='\27[32m\u\27[37m@\27[32m\h\27[37m: \27[34m\W\27[37m\$ '
+
+alias reboot='shutdown -r'
+alias poweroff='shutdown -P'
+alias logout='exit'
+alias ll='ls -l'
+alias la='ls -a'
+alias lh='ls -lh'
+alias edit='$EDITOR'

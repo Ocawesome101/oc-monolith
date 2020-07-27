@@ -5,7 +5,8 @@ local sh = require("sh")
 local readline = require("readline").readline
 local thread = require("thread")
 
-dofile("/etc/profile.lua")
+--dofile("/etc/profile.lua")
+sh.execute("/etc/profile")
 local exit = false
 local oexit = shell.exit
 function shell.exit()

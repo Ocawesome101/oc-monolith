@@ -99,8 +99,7 @@ end
 
 function shell.expand(str)
   checkArg(1, str, "string")
-  -- variable-brace expansion
-  -- ...and brace expansion will come eventually
+  -- variable-in-brace expansion and brace expansion will come eventually
   -- variable expansion
   for var in str:gmatch("%$([%w_#@]+)") do
     str = str:gsub("%$" .. var, os.getenv(var) or "")
@@ -179,6 +178,7 @@ function shell.altparse(...)
   end
   return args, opts
 end
+
 -- fancier split that deals with args like `prog print "this is cool" --text="this is also cool"`
 function shell.split(str)
   checkArg(1, str, "string")
@@ -235,8 +235,17 @@ function shell.resolve(path, ext)
   return fs.canonical(path)
 end
 
+local function split(str, chr)
+  local sep = {}
+  local pat = string.format("[^%%%s]+", chr)
+  for seg in str:gmatch(pat) do
+    sep[#sep + 1] = seg
+  end
+  return sep
+end
+
 local function execute(cmd)
-  local commands = text.split(shell.expand(cmd), "|")
+  local commands = split(shell.expand(cmd), "|")
   local has_builtin = false
   local builtin = {}
   for k, v in pairs(commands) do
@@ -246,12 +255,21 @@ local function execute(cmd)
       commands[k][1] = shell.expand(aliases[commands[k][1]])
       commands[k] = shell.split(table.concat(commands[k], " "))
     end
+    if commands[k][1]:match("(%S+)=(%S+)") then
+      shell.builtins.set(commands[k][1])
+      table.remove(commands[k], 1)
+    end
+    if #commands[k] == 0 then
+      table.remove(commands, k)
+      goto skip
+    end
     if shell.builtins[commands[k][1]] then
       has_builtin = true
       builtin = commands[k]
     else
       commands[k][1] = shell.resolve(commands[k][1], "lua") or commands[k][1]
     end
+    ::skip::
   end
   if #commands > 1 and has_builtin then
     shell.error("sh", "cannot pipe to or from builtin command")
@@ -292,7 +310,7 @@ function shell.execute(...)
   if args[2] == nil or type(args[2]) == "table" then -- discard the 'env' argument OpenOS programs may supply
     pcall(table.remove, args, 2)
   end
-  local commands = text.split(shell.expand(table.concat(args, " ")), ";")
+  local commands = split(shell.expand(table.concat(args, " ")), ";")
   for i=1, #commands, 1 do
     local x = execute(commands[i])
     if x and x ~= 0 then
