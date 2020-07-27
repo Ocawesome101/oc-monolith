@@ -76,7 +76,7 @@ if not ok then
   kernel.logger.panic(err)
 end
 
-kernel.thread.spawn(function()return ok(flags.runlevel or 3) end, flags.init, kernel.logger.panic)
+kernel.thread.spawn(function()return ok(flags.runlevel or 3) end, "[init]", kernel.logger.panic)
 kernel.runlevel.setrunlevel(1)
 sandbox.kernel._FINISH = computer.uptime()
 kernel.thread.start()
