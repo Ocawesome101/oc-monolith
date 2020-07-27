@@ -23,41 +23,43 @@ local colors = {
   white = 37
 }
 
--- match patterns with colors
 local patterns = {
-  ["(%S-)%("]                     = colors.bright.blue,
-  ["(%-%-.+)"]                    = colors.bright.blue,
-  ["([%{%}])"]                    = colors.bright.green,
-  ["[\"'].-[\"']"]                = colors.red,
-  ["[%s%)]?(function)[%s%(]+"]    = colors.bright.blue,
-  ["[%s%)]?(end)[%s%(]+"]         = colors.bright.yellow,
-  ["[%s%)]?(local)[%s%(]+"]       = colors.bright.yellow,
-  ["[%s%;%)]?(if)[%s%(]+"]        = colors.bright.yellow,
-  ["[%s%;%)]?(for)[%s%(]+"]       = colors.bright.yellow,
-  ["[%s%)]+(else)[%s%(]+"]        = colors.bright.yellow,
-  ["[%s%)]+(elseif)[%s%(]+"]      = colors.bright.yellow,
-  ["[%s%)]+(return)[%s%(]+"]       = colors.bright.yellow,
-  ["[%s%)]?(repeat)[%s%(]+"]      = colors.bright.yellow,
-  ["[%s%)]?(until)[%s%(]+"]       = colors.bright.yellow,
-  ["[%s%)]?(while)[%s%(]+"]       = colors.bright.yellow,
-  ["[%s%)]+(do)[%s%(]+"]          = colors.bright.yellow,
-  ["[%s%)]+(and)[%s%(]+"]         = colors.bright.yellow,
-  ["[%s%)]+(in)[%s%(]+"]          = colors.bright.yellow,
-  ["[%s%)]+(or)[%s%(]+"]          = colors.bright.yellow,
-  ["[%s%)]?(not)[%s%(]+"]         = colors.bright.yellow,
-  ["[%s%)]+(then)[%s%(]+"]        = colors.bright.yellow,
-  ["[%s%(%)]+(true)[%s%(%)]+"]    = colors.bright.purple,
-  ["[%s%(%)]+(false)[%s%(%)]+"]   = colors.bright.purple,
-  ["[%s%(%)]+(nil)[%s%(%)]+"]     = colors.bright.purple
+  ["[\"'].-[\"']"]                      = colors.red,
+  ["([%s%(%)]+)(true)([%s%(%)]+)"]      = "%1\27[95m%2\27[37m%3",
+  ["([%s%(%)]+)(false)([%s%(%)]+)"]     = "%1\27[95m%2\27[37m%3",
+  ["([%s%(%)]+)(nil)([%s%(%)]+)"]       = "%1\27[95m%2\27[37m%3",
+  ["([%{%}])"]                          = colors.bright.green,
+  ["([^\"']?)if (.-) then([^\"']?)"]    = "%1\27[93mif\27[37m %2 \27[93mthen\27[37m%3",
+  ["(%S-)(%()"]                         = "\27[94m%1\27[37m%2",
+  ["while (.-) do"]                     = "\27[93mwhile\27[37m %1 \27[93mdo\27[37m",
+  ["for (.-) do"]                       = "\27[93mfor\27[37m %1 \27[93mdo\27[37m",
+  ["if (.-) then (.-) end"]             = "\27[93mif\27[37m %1\27[37mthen\27[37m %2 \27[93mend\27[37m",
+  ["while (.-) do (.-) end"]            = "\27[93mwhile\27[37m %1\27[37mdo\27[37m %2 \27[93mend\27[37m",
+  ["for (.-) do (.-) end"]              = "\27[93mfor\27[37m %1\27[37mdo\27[37m %2 \27[93mend\27[37m",
+  ["local (.+)"]                        = "\27[93mlocal\27[37m %1",
+  ["return (.+)"]                       = "\27[93mreturn\27[37m %1",
+  ["not (.+)"]                          = "\27[93mnot\27[37m %1",
+  ["function (.+)"]                     = "\27[94mfunction\27[37m %1",
+  [" else "]                            = colors.bright.yellow
 }
 
-local function highlighter(s)
-  for pat, col in pairs(patterns) do
-    for match in s:gmatch(pat) do
-      pcall(function()s = s:gsub(text.escapeMagic(match), string.format("\27[%dm%s\27[37m", col, match))end)
-    end
-  end
-  return s
+local function color(c)
+  return string.format("\27[%dm", c)
 end
 
-return highlighter
+local function highlight(line)
+  local trim = text.trim(line)
+  if trim:sub(1,2) == "--" or line:sub(1,3) == "#!/" then -- comment or shebang
+    return color(colors.bright.blue) .. line
+  elseif trim == "do" or trim == "end" or trim == "else" then
+    return color(colors.bright.yellow) .. line
+  else
+    for pat, col in pairs(patterns) do
+      if type(col) == "string" then line = line:gsub(pat, col) else
+        line = line:gsub(pat, color(col) .. "%1\27[37m") end
+    end
+  end
+  return line .. "\27[37m"
+end
+
+return highlight

@@ -14,7 +14,7 @@ do
 
   function component.isAvailable(name)
     checkArg(1, name, "string")
-    local ok, comp = pcall(function()return component[name]end)
+    local ok, comp = pcall(function()return component[name] end)
     return ok
   end
 

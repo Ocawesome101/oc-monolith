@@ -151,10 +151,13 @@ while running do
     parsecmd(readline(rlopts_cmd))
   else
     if editor.buffers[cur].scroll.h - line > h then
-      line = editor.buffers[cur].scroll.h + 1
+      line = editor.buffers[cur].scroll.h + 3
     end
     if line > editor.buffers[cur].scroll.h + h - 3 then
       line = editor.buffers[cur].scroll.h + h - 3
+    end
+    if (line - editor.buffers[cur].scroll.h) < 0 then
+      line = editor.buffers[cur].scroll.h + 3
     end
     io.write(string.format("\27[%d;1H", line - editor.buffers[cur].scroll.h))
     rlopts_insert.prompt = string.format("\27[93m%"..tostring(#editor.buffers[cur].lines):len().."d\27[37m ", line)
