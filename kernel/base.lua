@@ -47,7 +47,6 @@ kernel.logger.log("CPU architecture is Lua 5.3")
 
 function collectgarbage()
   local missed = {}
-  kernel.logger.log("Collecting garbage")
   for i=1,10,1 do
     local sig = table.pack(computer.pullSignal(0))
     if sig.n > 0 then

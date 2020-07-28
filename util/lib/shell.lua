@@ -235,9 +235,8 @@ function shell.resolve(path, ext)
   return fs.canonical(path)
 end
 
-local function split(str, chr)
+local function split(str, pat)
   local sep = {}
-  local pat = string.format("[^%%%s]+", chr)
   for seg in str:gmatch(pat) do
     sep[#sep + 1] = seg
   end
@@ -245,7 +244,7 @@ local function split(str, chr)
 end
 
 local function execute(cmd)
-  local commands = split(shell.expand(cmd), "|")
+  local commands = split(shell.expand(cmd), "[^|]+")
   local has_builtin = false
   local builtin = {}
   for k, v in pairs(commands) do
@@ -310,12 +309,9 @@ function shell.execute(...)
   if args[2] == nil or type(args[2]) == "table" then -- discard the 'env' argument OpenOS programs may supply
     pcall(table.remove, args, 2)
   end
-  local commands = split(shell.expand(table.concat(args, " ")), ";")
+  local commands = split(shell.expand(table.concat(args, " ")), "[^%;]+")
   for i=1, #commands, 1 do
-    local x = execute(commands[i])
-    if x and x ~= 0 then
-      return x
-    end
+    execute(commands[i])
   end
 end
 

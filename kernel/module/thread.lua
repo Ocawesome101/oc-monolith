@@ -34,7 +34,6 @@ do
     for pid, thd in pairs(threads) do
       if checkDead(thd) then
         computer.pushSignal("thread_died", pid)
-        kernel.logger.log("thread died: " .. pid .. " - " .. thd.name)
         dead[#dead + 1] = pid
       end
     end

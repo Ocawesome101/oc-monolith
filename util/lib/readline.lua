@@ -38,6 +38,16 @@ setmetatable(replacements, {__index = function() return "" end})
 local function listener()
   while true do
     local signal, keyboard, character, keycode = coroutine.yield()
+    if not buffers[keyboard] and type(keyboard) == "string" then
+      for k, v in pairs(buffers) do
+        if component.type(k) == "screen" then
+          for i, a in pairs(component.invoke(k, "getKeyboards")) do
+            buffers[a] = k
+            buffers[k].keyboards[a] = true
+          end
+        end
+      end
+    end
     if signal == "key_down" and buffers[keyboard] then
       local screen = buffers[keyboard]
       local concat = string.char(character)

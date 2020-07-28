@@ -63,9 +63,12 @@ function pipe.chain(progs)
     io.output((i < #progs and new) or orig_io.output)
     table.insert(pids, thread.spawn(
       function()
-        return ok(
+        local x = ok(
           table.unpack(prog, 2, #prog)
         )
+        if x and x ~= 0 and type(x) == "number" then
+          require("shell").error(prog[1]:match(".+/(.-)%.lua"), require("shell").errors[x])
+        end
       end,
       table.concat(prog, " "),          --name
       handler                           --handler
