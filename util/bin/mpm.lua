@@ -16,7 +16,7 @@ cfg.names = cfg.names or {"ocawesome101"}
 cfg.baseURL = cfg.baseURL or "https://raw.githubusercontent.com"
 config.save(cfg, "/etc/mpm/mpm.cfg")
 local ok, err = fs.makeDirectory("/var/cache/mpm")
-if not ok then
+if not ok and err then
   shell.error("mpm", err)
   os.exit(-1)
 end
@@ -165,7 +165,7 @@ local args, opts = shell.parse(...)
 
 if opts.help then
   print(usage)
-  return 1
+  return
 end
 
 if #args == 0 then

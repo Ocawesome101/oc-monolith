@@ -21,7 +21,7 @@
         buffer&:*load&(*file&:~string&): ?boolean& or *nil&, ~string&
                 Loads file ~file& into the buffer.
 
-        *buffer&:*save&({*file&:~string&}): ?boolean& or *nil&, ~string&
+        *buffer&:*save&([*file&:~string&]): ?boolean& or *nil&, ~string&
                 Saves the buffer to ~file&.  If the buffer name is ~""& or *nil&, ~file& is a required argument.  Otherwise, ~file& is optional.
 
         *buffer&:*draw&()

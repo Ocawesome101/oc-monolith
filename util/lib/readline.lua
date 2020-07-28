@@ -150,6 +150,7 @@ function rl.readline(prompt, opts)
   setmetatable(acts, {__index = {
     up = function()
       if ent > 1 then
+        history[ent] = buffer
         ent = ent - 1
         buffer = (" "):rep(#buffer)
         redraw()
@@ -159,6 +160,7 @@ function rl.readline(prompt, opts)
     end,
     down = function()
       if ent <= #history then
+        history[ent] = buffer
         ent = ent + 1
         buffer = (" "):rep(#buffer)
         redraw()

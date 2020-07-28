@@ -19,6 +19,7 @@ repeat
 until c == "R"
 local h, w = resp:match("\27%[(%d+);(%d+)R")
 w, h = tonumber(w), tonumber(h)
+
 local lines = {}
 local screen = 0
 for line in handle:lines() do
@@ -41,7 +42,7 @@ local function redraw(a)
     y = y + drawLine(y, lines[n + scroll] or "")
     n = n + 1
   end
-  if scroll + h >= screen then
+  if scroll + h >= screen + 1 then
     drawLine(h, "\27[2K\27[30;47m(END)\27[37;40m")
   else
     drawLine(h, "\27[2K"..a..":")
@@ -60,7 +61,7 @@ while true do
       scroll = scroll - 1
     end
   elseif esc == "\27[B" or esc == "s" then
-    if scroll + h <= screen then
+    if scroll + h <= screen + 1 then
       scroll = scroll + 1
     end
   elseif esc == " " or esc == "\27[6" then
