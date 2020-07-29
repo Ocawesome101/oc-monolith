@@ -1,0 +1,29 @@
+<html><title>man/usermgr.1</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        usermgr - manage users
+
+<span style="font-weight:bold;">SYNOPSIS
+        usermgr
+
+        usermgr</span> [<span style="color:0x00FF00;">option</span> [<span style="color:0x00FF00;">param</span> ...]]
+
+<span style="font-weight:bold;">DESCRIPTION
+        usermgr</span> is Monolith's default user management tool, similar in concept and design to the <span style="color:0xFFFF00;">usermgr</span> tool from Open Kernel 2.  It supports adding and removing users, either through the command line or an interactive prompt.
+
+        Available <span style="font-weight:bold;">usermgr</span> commands are listed below. If optional arguments are not specified then <span style="font-weight:bold;">usermgr</span> will prompt the user.
+
+        <span style="font-weight:bold;">help</span>
+            Displays <span style="font-weight:bold;">usermgr</span>'s built-in help.
+
+        <span style="font-weight:bold;">add</span> [<span style="color:0xFF00FF;">user</span>] [<span style="color:0xFF00FF;">cansudo</span>]
+            Adds user <span style="color:0xFF00FF;">user</span>. If <span style="color:0xFF00FF;">cansudo</span> is true, the user can execute the <span style="font-weight:bold;">sudo</span>(<span style="font-weight:bold;">1</span>) command.
+
+        <span style="font-weight:bold;">del</span> [<span style="color:0xFF00FF;">user</span>]
+            Attempts to delete user <span style="color:0xFF00FF;">user</span>.
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith System Utilities</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        users</span>(<span style="font-weight:bold;">2</span>), users&(<span style="font-weight:bold;">3</span>), <span style="font-weight:bold;">sudo</span>(<span style="font-weight:bold;">1</span>)
+
+
+</pre></div></body></html>

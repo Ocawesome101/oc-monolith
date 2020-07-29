@@ -1,0 +1,35 @@
+<html><title>man/logger.3</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        logger - styled command-line loggers
+
+<span style="font-weight:bold;">DESCRIPTION
+        logger</span> is a library that provides styled command-line loggers.  By default, three styles are provided:  <span style="font-weight:bold;">bracket</span>, which provides a logging style similar to <span style="font-weight:bold;">init</span>; <span style="font-weight:bold;">arrow</span>, which provides a logging style similar to <span style="color:0xFFFF00;">yay</span> or <span style="color:0xFFFF00;">makepkg</span>; and <span style="font-weight:bold;">double</span>, which provides a slightly modified version of the <span style="font-weight:bold;">arrow</span> style.
+
+<span style="font-weight:bold;">METHODS
+        The *logger</span> library can be directly called, identically to created objects.  The default style is <span style="font-weight:bold;">bracket</span>.  Styles are stored in <span style="color:0x00FF00;">logger.prefixes</span>.
+
+        new&(<span style="font-weight:bold;">style</span>:~string&): <span style="color:0x00FF00;">table</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Creates a new logger object using the specified style.
+
+        <span style="font-weight:bold;">logger</span> object methods are listed below.
+
+        <span style="font-weight:bold;">obj</span>:<span style="font-weight:bold;">ok</span>(<span style="font-weight:bold;">...</span>:~string&)
+                Print a message using the <span style="font-weight:bold;">ok</span> prefix.
+
+        <span style="font-weight:bold;">obj</span>:<span style="font-weight:bold;">info</span>(<span style="font-weight:bold;">...</span>:~string&)
+                Print a message using the <span style="font-weight:bold;">info</span> prefix.
+
+        <span style="font-weight:bold;">obj</span>:<span style="font-weight:bold;">warn</span>(<span style="font-weight:bold;">...</span>:~string&)
+                Print a message using the <span style="font-weight:bold;">warn</span> prefix.
+
+        <span style="font-weight:bold;">obj</span>:<span style="font-weight:bold;">fail</span>(<span style="font-weight:bold;">...</span>:~string&)
+                Print a message using the <span style="font-weight:bold;">fail</span> prefix.
+
+<span style="font-weight:bold;">EXAMPLES</span>
+        <span style="color:0xFFFF00;">local</span> logger = <span style="color:0x00AAFF;"></span>(~"logger"&)
+        <span style="color:0xFFFF00;">local</span> new = <span style="color:0x00AAFF;"></span>:<span style="color:0x00AAFF;"></span>(~"bracket"&)
+        <span style="color:0x00AAFF;"></span>:<span style="color:0x00AAFF;"></span>(~"Created a logger"&) <span style="color:0x00AAFF;"></span>[  <span style="color:0x00FF00;">OK</span>  ] Created a logger<span style="color:0x00AAFF;"></span>
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith Libraries</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+</pre></div></body></html>

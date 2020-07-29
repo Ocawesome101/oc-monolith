@@ -1,0 +1,47 @@
+<html><title>man/lshw.1</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        lshw - list installed hardware
+
+<span style="font-weight:bold;">SYNOPSIS
+        lshw</span> [<span style="font-weight:bold;">-tdpcvws</span>]
+
+<span style="font-weight:bold;">DESCRIPTION
+        lshw</span> is a small tool to extract detailed information on the hardware configuration of the current machine, similar to <span style="font-weight:bold;">components</span>(<span style="font-weight:bold;">1</span>).  It can report memory configuration, CPU version and sppeed, GPU or screen capacity, etc. on <span style="font-weight:bold;">computer.getDeviceInfo</span>(<span style="font-weight:bold;">2</span>)-capable OpenComputers systems and some emulators (OCVM is known to work).
+
+        <span style="font-weight:bold;">lshw</span> currently only supports <span style="font-weight:bold;">computer.getDeviceInfo</span>(<span style="font-weight:bold;">2</span>).
+
+        <span style="font-weight:bold;">lshw</span> displays hardware information in the form of <span style="color:0x00FF00;">columns</span>, each of which displays one form of information about a piece of hardware.  The only mandatory column is <span style="color:0x00FF00;">Address</span>.
+
+<span style="font-weight:bold;">OPTIONS
+        -t</span>
+                Adds the <span style="color:0x00FF00;">Class</span> column to the list.
+
+        <span style="font-weight:bold;">-d</span>
+                Registers the <span style="color:0x00FF00;">Description</span> column.
+
+        <span style="font-weight:bold;">-p</span>
+                Registers the <span style="color:0x00FF00;">Product</span> column.
+
+        <span style="font-weight:bold;">-v</span>
+                Registers the <span style="color:0x00FF00;">Vendor</span> column.
+
+        <span style="font-weight:bold;">-c</span>
+                Registers the <span style="color:0x00FF00;">Capacity</span> column.
+
+        <span style="font-weight:bold;">-w</span>
+                Registers the <span style="color:0x00FF00;">Width</span> column.
+
+        <span style="font-weight:bold;">-s</span>
+                Registers the <span style="color:0x00FF00;">Clock</span> column.
+
+<span style="font-weight:bold;">EXAMPLES
+        lshw</span>
+            Equivalent to <span style="font-weight:bold;">lshw -tdp</span>.  Displays the <span style="color:0x00FF00;">Class</span>, <span style="color:0x00FF00;">Description</span>, and <span style="color:0x00FF00;">Product</span> columns.
+
+<span style="font-weight:bold;">COPYRIGHT
+        lshw</span> is copyright (c) 2016 ~Sangar& as part of OpenOS.
+
+<span style="font-weight:bold;">SEE ALSO
+        components</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">component</span>(<span style="font-weight:bold;">2</span>), <span style="font-weight:bold;">computer.getDeviceInfo</span>(<span style="font-weight:bold;">2</span>)
+
+
+</pre></div></body></html>

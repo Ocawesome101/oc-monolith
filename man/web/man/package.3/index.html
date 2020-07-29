@@ -1,0 +1,33 @@
+<html><title>man/package.3</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        package - reimplementation of the Lua standard package library
+
+<span style="font-weight:bold;">DESCRIPTION
+        package</span> is a partial re-implementation of the Lua-standard <span style="font-weight:bold;">package</span> library.
+
+<span style="font-weight:bold;">METHODS
+        searchpath</span>(<span style="font-weight:bold;">name</span>:~string&, <span style="font-weight:bold;">path</span>:~string&[, <span style="font-weight:bold;">sep</span>:~string&[, <span style="font-weight:bold;">rep</span>:~string&]]): ~string& or nil, <span style="color:0x00FF00;">table</span>
+                Used internally by <span style="color:0x00AAFF;"></span>.  Searches the provided ~path& for ~name&.  Replaces all instances of ~?& in the path with ~name&.
+
+                ~path& is expected to be formatted as a series of entries separated by the ~;& character.
+
+<span style="font-weight:bold;">GLOBALS</span>
+        The <span style="font-weight:bold;">package</span> library defines the following globals.
+
+        <span style="color:0x00FF00;">package.loaded</span>
+                A cache of all loaded libraries.
+
+        ~package.path&
+                The path to search for libraries.
+
+        <span style="color:0x00AAFF;"></span>(<span style="font-weight:bold;">file</span>:~string&): ... or <span style="font-weight:bold;">nil</span>, ~string&
+                Attempt to execute file ~file&.
+
+        <span style="color:0x00AAFF;"></span>(<span style="font-weight:bold;">lib</span>:~string&[, <span style="font-weight:bold;">reload</span>:<span style="color:0xFF00FF;">boolean</span>]): ...
+                Attempt to load library ~lib& from the package path.  If the library is already loaded <span style="font-weight:bold;">and</span> <span style="color:0xFF00FF;">reload</span> is false or not specified, returns the cached library.  Othwewise, loads the library from disk.
+
+                On failure, <span style="color:0x00AAFF;"></span> raises the error rather than returning it.
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith System Interfaces</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+</pre></div></body></html>

@@ -1,0 +1,27 @@
+<html><title>man/kill.1</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        kill (shell builtin) - kill processes
+
+<span style="font-weight:bold;">SYNOPSIS
+        kill <span style="color:0xFF00FF;">pid
+        *kill</span> [<span style="color:0x00FF00;">-SIGKILL</span>|@-SIGTERM</span>|<span style="color:0x00FF00;">-SIGINT</span>|<span style="color:0x00FF00;">-SIGQUIT</span>|<span style="color:0x00FF00;">-USR1</span>|<span style="color:0x00FF00;">-USR2</span>] <span style="color:0xFF00FF;">PID</span>
+
+<span style="font-weight:bold;">DESCRIPTION
+        kill</span> is a shell builtin used to signal processes.  For an overview of available signals, see <span style="font-weight:bold;">signals</span>(<span style="font-weight:bold;">2</span>).
+
+<span style="font-weight:bold;">EXAMPLES
+        kill <span style="color:0x00FF00;">-SIGKILL <span style="color:0xFF00FF;">5</span>
+            Sends signal @SIGKILL</span> to process <span style="color:0xFF00FF;">5</span>.
+
+        <span style="font-weight:bold;">kill <span style="color:0xFF00FF;">5</span>
+            Performs the same action as the above example.
+
+        <span style="font-weight:bold;">kill @-USR1</span> ?12</span>
+            Sends signal @USR1</span> to process <span style="color:0xFF00FF;">12</span>.
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith System Interfaces</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        signals</span>(<span style="font-weight:bold;">2</span>), <span style="font-weight:bold;">thread</span>(<span style="font-weight:bold;">2</span>)
+
+</pre></div></body></html>

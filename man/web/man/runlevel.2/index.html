@@ -1,0 +1,50 @@
+<html><title>man/runlevel.2</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        runlevel - manage run-levels
+
+<span style="font-weight:bold;">DESCRIPTION
+        runlevel</span> is a kernel-provided API that provides information about system runlevels.
+
+<span style="font-weight:bold;">RUNLEVELS</span>
+        Supported runlevels, and what they mean:
+
+        <span style="font-weight:bold;">0</span>
+                Kernel booted: <span style="font-weight:bold;">no</span>
+                Init started: <span style="font-weight:bold;">no</span>
+                Services started: <span style="font-weight:bold;">no</span>
+                Multi-user mode: <span style="font-weight:bold;">no</span>
+
+        <span style="font-weight:bold;">1</span>
+                Kernel booted: <span style="font-weight:bold;">yes</span>
+                Init started: <span style="font-weight:bold;">yes</span>
+                Services started: <span style="font-weight:bold;">no</span>
+                Multi-user mode: <span style="font-weight:bold;">no</span>
+
+        <span style="font-weight:bold;">2</span>
+                Kernel booted: <span style="font-weight:bold;">yes</span>
+                Init started: <span style="font-weight:bold;">yes</span>
+                Services started: <span style="font-weight:bold;">yes</span>
+                Multi-user mode: <span style="font-weight:bold;">no</span>
+
+        <span style="font-weight:bold;">3</span>
+                Kernel booted: <span style="font-weight:bold;">yes</span>
+                Init started: <span style="font-weight:bold;">yes</span>
+                Services started: <span style="font-weight:bold;">yes</span>
+                Multi-user mode: <span style="font-weight:bold;">yes</span>
+
+<span style="font-weight:bold;">METHODS
+        setrunlevel</span>(<span style="font-weight:bold;">n</span>:<span style="color:0xFFFF00;">number</span>): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Attempt to set the system's runlevel.  Only root can do this.
+
+        <span style="font-weight:bold;">getrunlevel</span>(): <span style="color:0xFFFF00;">number</span>
+                Returns the system's current runlevel.
+
+<span style="font-weight:bold;">CONFIGURATION</span>
+        The maximum runlevel is set through a flag in <span style="color:0xFFFF00;">/boot/kernel/loader</span> -- see <span style="font-weight:bold;">loader</span>(<span style="font-weight:bold;">5</span>).  If not specified, defaults to 3.
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith Kernel Interfaces</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        loader</span>(<span style="font-weight:bold;">5</span>)
+
+</pre></div></body></html>

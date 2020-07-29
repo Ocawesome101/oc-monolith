@@ -1,0 +1,24 @@
+<html><title>man/loader.5</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        loader - Monolith boot loader
+
+<span style="font-weight:bold;">DESCRIPTION</span>
+        The default Monolith loader is found at <span style="color:0xFFFF00;">/boot/kernel/loader</span>.  It exists primarily to keep compatibility with the OpenLoader BIOS - otherwise, its provisions would be placed in <span style="color:0xFFFF00;">/init.lua</span>.
+
+        <span style="font-weight:bold;">loader</span> provides the kernel logger and passes the kernel a table of flags.
+
+<span style="font-weight:bold;">CONFIGURATION</span>
+        The default loader script contains a table of flags starting on line 4.  The following flags are currently supported:
+
+        <span style="font-weight:bold;">init</span>~string&
+                The script to load and run as the init process.  Should only be changed when developing alternate init systems.
+
+        <span style="font-weight:bold;">quiet</span>:<span style="color:0xFF00FF;">boolean</span>
+                Whether to disable screen logging on boot.  May slightly improve boot times.
+
+        <span style="font-weight:bold;">runlevel</span>:<span style="color:0xFFFF00;">number</span>
+                The maximum runlevel the system should attempt to reach.  Values larger than 3 will have no effect.
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith System</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+</pre></div></body></html>

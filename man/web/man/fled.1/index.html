@@ -1,0 +1,60 @@
+<html><title>man/fled.1</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        FLED - Fullscreen Lua EDitor
+
+<span style="font-weight:bold;">SYNOPSIS
+        fled
+
+        fled</span> <span style="color:0xFF00FF;">file</span>
+
+<span style="font-weight:bold;">DESCRIPTION
+        fled</span> is the default text editor of the Monolith system, superseding <span style="font-weight:bold;">ed</span>(<span style="font-weight:bold;">1</span>).  <span style="font-weight:bold;">fled</span> is a visual text editor inspired by the real-world editor <span style="color:0xFFFF00;">vim</span> while also remaining similar to <span style="font-weight:bold;">ed</span>.  Perhaps the most appealing attribute of <span style="font-weight:bold;">fled</span> is its ability to easily switch between multiple loaded buffers in just a few keystrokes.
+
+        Upon launching <span style="font-weight:bold;">fled</span>, you will be presented with a black screen, with a red ~:& prompt in the bottom left-hand corner, similar to <span style="font-weight:bold;">less</span>(<span style="font-weight:bold;">1</span>).  This prompt will accept certain commands, listed here.  Note that the short form is usually preferred.
+
+        Options mandatory for long commands are mandatory for short commands too.
+
+        <span style="font-weight:bold;">h</span>, <span style="font-weight:bold;">help</span>
+                Print the built-in command list, and brief descriptions.
+
+        <span style="font-weight:bold;">o</span>, <span style="font-weight:bold;">open</span> <span style="color:0xFF00FF;">file</span>
+                Open and load file <span style="color:0xFF00FF;">file</span> from the filesystem into a buffer.  <span style="color:0xFF00FF;">file</span> must exist in the filesystem.
+
+        <span style="font-weight:bold;">n</span>, <span style="font-weight:bold;">new</span> [<span style="color:0xFF00FF;">name</span>]
+                Create a new, empty buffer, optionally assigning its name as <span style="color:0xFF00FF;">name</span>.  If <span style="color:0xFF00FF;">name</span> is not specified, the user will be prompted on saving the buffer.
+
+        <span style="font-weight:bold;">w</span>, <span style="font-weight:bold;">save</span> [<span style="color:0xFF00FF;">file</span>]
+                Save the currently selected buffer to <span style="color:0xFF00FF;">file</span> or, if <span style="color:0xFF00FF;">file</span> is not specified, to the buffer's name.  Failing this, the user will be prompted for a filename.
+        <span style="font-weight:bold;">b</span> <span style="color:0xFF00FF;">buffer</span>
+                Set the current buffer to <span style="color:0xFF00FF;">buffer</span>.
+
+        <span style="font-weight:bold;">bl</span>
+                Prints a list of all currently loaded buffers, in the format "~id.& <span style="color:0xFFFF00;">name".
+
+        <span style="font-weight:bold;">db</span> <span style="color:0xFF00FF;">buffer</span>
+                Delete loaded buffer ?buffer</span>.
+
+        <span style="font-weight:bold;">l</span>
+                Prints the length (in lines) of the current buffer.
+
+        <span style="font-weight:bold;">dl</span> [<span style="color:0xFF00FF;">line</span>]
+                Removes <span style="color:0xFF00FF;">line</span> from the current buffer.  <span style="color:0xFF00FF;">line</span> defaults to 1.
+
+        <span style="font-weight:bold;">i</span> [<span style="color:0xFF00FF;">line</span>]
+                Enter insert mode at <span style="color:0xFF00FF;">line</span>.  If <span style="color:0xFF00FF;">line</span> is not specified, it will default to 1.
+
+        <span style="font-weight:bold;">sc</span> [<span style="color:0xFF00FF;">line</span>]
+                Scrolls the current buffer so that line <span style="color:0xFF00FF;">line</span>, or line 1, is at the top of the screen.  Scroll is stored at runtime on a per-buffer basis, but is not saved externally.
+
+        <span style="font-weight:bold;">q</span>
+                Quit <span style="font-weight:bold;">FLED</span> without saving.  ~WARNING: This command will not save ANY buffers, nor does it prompt before exiting!&
+
+        <span style="font-weight:bold;">wq</span>
+                Saves all buffers, then quits <span style="font-weight:bold;">FLED</span>.
+
+<span style="font-weight:bold;">COPYRIGHT</span>
+        FLED is copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        ed</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">led</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">vled</span>(<span style="font-weight:bold;">1</span>)
+
+</pre></div></body></html>

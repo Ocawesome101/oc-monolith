@@ -1,0 +1,67 @@
+<html><title>man/thread.2</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        thread - system thread management
+
+<span style="font-weight:bold;">DESCRIPTION
+        thread</span> provides thread management for the Monolith kernel.  In addition to a few functions, <span style="font-weight:bold;">thread</span> also provides a table of predefined <span style="font-weight:bold;">signals</span>(<span style="font-weight:bold;">2</span>), not to be confused with the signals returned from <span style="font-weight:bold;">computer.pullSignal</span>(<span style="font-weight:bold;">2</span>).
+
+<span style="font-weight:bold;">SIGNALS
+        thread_died</span>(<span style="font-weight:bold;">pid</span>:<span style="color:0xFFFF00;">number</span>)
+                Queued on the death of a thread.
+
+        <span style="font-weight:bold;">thread_errored</span>(<span style="font-weight:bold;">pid</span>:<span style="color:0xFFFF00;">number</span>, <span style="font-weight:bold;">reason</span>:~string&)
+                Queued when a thread errors.
+
+        <span style="font-weight:bold;">ipc</span>(<span style="font-weight:bold;">from</span>:<span style="color:0xFFFF00;">number</span>, ...)
+                This signal is thread-local, and sent on IPC communication.
+
+        <span style="font-weight:bold;">signal</span>(<span style="font-weight:bold;">from</span>:<span style="color:0xFFFF00;">number</span>, <span style="font-weight:bold;">signal</span>:<span style="color:0xFFFF00;">number</span>)
+                This signal is thread-local. Sent on signal reception.
+
+<span style="font-weight:bold;">METHODS
+        spawn</span>(<span style="font-weight:bold;">func</span>:<span style="color:0x00AAFF;"></span>, <span style="font-weight:bold;">name</span>:~string&[, <span style="font-weight:bold;">handler</span>:<span style="color:0x00AAFF;"></span>[, <span style="font-weight:bold;">env</span>:<span style="color:0x00FF00;">table</span>]]): <span style="color:0xFFFF00;">number</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Spawns a thread from function <span style="color:0x00AAFF;"></span> named ~name&.  If <span style="color:0x00AAFF;"></span> is specified, it will be called if the thread errors.  <span style="color:0x00FF00;">env</span> may be used to predefine environment variables.
+
+        <span style="font-weight:bold;">threads</span>(): <span style="color:0x00FF00;">table</span>
+                Returns a table of running PIDs.
+
+        <span style="font-weight:bold;">info</span>([<span style="font-weight:bold;">pid</span>:<span style="color:0xFFFF00;">number</span>]): <span style="color:0x00FF00;">table</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Returns a table of information about the specified thread (defaults to the current thread), or <span style="font-weight:bold;">nil</span> and an error message.
+
+                Information tables are formatted as such:
+
+                    <span style="color:0x00FF00;">{
+                      <span style="font-weight:bold;">name</span> = ~string</span>,
+                      <span style="font-weight:bold;">owner</span> = <span style="color:0xFFFF00;">number</span>,
+                      <span style="font-weight:bold;">priority</span> = <span style="color:0xFFFF00;">number</span>,
+                      <span style="font-weight:bold;">parent</span> = <span style="color:0xFFFF00;">number</span>,
+                      <span style="font-weight:bold;">uptime</span> = <span style="color:0xFFFF00;">number</span>,
+                      <span style="font-weight:bold;">started</span> = <span style="color:0xFFFF00;">number</span>
+                    <span style="color:0x00FF00;">}</span>
+
+                If the specified thread is the current one, the information table will have an additional field, <span style="color:0x00FF00;">data</span>:
+                    <span style="font-weight:bold;">info.data</span> = <span style="color:0x00FF00;">{
+                      <span style="font-weight:bold;">io</span> = @{
+                        <span style="font-weight:bold;">[0]</span> = @table</span>: <span style="font-weight:bold;">thread stdin</span>,
+                        <span style="font-weight:bold;">[1]</span> = <span style="color:0x00FF00;">table</span>: <span style="font-weight:bold;">thread stdout</span>,
+                        <span style="font-weight:bold;">[2]</span> = <span style="color:0x00FF00;">table</span>: <span style="font-weight:bold;">thread stderr</span>
+                      <span style="color:0x00FF00;">}</span>,
+                      <span style="font-weight:bold;">env</span> = <span style="color:0x00FF00;">table</span>: <span style="font-weight:bold;">thread environment variables</span>
+                    <span style="color:0x00FF00;">}</span>
+
+        <span style="font-weight:bold;">ipc</span>(<span style="font-weight:bold;">pid</span>:<span style="color:0xFFFF00;">number</span>, ...): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Sends an IPC event to thread <span style="color:0xFFFF00;">pid</span>.
+
+        <span style="font-weight:bold;">signal</span>(<span style="font-weight:bold;">pid</span>:<span style="color:0xFFFF00;">number</span>, <span style="font-weight:bold;">signal</span>:<span style="color:0xFFFF00;">number</span>): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Sends signal <span style="color:0xFFFF00;">signal</span> to thread <span style="color:0xFFFF00;">pid</span>.
+
+        <span style="font-weight:bold;">kill</span>(<span style="font-weight:bold;">pid</span>:<span style="color:0xFFFF00;">number</span>): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Alias for <span style="font-weight:bold;">signal</span>(<span style="font-weight:bold;">pid</span>, <span style="font-weight:bold;">signals.kill</span>)
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith Kernel Interfaces</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        computer</span>(<span style="font-weight:bold;">2</span>), <span style="font-weight:bold;">ps</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">kill</span>(<span style="font-weight:bold;">1</span>)
+
+
+</pre></div></body></html>

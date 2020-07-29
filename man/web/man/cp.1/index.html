@@ -1,0 +1,28 @@
+<html><title>man/cp.1</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        cp - copy files and directories
+
+<span style="font-weight:bold;">SYNOPSIS
+        cp</span> [-<span style="font-weight:bold;">rv</span>] <span style="color:0xFF00FF;">SOURCE</span> <span style="color:0xFF00FF;">DEST
+
+        <span style="font-weight:bold;">cp</span> [--skip=<span style="color:0x00FF00;">FILE1</span>[@FILE2</span>[,...]]] <span style="color:0xFF00FF;">SOURCE</span> ... <span style="color:0xFF00FF;">DIRECTORY
+
+<span style="font-weight:bold;">DESCRIPTION</span>
+        Copy ?SOURCE</span> to <span style="color:0xFF00FF;">DEST</span>, or multiple <span style="color:0xFF00FF;">SOURCE</span>(s) to <span style="color:0xFF00FF;">DIRECTORY</span>.  <span style="font-weight:bold;">cp</span> will usually refuse to leave the root filesystem while recursing.
+
+<span style="font-weight:bold;">OPTIONS
+        -r</span>, <span style="font-weight:bold;">--recurse</span>
+                recurse into directories
+
+        <span style="font-weight:bold;">-v</span>, <span style="font-weight:bold;">--verbose</span>
+                be verbose
+
+        <span style="font-weight:bold;">--skip</span>=<span style="color:0xFF00FF;">FILE1</span>,<span style="color:0xFF00FF;">FILE2</span>,...
+                skip all files whose absolute path starts with any of <span style="color:0xFF00FF;">FILE1</span>, <span style="color:0xFF00FF;">FILE2</span>, etc.  Paths are delimited by a comma (,)
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith System Utilities</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        mv</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">cp.copy</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">filesystem</span>(<span style="font-weight:bold;">2</span>)
+
+</pre></div></body></html>

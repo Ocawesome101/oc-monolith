@@ -1,0 +1,15 @@
+<html><title>man/init.1</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        InitMe, init - Monolith userspace initialization
+
+<span style="font-weight:bold;">DESCRIPTION
+        InitMe</span> is <span style="font-weight:bold;">Monolith</span>(<span style="font-weight:bold;">5</span>)'s default init system.  It initializes the <span style="color:0x00FF00;">io</span>, <span style="color:0x00FF00;">package</span>, and <span style="color:0x00FF00;">initsvc</span> libraries and cleans up the global environment.  For more detail on what APIs are provided to the <span style="font-weight:bold;">init</span> process, see <span style="font-weight:bold;">init</span>(<span style="font-weight:bold;">5</span>).
+
+        <span style="font-weight:bold;">InitMe</span> reads configuration from <span style="color:0xFFFF00;">/etc/initsvc.cfg</span>, which holds a Lua table specifying scripts and services to execute.  These should <span style="font-weight:bold;">not</span> be order-dependent.
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith System Interfaces</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        init</span>(<span style="font-weight:bold;">5</span>), <span style="font-weight:bold;">initsvc</span>(<span style="font-weight:bold;">2</span>)
+
+</pre></div></body></html>

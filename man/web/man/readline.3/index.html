@@ -1,0 +1,49 @@
+<html><title>man/readline.3</title><body><div style="width:80ch;max-width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+        readline - read text input from the user
+
+<span style="font-weight:bold;">DESCRIPTION
+        readline</span> will read a line from the terminal and return it, using <span style="font-weight:bold;">prompt</span> as a prompt.  If <span style="font-weight:bold;">promt</span> is not provided, no prompt is issued. If <span style="font-weight:bold;">notrail</span> is specified, the line returned has the final newline removed so only the text of the line remains.
+
+        <span style="font-weight:bold;">readline</span> offers editing capabilities while the user is entering the line.  By default, the line editing commands are similar to those of emacs.
+
+<span style="font-weight:bold;">METHODS
+        readline</span>([<span style="font-weight:bold;">prompt</span>:~string& or <span style="color:0xFFFF00;">number</span>][, <span style="font-weight:bold;">opts</span>:<span style="color:0x00FF00;">table</span>]): ~string&
+                The recommended method of reading text input.
+                
+                If ~prompt& is specified, it will be displayed to the user.  Otherwise, no prompt will be issued.  If <span style="color:0xFFFF00;">prompt</span> is a number, <span style="font-weight:bold;">readline</span> will return that number of characters from standard input and return them without printing to the screen.  If <span style="color:0x00FF00;">prompt</span> is a table, it will be used in place of <span style="color:0x00FF00;">opts</span>.
+                
+                Available <span style="color:0x00FF00;">opts</span> are:
+
+                    {
+                      <span style="font-weight:bold;">pwchar</span> = ~string&,
+                      <span style="font-weight:bold;">history</span> = <span style="color:0x00FF00;">table</span>,
+                      <span style="font-weight:bold;">prompt</span> = ~string&,
+                      <span style="font-weight:bold;">arrows</span> = <span style="color:0xFF00FF;">boolean</span>,
+                      <span style="font-weight:bold;">actions</span> = <span style="color:0x00FF00;">table</span>
+                    }
+
+                If ~opts.prompt& is specified and no ~prompt& is specified, ~opts.prompt& will be used instead.
+
+                <span style="color:0xFF00FF;">arrows</span> specifies whether <span style="font-weight:bold;">readline</span> should act specially on arrow-key presses and defaults to <span style="color:0xFF00FF;">true</span>.
+
+                <span style="color:0x00FF00;">actions</span>, if specified, should have four fields: <span style="font-weight:bold;">up</span>:<span style="color:0x00AAFF;"></span>, <span style="font-weight:bold;">down</span>:<span style="color:0x00AAFF;"></span>, <span style="font-weight:bold;">left</span>:<span style="color:0x00AAFF;"></span>, and <span style="font-weight:bold;">right</span>:<span style="color:0x00AAFF;"></span>.  These functions are called upon their corresponding keypresses.
+        
+        <span style="font-weight:bold;">readlinebasic</span>(<span style="font-weight:bold;">screen</span>:~string&[, <span style="font-weight:bold;">n</span>:<span style="color:0xFFFF00;">number</span>]): ~string& or <span style="font-weight:bold;">nil</span>, ~string&
+                Reads <span style="font-weight:bold;">n</span> characters, or until return is pressed.  Does not output to the screen.  Used internally.  Not recommended, use <span style="font-weight:bold;">readline</span> instead.
+
+        <span style="font-weight:bold;">addscreen</span>(<span style="font-weight:bold;">screen</span>:~string&, <span style="font-weight:bold;">gpu</span>:~string& or <span style="color:0x00FF00;">table</span>): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
+                Does what it says on the tin.  Registers a screen and all its keyboards, plus a GPU.
+
+        <span style="font-weight:bold;">buffersize</span>(<span style="font-weight:bold;">screen</span>:~string&): <span style="color:0xFFFF00;">number</span> or <span style="font-weight:bold;">nil</span>, <span style="color:0xFF00FF;">boolean</span>
+                Returns the size of the specified screen's input buffer.
+
+<span style="font-weight:bold;">NOTES
+        readline</span> is the preferred way to get keyboard input.
+
+<span style="font-weight:bold;">COPYRIGHT
+        Monolith System Interfaces</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+<span style="font-weight:bold;">SEE ALSO
+        *sh</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">login</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">io</span>(<span style="font-weight:bold;">3</span>)
+
+</pre></div></body></html>
