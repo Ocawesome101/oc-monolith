@@ -27,7 +27,7 @@ for _, pat in ipairs(patterns) do
 end
 line = line:gsub("%%", "?") -- always the edge case :P
 line = line:gsub("%`", "#") -- and another one
-outh:write("<html><title>" .. inp .. "</title><body><div style=\"width:80ch;max-width:80ch;\"><pre>" .. line .. "\n</pre></div></body></html>")
+outh:write("<html><title>" .. inp .. "</title><body><div style=\"width:80ch;\"><pre>" .. line .. "\n</pre></div></body></html>")
 
 print("\27[A\27[2K[ \27[92m OK \27[39m ] generated manpage " .. args[1])
 
