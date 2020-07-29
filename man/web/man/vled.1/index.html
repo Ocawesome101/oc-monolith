@@ -1,52 +1,67 @@
-<html><title>man/vled.1</title><body><div style="width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+<html><title>man/vled.1</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
         vled - Visual Lua EDitor
 
-<span style="font-weight:bold;">SYNOPSIS
-        vled</span> [<span style="font-weight:bold;">-s</span>|<span style="font-weight:bold;">--syntax</span>|<span style="font-weight:bold;">--highlight</span>] [<span style="color:0xFF00FF;">file</span>]
-        <span style="font-weight:bold;">vled</span> <span style="font-weight:bold;">--syntax</span>=<span style="color:0xFF00FF;">lang</span> [<span style="color:0xFF00FF;">file</span>]
+<span style="color:000000;font-weight:bold;">SYNOPSIS
+        vled</span> [<span style="color:000000;font-weight:bold;">-s</span>|<span style="color:000000;font-weight:bold;">--syntax</span>|<span style="color:000000;font-weight:bold;">--highlight</span>] [<span style="color:FF00FF;font-weight:bold;">file</span>]
+        <span style="color:000000;font-weight:bold;">vled</span> <span style="color:000000;font-weight:bold;">--syntax</span>=<span style="color:FF00FF;font-weight:bold;">lang</span> [<span style="color:FF00FF;font-weight:bold;">file</span>]
 
-<span style="font-weight:bold;">DESCRIPTION
-        vled</span> is the successor to <span style="font-weight:bold;">ed</span>(<span style="font-weight:bold;">1</span>) and <span style="font-weight:bold;">fled</span>(<span style="font-weight:bold;">1</span>).  It provides a visual interface similar to both <span style="font-weight:bold;">fled</span> and the standard UNIX editor <span style="color:0xFFFF00;">vi</span>.
+<span style="color:000000;font-weight:bold;">DESCRIPTION
+        vled</span> is the successor to <span style="color:000000;font-weight:bold;">ed</span>(<span style="color:000000;font-weight:bold;">1</span>) and <span style="color:000000;font-weight:bold;">fled</span>(<span style="color:000000;font-weight:bold;">1</span>).  It provides a visu
+al interface similar to both <span style="color:000000;font-weight:bold;">fled</span> and the standard UNIX editor <span style="color:DDDD00;font-weight:bold;">vi</span>.
 
-        <span style="font-weight:bold;">vled</span> features several improvements over its predecessors.  The following is a non-exhaustive list of new or improved features over <span style="font-weight:bold;">fled</span>.
+        <span style="color:000000;font-weight:bold;">vled</span> features several improvements over its predecessors.  The followi
+ng is a non-exhaustive list of new or improved features over <span style="color:000000;font-weight:bold;">fled</span>.
 
             - Rudimentary and very experimental support for syntax highlighting;
-            - Uses of the <span style="font-weight:bold;">editor</span>(<span style="font-weight:bold;">3</span>) library, rather than defining its own buffer management utilities. This allows for persistent state across launches, as well as allowing other programs to access and modify open buffers;
+            - Uses of the <span style="color:000000;font-weight:bold;">editor</span>(<span style="color:000000;font-weight:bold;">3</span>) library, rather than defining its own bu
+ffer management utilities. This allows for persistent state across launches, as 
+well as allowing other programs to access and modify open buffers;
             - Proper arrow-key support for navigating lines;
-            - Support for using the <span style="color:0x00AAFF;"></span> key to switch between 'command' mode and 'visual' mode;
-            - Proper support for scrolling when the cursor goes offscreen, and when entering visual mode the cursor will be moved within the screen;
+            - Support for using the <span style="color:00AAFF;font-weight:bold;"><TAB></span> key to switch between 'command' mode
+ and 'visual' mode;
+            - Proper support for scrolling when the cursor goes offscreen, and w
+hen entering visual mode the cursor will be moved within the screen;
 
         as well as others.
 
-        If the command-line flag <span style="font-weight:bold;">--syntax</span>, <span style="font-weight:bold;">-s</span>, or <span style="font-weight:bold;">--highlight</span> are specified, attempts to find a syntax highlighter for the file's extension.  IF <span style="font-weight:bold;">--syntax</span> is given a value and no other highlighting is found, attempts to load the specified highlighting.
+        If the command-line flag <span style="color:000000;font-weight:bold;">--syntax</span>, <span style="color:000000;font-weight:bold;">-s</span>, or <span style="color:000000;font-weight:bold;">--highlight</span> are specifie
+d, attempts to find a syntax highlighter for the file's extension.  IF <span style="color:000000;font-weight:bold;">--syntax
+</span> is given a value and no other highlighting is found, attempts to load the spec
+ified highlighting.
 
-        Unlike <span style="font-weight:bold;">ed</span> and <span style="font-weight:bold;">fled</span>, <span style="font-weight:bold;">vled</span> will automatically create a buffer if there is no existing buffer for the specified file, or if the specified file is not found.
+        Unlike <span style="color:000000;font-weight:bold;">ed</span> and <span style="color:000000;font-weight:bold;">fled</span>, <span style="color:000000;font-weight:bold;">vled</span> will automatically create a buffer if the
+re is no existing buffer for the specified file, or if the specified file is not
+ found.
 
-        vled& supports several common commands, all of which are almost direct clones of their <span style="color:0xFFFF00;">vi</span> equivalents.
+        vled<span style="color:000000"></span> supports several common commands, all of which are almost direct c
+lones of their <span style="color:DDDD00;font-weight:bold;">vi</span> equivalents.
 
-        <span style="font-weight:bold;">w</span> [<span style="color:0xFF00FF;">filename</span>]
-                Write the current buffer.  If <span style="color:0xFF00FF;">filename</span> is specified, writes to <span style="color:0xFF00FF;">filename</span> instead of the buffer's name.
+        <span style="color:000000;font-weight:bold;">w</span> [<span style="color:FF00FF;font-weight:bold;">filename</span>]
+                Write the current buffer.  If <span style="color:FF00FF;font-weight:bold;">filename</span> is specified, writes to
+ <span style="color:FF00FF;font-weight:bold;">filename</span> instead of the buffer's name.
 
-        <span style="font-weight:bold;">q</span>
-                Exit <span style="font-weight:bold;">vled</span>.  Does not close or remove buffers.
+        <span style="color:000000;font-weight:bold;">q</span>
+                Exit <span style="color:000000;font-weight:bold;">vled</span>.  Does not close or remove buffers.
 
-        <span style="font-weight:bold;">wq</span>
-                Exit <span style="font-weight:bold;">vled</span>, writing the current buffer and closing it.
+        <span style="color:000000;font-weight:bold;">wq</span>
+                Exit <span style="color:000000;font-weight:bold;">vled</span>, writing the current buffer and closing it.
 
-        <span style="font-weight:bold;">cq</span>
-                Exit <span style="font-weight:bold;">vled</span>, closing (but ~NOT SAVING&) the current buffer.
+        <span style="color:000000;font-weight:bold;">cq</span>
+                Exit <span style="color:000000;font-weight:bold;">vled</span>, closing (but <span style="color:FF0000;font-weight:bold;">NOT SAVING</span>) the current buffer.
 
-        <span style="font-weight:bold;">d</span>[<span style="color:0xFF00FF;">n</span>]
-                Delete the current line, or <span style="color:0xFF00FF;">n</span> lines, starting at the cursor position and extending down.
+        <span style="color:000000;font-weight:bold;">d</span>[<span style="color:FF00FF;font-weight:bold;">n</span>]
+                Delete the current line, or <span style="color:FF00FF;font-weight:bold;">n</span> lines, starting at the cursor po
+sition and extending down.
 
-        <span style="font-weight:bold;">[?]s/<span style="color:0xFF00FF;">expr*/?string*/</span>
-                Substitute all matches for the Lua pattern ?expr</span> with <span style="color:0xFF00FF;">string</span>.  If <span style="font-weight:bold;">?</span> is present, operate on the whole buffer instead of the current line.
+        <span style="color:000000;font-weight:bold;">[?]s/</span>expr<span style="color:000000;font-weight:bold;">/</span>string<span style="color:000000;font-weight:bold;">/</span>
+                Substitute all matches for the Lua pattern <span style="color:FF00FF;font-weight:bold;">expr</span> with <span style="color:FF00FF;font-weight:bold;">string</span>.
+  If <span style="color:000000;font-weight:bold;">?</span> is present, operate on the whole buffer instead of the current line.
 
-<span style="font-weight:bold;">COPYRIGHT</span>
+<span style="color:000000;font-weight:bold;">COPYRIGHT</span>
         VLED (c) 2020 Ocawesome101 under the GNU GPLv3.
 
-<span style="font-weight:bold;">SEE ALSO
-        ed</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">fled</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">editor</span>(<span style="font-weight:bold;">3</span>)
+<span style="color:000000;font-weight:bold;">SEE ALSO
+        ed</span>(<span style="color:000000;font-weight:bold;">1</span>), <span style="color:000000;font-weight:bold;">fled</span>(<span style="color:000000;font-weight:bold;">1</span>), <span style="color:000000;font-weight:bold;">editor</span>(<span style="color:000000;font-weight:bold;">3</span>)
 
 
 </pre></div></body></html>

@@ -1,63 +1,78 @@
-<html><title>man/man.1</title><body><div style="width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+<html><title>man/man.1</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
         man - an interface to the system reference manuals
 
-<span style="font-weight:bold;">SYNOPSIS</span>
-        <span style="font-weight:bold;">man</span> <span style="color:0xFF00FF;">page
-        <span style="font-weight:bold;">man</span> [<span style="color:0x00FF00;">section</span>|--section=@<section></span>] <span style="color:0xFF00FF;">page
+<span style="color:000000;font-weight:bold;">SYNOPSIS</span>
+        <span style="color:000000;font-weight:bold;">man</span> <span style="color:FF00FF;font-weight:bold;">page
+        <span style="color:</span>000000;font-weight:bold;">man</span> [<span style="color:00FF00;font-weight:bold;">section</span>|--section=<span style="color:00FF00;font-weight:bold;"><section></span>] <span style="color:FF00FF;font-weight:bold;">page
 
-<span style="font-weight:bold;">DESCRIPTION</span>
-        <span style="font-weight:bold;">man</span> is the system's manual pager.  The ?page</span> argument given to <span style="font-weight:bold;">man</span> is usually the name of a program, utility, or library.  The <span style="color:0xFF00FF;">manual page</span> associated with this argument is then found and displayed.  A <span style="color:0x00FF00;">section</span>, if provided, will direct <span style="font-weight:bold;">man</span> to look only in that <span style="color:0x00FF00;">section</span> of the manual.  The default action is to search in all of the available <span style="color:0x00FF00;">sections</span> following a pre-defined order (see <span style="font-weight:bold;">DEFAULTS</span>), and to show only the first <span style="color:0xFF00FF;">page</span> found, even if <span style="color:0xFF00FF;">page</span> exists in several <span style="color:0x00FF00;">sections</span>.
+<span style="color:</span>000000;font-weight:bold;">DESCRIPTION</span>
+        <span style="color:000000;font-weight:bold;">man</span> is the system's manual pager.  The <span style="color:FF00FF;font-weight:bold;">page</span> argument given to <span style="color:000000;font-weight:bold;">man</span> 
+is usually the name of a program, utility, or library.  The <span style="color:FF00FF;font-weight:bold;">manual page</span> associ
+ated with this argument is then found and displayed.  A <span style="color:00FF00;font-weight:bold;">section</span>, if provided, 
+will direct <span style="color:000000;font-weight:bold;">man</span> to look only in that <span style="color:00FF00;font-weight:bold;">section</span> of the manual.  The default act
+ion is to search in all of the available <span style="color:00FF00;font-weight:bold;">sections</span> following a pre-defined orde
+r (see <span style="color:000000;font-weight:bold;">DEFAULTS</span>), and to show only the first <span style="color:FF00FF;font-weight:bold;">page</span> found, even if <span style="color:FF00FF;font-weight:bold;">page</span> exis
+ts in several <span style="color:00FF00;font-weight:bold;">sections</span>.
 
-        The table below shows the <span style="color:0x00FF00;">section</span> numbers of the manual followed by the types of pages they contain.
+        The table below shows the <span style="color:00FF00;font-weight:bold;">section</span> numbers of the manual followed by th
+e types of pages they contain.
 
         1   Executable programs or shell commands
         2   System APIs (APIs provided by the kernel)
         3   User APIs (APIs provided by userspace)
-        4   File formats and conventions, e.g. <span style="color:0xFFFF00;">/etc/passwd</span>
+        4   File formats and conventions, e.g. <span style="color:DDDD00;font-weight:bold;">/etc/passwd</span>
         5   Miscellaneous documentation
 
-        A manual <span style="color:0xFF00FF;">page</span> consists of several sections.
+        A manual <span style="color:FF00FF;font-weight:bold;">page</span> consists of several sections.
 
-        Conventional section names include <span style="font-weight:bold;">NAME</span>, <span style="font-weight:bold;">SYNOPSIS</span>, <span style="font-weight:bold;">CONFIGURATION</span>, <span style="font-weight:bold;">DESCRIPTION</span>, <span style="font-weight:bold;">OPTIONS</span>, <span style="font-weight:bold;">RETURN VALUES</span>, <span style="font-weight:bold;">ERRORS</span>, <span style="font-weight:bold;">ENVIRONMENT</span>, <span style="font-weight:bold;">FILES</span>, <span style="font-weight:bold;">VERSIONS</span>, <span style="font-weight:bold;">NOTES</span>, <span style="font-weight:bold;">BUGS</span>, <span style="font-weight:bold;">EXAMPLE</span>, <span style="font-weight:bold;">AUTHORS</span>, and <span style="font-weight:bold;">SEE ALSO</span>.
+        Conventional section names include <span style="color:000000;font-weight:bold;">NAME</span>, <span style="color:000000;font-weight:bold;">SYNOPSIS</span>, <span style="color:000000;font-weight:bold;">CONFIGURATION</span>, 
+<span style="color:000000;font-weight:bold;">DESCRIPTION</span>, <span style="color:000000;font-weight:bold;">OPTIONS</span>, <span style="color:000000;font-weight:bold;">RETURN VALUES</span>, <span style="color:000000;font-weight:bold;">ERRORS</span>, <span style="color:000000;font-weight:bold;">ENVIRONMENT</span>, <span style="color:000000;font-weight:bold;">FILES</span>, <span style="color:000000;font-weight:bold;">VE
+RSIONS</span>, <span style="color:000000;font-weight:bold;">NOTES</span>, <span style="color:000000;font-weight:bold;">BUGS</span>, <span style="color:000000;font-weight:bold;">EXAMPLE</span>, <span style="color:000000;font-weight:bold;">AUTHORS</span>, and <span style="color:000000;font-weight:bold;">SEE ALSO</span>.
 
-        The following conventions apply to the <span style="font-weight:bold;">SYNOPSIS</span> section and can be used as a guide in other sections.
+        The following conventions apply to the <span style="color:000000;font-weight:bold;">SYNOPSIS</span> section and can be use
+d as a guide in other sections.
 
-        <span style="font-weight:bold;">bold text</span>      type exactly as shown.
-        <span style="color:0xFF00FF;">magenta text</span>   replace with appropriate argument.
-        [<span style="font-weight:bold;">-abc</span>]         any or all arguments within [ ] are optional.
-        <span style="font-weight:bold;">-a</span>|<span style="font-weight:bold;">-b</span>          options delimited by | cannot be used together.
-        <span style="color:0xFF00FF;">argument</span> ...   <span style="color:0xFF00FF;">argument</span> is repeatable.
+        <span style="color:000000;font-weight:bold;">bold text</span>      type exactly as shown.
+        <span style="color:FF00FF;font-weight:bold;">magenta text</span>   replace with appropriate argument.
+        [<span style="color:000000;font-weight:bold;">-abc</span>]         any or all arguments within [ ] are optional.
+        <span style="color:000000;font-weight:bold;">-a</span>|<span style="color:000000;font-weight:bold;">-b</span>          options delimited by | cannot be used together.
+        <span style="color:FF00FF;font-weight:bold;">argument</span> ...   <span style="color:FF00FF;font-weight:bold;">argument</span> is repeatable.
 
-        Exact rendering may vary depending on the output device.  For instance, man will usually not be able to render colored text when running in a monochrome terminal.
+        Exact rendering may vary depending on the output device.  For instance, 
+man will usually not be able to render colored text when running in a monochrome
+ terminal.
 
-        The command or function illustration is a pattern that should match all possible invocations.
+        The command or function illustration is a pattern that should match all 
+possible invocations.
 
-<span style="font-weight:bold;">EXAMPLES
-        man <span style="color:0xFF00FF;">ls</span>
-            Display the manual page for the <span style="color:0x00FF00;">item</span> (program) <span style="color:0xFF00FF;">ls</span>.
+<span style="color:000000;font-weight:bold;">EXAMPLES
+        man </span>ls<span style="color:000000"></span>
+            Display the manual page for the <span style="color:00FF00;font-weight:bold;">item</span> (program) <span style="color:FF00FF;font-weight:bold;">ls</span>.
 
-        <span style="font-weight:bold;">man @3 <span style="color:0xFF00FF;">shell</span>
-            Display the manual page for API ?shell</span> from section @3</span>.
+        <span style="color:000000;font-weight:bold;">man </span>3 <span style="color:FF00FF;font-weight:bold;">shell</span>
+            Display the manual page for API <span style="color:FF00FF;font-weight:bold;">shell</span> from section <span style="color:00FF00;font-weight:bold;">3</span>.
 
-<span style="font-weight:bold;">DEFAULTS</span>
-        The order of sections to search may be overridden by the environment variable $<span style="font-weight:bold;">MANSECT</span>.  By default it is as follows:
+<span style="color:000000;font-weight:bold;">DEFAULTS</span>
+        The order of sections to search may be overridden by the environment var
+iable $<span style="color:000000;font-weight:bold;">MANSECT</span>.  By default it is as follows:
 
                 1 3 4 2 5
 
-        The vt100-formatted manual page is displayed using a ~pager&.
+        The vt100-formatted manual page is displayed using a <span style="color:FF0000;font-weight:bold;">pager</span>.
 
-<span style="font-weight:bold;">ENVIRONMENT</span>
-        <span style="font-weight:bold;">MANPATH</span> or <span style="font-weight:bold;">MAN_PATH</span>
-                if $<span style="font-weight:bold;">MANPATH</span> or $<span style="font-weight:bold;">MAN_PATH</span> is set, its value is used as the path to search for manual pages.
+<span style="color:000000;font-weight:bold;">ENVIRONMENT</span>
+        <span style="color:000000;font-weight:bold;">MANPATH</span> or <span style="color:000000;font-weight:bold;">MAN_PATH</span>
+                if $<span style="color:000000;font-weight:bold;">MANPATH</span> or $<span style="color:000000;font-weight:bold;">MAN_PATH</span> is set, its value is used as the pa
+th to search for manual pages.
 
-<span style="font-weight:bold;">FILES</span>
-        <span style="color:0xFFFF00;">/usr/share/man</span>
+<span style="color:000000;font-weight:bold;">FILES</span>
+        <span style="color:DDDD00;font-weight:bold;">/usr/share/man</span>
                 A global manual page hierarchy.
 
-<span style="font-weight:bold;">COPYRIGHT
+<span style="color:000000;font-weight:bold;">COPYRIGHT
         Monolith System Utilities</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
 
-<span style="font-weight:bold;">SEE ALSO</span>
-        <span style="font-weight:bold;">less</span>(<span style="font-weight:bold;">1</span>)
+<span style="color:000000;font-weight:bold;">SEE ALSO</span>
+        <span style="color:000000;font-weight:bold;">less</span>(<span style="color:000000;font-weight:bold;">1</span>)
 
 </pre></div></body></html>

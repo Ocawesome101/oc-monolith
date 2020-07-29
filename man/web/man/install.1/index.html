@@ -1,31 +1,40 @@
-<html><title>man/install.1</title><body><div style="width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+<html><title>man/install.1</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
         install - install files from one directory to another
 
-<span style="font-weight:bold;">SYNOPSIS
+<span style="color:000000;font-weight:bold;">SYNOPSIS
         install --help
-        install</span> [<span style="font-weight:bold;">--from</span>=]<span style="color:0xFF00FF;">from</span> [<span style="font-weight:bold;">--to</span>=[<span style="color:0xFF00FF;">to</span>
+        install</span> [<span style="color:000000;font-weight:bold;">--from</span>=]<span style="color:FF00FF;font-weight:bold;">from</span> [<span style="color:000000;font-weight:bold;">--to</span>=[<span style="color:FF00FF;font-weight:bold;">to</span>
 
-<span style="font-weight:bold;">DESCRIPTION
-        install</span> is a program that primarily serves as a compatibility program between Monolith and OpenOS.  At its most basic level, <span style="font-weight:bold;">install</span> simply copies files from <span style="color:0xFF00FF;">from</span> to <span style="color:0xFF00FF;">to</span>.
+<span style="color:000000;font-weight:bold;">DESCRIPTION
+        install</span> is a program that primarily serves as a compatibility program b
+etween Monolith and OpenOS.  At its most basic level, <span style="color:000000;font-weight:bold;">install</span> simply copies fi
+les from <span style="color:FF00FF;font-weight:bold;">from</span> to <span style="color:FF00FF;font-weight:bold;">to</span>.
 
-        <span style="font-weight:bold;">install</span> will search for a <span style="color:0x00FF00;">.install</span> file on the source media.  If found, <span style="font-weight:bold;">install</span> will execute it with an <span style="color:0xFFFF00;">install</span> table in its global environment containing fields <span style="color:0xFFFF00;">from</span> and <span style="color:0xFFFF00;">to</span>, similar to the OpenOS program.
+        <span style="color:000000;font-weight:bold;">install</span> will search for a <span style="color:00FF00;font-weight:bold;">.install</span> file on the source media.  If fou
+nd, <span style="color:000000;font-weight:bold;">install</span> will execute it with an <span style="color:DDDD00;font-weight:bold;">install</span> table in its global environment 
+containing fields <span style="color:DDDD00;font-weight:bold;">from</span> and <span style="color:DDDD00;font-weight:bold;">to</span>, similar to the OpenOS program.
 
-        If <span style="color:0x00FF00;">.install</span> is not found, <span style="font-weight:bold;">install</span> will search for a <span style="color:0x00FF00;">.prop</span> file on the source.  This file should contain a Lua table with the optional fields <span style="color:0xFFFF00;">setboot:boolean</span>, <span style="color:0xFFFF00;">setlabel:boolean</span>, <span style="color:0xFFFF00;">label:string</span>, and <span style="color:0xFFFF00;">reboot:boolean</span>.
+        If <span style="color:00FF00;font-weight:bold;">.install</span> is not found, <span style="color:000000;font-weight:bold;">install</span> will search for a <span style="color:00FF00;font-weight:bold;">.prop</span> file on 
+the source.  This file should contain a Lua table with the optional fields <span style="color:DDDD00;font-weight:bold;">setb
+oot:boolean</span>, <span style="color:DDDD00;font-weight:bold;">setlabel:boolean</span>, <span style="color:DDDD00;font-weight:bold;">label:string</span>, and <span style="color:DDDD00;font-weight:bold;">reboot:boolean</span>.
 
-<span style="font-weight:bold;">EXAMPLES
-        install <span style="color:0xFF00FF;">/</span> ?/mnt/0b2</span>
-                 Installs all files except <span style="color:0x00FF00;">.prop</span> from <span style="color:0xFF00FF;">/</span> to the filesystem mounted at <span style="color:0xFF00FF;">/mnt/0b2</span>.
+<span style="color:000000;font-weight:bold;">EXAMPLES
+        install </span>/<span style="color:000000"></span> <span style="color:FF00FF;font-weight:bold;">/mnt/0b2</span>
+                 Installs all files except <span style="color:00FF00;font-weight:bold;">.prop</span> from <span style="color:FF00FF;font-weight:bold;">/</span> to the filesystem mo
+unted at <span style="color:FF00FF;font-weight:bold;">/mnt/0b2</span>.
 
-        <span style="font-weight:bold;">install --from</span>=<span style="color:0xFF00FF;">/ <span style="font-weight:bold;">--to</span>=?/mnt/0b2</span>
+        <span style="color:000000;font-weight:bold;">install --from</span>=<span style="color:FF00FF;font-weight:bold;">/ <span style="color:</span>000000;font-weight:bold;">--to</span>=<span style="color:FF00FF;font-weight:bold;">/mnt/0b2</span>
                  Performs exactly the same action as the above example.
 
-<span style="font-weight:bold;">NOTES
-        install</span> has only loosely been tested, but appears to work to the extent expected. Please report bugs at <span style="color:0x00AAFF;"></span>.
+<span style="color:000000;font-weight:bold;">NOTES
+        install</span> has only loosely been tested, but appears to work to the extent
+ expected. Please report bugs at <span style="color:00AAFF;font-weight:bold;">https://github.com/ocawesome101/oc-monolith/is
+sues</span>.
 
-<span style="font-weight:bold;">COPYRIGHT
+<span style="color:000000;font-weight:bold;">COPYRIGHT
         Monolith System Utilities</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
 
-<span style="font-weight:bold;">SEE ALSO
-        cp</span>(<span style="font-weight:bold;">1</span>)
+<span style="color:000000;font-weight:bold;">SEE ALSO
+        cp</span>(<span style="color:000000;font-weight:bold;">1</span>)
 
 </pre></div></body></html>

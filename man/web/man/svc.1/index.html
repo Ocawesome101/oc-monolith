@@ -1,38 +1,46 @@
-<html><title>man/svc.1</title><body><div style="width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+<html><title>man/svc.1</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
         svc - manage background services
 
-<span style="font-weight:bold;">SYNOPSIS
-        svc <span style="color:0xFF00FF;">list
-        *svc enable-</span><<span style="font-weight:bold;">script</span>|<span style="font-weight:bold;">service</span>> ?service
-        <span style="font-weight:bold;">svc disable ?service
-        *svc start</span>|<span style="font-weight:bold;">stop ?service
+<span style="color:000000;font-weight:bold;">SYNOPSIS
+        svc </span>list
+        <span style="color:000000;font-weight:bold;">svc enable-</span><<span style="color:000000;font-weight:bold;">script</span>|<span style="color:000000;font-weight:bold;">service</span>> <span style="color:FF00FF;font-weight:bold;">service
+        <span style="color:</span>000000;font-weight:bold;">svc disable </span>service
+        <span style="color:000000;font-weight:bold;">svc start</span>|<span style="color:000000;font-weight:bold;">stop </span>service
 
-*DESCRIPTION
-        svc</span> is the default service management tool for the <span style="font-weight:bold;">InitMe</span>(<span style="font-weight:bold;">1</span>) init system shipped with Monolith.  It supports enabling and disabling of both scripts and services, as well as starting and stopping.
+<span style="color:000000;font-weight:bold;">DESCRIPTION
+        svc</span> is the default service management tool for the <span style="color:000000;font-weight:bold;">InitMe</span>(<span style="color:000000;font-weight:bold;">1</span>) init s
+ystem shipped with Monolith.  It supports enabling and disabling of both scripts
+ and services, as well as starting and stopping.
 
-<span style="font-weight:bold;">OPTIONS
-        *enable ?service</span>
-                Enables service ?service</span> to be started on boot.  Services are expected to run in the background and provide functions through IPC or other means, similar to event listeners.
+<span style="color:000000;font-weight:bold;">OPTIONS
+        enable </span>service<span style="color:000000"></span>
+                Enables service <span style="color:FF00FF;font-weight:bold;">service</span> to be started on boot.  Services are e
+xpected to run in the background and provide functions through IPC or other mean
+s, similar to event listeners.
 
-        <span style="font-weight:bold;">disable <span style="color:0xFF00FF;">service</span>
-                Disables service ?service</span>.
+        <span style="color:000000;font-weight:bold;">disable </span>service<span style="color:000000"></span>
+                Disables service <span style="color:FF00FF;font-weight:bold;">service</span>.
 
-        <span style="font-weight:bold;">start <span style="color:0xFF00FF;">service</span>
-                Starts the background service ?service</span>.
+        <span style="color:000000;font-weight:bold;">start </span>service<span style="color:000000"></span>
+                Starts the background service <span style="color:FF00FF;font-weight:bold;">service</span>.
 
-        <span style="font-weight:bold;">stop <span style="color:0xFF00FF;">service</span>
-                Stops the background service ?service</span>, if it is running.
+        <span style="color:000000;font-weight:bold;">stop </span>service<span style="color:000000"></span>
+                Stops the background service <span style="color:FF00FF;font-weight:bold;">service</span>, if it is running.
 
-<span style="font-weight:bold;">NOTES</span>
-        [Until 2020.7.9]  Due to a limitation with the current InitMe configuration scheme, a script and a service cannot both have the same name and be simultaneously enabled.
+<span style="color:000000;font-weight:bold;">NOTES</span>
+        [Until 2020.7.9]  Due to a limitation with the current InitMe configurat
+ion scheme, a script and a service cannot both have the same name and be simulta
+neously enabled.
 
-        [2020.7.9]  This has been fixed.  Scrips are now run in order from ~/lib/scripts&.
+        [2020.7.9]  This has been fixed.  Scrips are now run in order from <span style="color:FF0000;font-weight:bold;">/lib
+/scripts</span>.
 
-<span style="font-weight:bold;">COPYRIGHT
-        Monolith System Utilities</span> copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
+<span style="color:000000;font-weight:bold;">COPYRIGHT
+        Monolith System Utilities</span> copyright (c) 2020 Ocawesome101 under the GNU
+ GPLv3.
 
-<span style="font-weight:bold;">SEE ALSO
-        initsvc</span>(<span style="font-weight:bold;">2</span>)
+<span style="color:000000;font-weight:bold;">SEE ALSO
+        initsvc</span>(<span style="color:000000;font-weight:bold;">2</span>)
 
 
 </pre></div></body></html>

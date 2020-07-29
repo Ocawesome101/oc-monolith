@@ -1,36 +1,44 @@
-<html><title>man/initsvc.2</title><body><div style="width:80ch;"><pre><span style="font-weight:bold;">NAME</span>
+<html><title>man/initsvc.2</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
         initsvc - API for starting and stopping system daemons
 
-<span style="font-weight:bold;">DESCRIPTION
-        initsvc</span> is provided by the <span style="font-weight:bold;">InitMe</span> init system as a method of controlling system services.  Starting and stopping services require root access.
+<span style="color:000000;font-weight:bold;">DESCRIPTION
+        initsvc</span> is provided by the <span style="color:000000;font-weight:bold;">InitMe</span> init system as a method of controll
+ing system services.  Starting and stopping services require root access.
 
-        Configuration is storeed in <span style="color:0xFFFF00;">/etc/initsvc.cfg</span>.
+        Configuration is storeed in <span style="color:DDDD00;font-weight:bold;">/etc/initsvc.cfg</span>.
 
-<span style="font-weight:bold;">METHODS
-        start</span>(<span style="font-weight:bold;">service</span>:~string&[, <span style="font-weight:bold;">handler</span>:<span style="color:0x00AAFF;"></span>]): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
-                Start service ~service&.  Looks for <span style="color:0xFFFF00;">/lib/services/~service<span style="font-weight:bold;">.lua</span>.
+<span style="color:000000;font-weight:bold;">METHODS
+        start</span>(<span style="color:000000;font-weight:bold;">service</span>:<span style="color:FF0000;font-weight:bold;">string</span>[, <span style="color:000000;font-weight:bold;">handler</span>:<span style="color:00AAFF;font-weight:bold;">function</span>]): <span style="color:FF00FF;font-weight:bold;">boolean</span> or <span style="color:000000;font-weight:bold;">nil</span>, 
+<span style="color:FF0000;font-weight:bold;">string</span>
+                Start service <span style="color:FF0000;font-weight:bold;">service</span>.  Looks for <span style="color:DDDD00;font-weight:bold;">/lib/services/</span>service<span style="color:000000;font-weight:bold;">.lua
+</span>.
 
-        <span style="font-weight:bold;">list</span>(): <span style="color:0x00FF00;">table</span>
-                Returns a table of services, and whether they are running.  Each entry is a sub-table with the fields <span style="font-weight:bold;">name</span>:~string</span> and <span style="font-weight:bold;">running</span>:<span style="color:0xFF00FF;">boolean</span>.
+        <span style="color:000000;font-weight:bold;">list</span>(): <span style="color:00FF00;font-weight:bold;">table</span>
+                Returns a table of services, and whether they are running.  Each
+ entry is a sub-table with the fields <span style="color:000000;font-weight:bold;">name</span>:<span style="color:FF0000;font-weight:bold;">string</span> and <span style="color:000000;font-weight:bold;">running</span>:<span style="color:FF00FF;font-weight:bold;">boolean</span>.
         
-        <span style="font-weight:bold;">stop</span>(<span style="font-weight:bold;">service</span>:~string&): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
-                Attempts to stop service ~service&.  May have compatibility with OpenOS services.
+        <span style="color:000000;font-weight:bold;">stop</span>(<span style="color:000000;font-weight:bold;">service</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF00FF;font-weight:bold;">boolean</span> or <span style="color:000000;font-weight:bold;">nil</span>, <span style="color:FF0000;font-weight:bold;">string</span>
+                Attempts to stop service <span style="color:FF0000;font-weight:bold;">service</span>.  May have compatibility with
+ OpenOS services.
 
-        <span style="font-weight:bold;">enable</span>(<span style="font-weight:bold;">service</span>:~string&): <span style="color:0xFF00FF;">boolean</span> or <span style="font-weight:bold;">nil</span>, ~string&
-                Attempts to enable service ~service&.
+        <span style="color:000000;font-weight:bold;">enable</span>(<span style="color:000000;font-weight:bold;">service</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF00FF;font-weight:bold;">boolean</span> or <span style="color:000000;font-weight:bold;">nil</span>, <span style="color:FF0000;font-weight:bold;">string</span>
+                Attempts to enable service <span style="color:FF0000;font-weight:bold;">service</span>.
 
-        <span style="font-weight:bold;">disable</span>(<span style="font-weight:bold;">service</span>:~string&)
-                Disable service ~script&.
+        <span style="color:000000;font-weight:bold;">disable</span>(<span style="color:000000;font-weight:bold;">service</span>:<span style="color:FF0000;font-weight:bold;">string</span>)
+                Disable service <span style="color:FF0000;font-weight:bold;">script</span>.
 
-<span style="font-weight:bold;">NOTES</span>
-        [Until 2020.7.9]  Due to the manner in which <span style="font-weight:bold;">initsvc</span>'s configuration is formatted, a script and a service cannot have the same name.  This may change in the future.
+<span style="color:000000;font-weight:bold;">NOTES</span>
+        [Until 2020.7.9]  Due to the manner in which <span style="color:000000;font-weight:bold;">initsvc</span>'s configuration i
+s formatted, a script and a service cannot have the same name.  This may change 
+in the future.
 
-        [2020.7.9]  This has been fixed.  Startup scripts are now run in order, before services, from <span style="color:0xFFFF00;">/lib/scripts/</span>.
+        [2020.7.9]  This has been fixed.  Startup scripts are now run in order, 
+before services, from <span style="color:DDDD00;font-weight:bold;">/lib/scripts/</span>.
 
-<span style="font-weight:bold;">COPYRIGHT
+<span style="color:000000;font-weight:bold;">COPYRIGHT
         Monolith System Interfaces</span> (c) 2020 Ocawesome101 under the GNU GPLv3.
 
-<span style="font-weight:bold;">SEE ALSO
-        init</span>(<span style="font-weight:bold;">1</span>), <span style="font-weight:bold;">init</span>(<span style="font-weight:bold;">5</span>)
+<span style="color:000000;font-weight:bold;">SEE ALSO
+        init</span>(<span style="color:000000;font-weight:bold;">1</span>), <span style="color:000000;font-weight:bold;">init</span>(<span style="color:000000;font-weight:bold;">5</span>)
 
 </pre></div></body></html>
