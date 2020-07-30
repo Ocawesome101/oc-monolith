@@ -169,7 +169,7 @@ while running do
     end
     if line < 1 then line = 1 end
     if line > #editor.buffers[cur].lines then line = #editor.buffers[cur].lines end
-    if line == curl and not cmd then line = line + 1 table.insert(editor.buffers[cur].lines, line, "") end
+    if line == curl and not cmd then line = line + 1 table.insert(editor.buffers[cur].lines, line, "\n") end
     if line > editor.buffers[cur].scroll.h + h - 5 then editor.buffers[cur].scroll.h = editor.buffers[cur].scroll.h + 1 end
     if line < editor.buffers[cur].scroll.h + 5 and editor.buffers[cur].scroll.h > 0 then editor.buffers[cur].scroll.h = editor.buffers[cur].scroll.h - 1 end
   end
