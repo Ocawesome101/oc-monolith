@@ -1,0 +1,69 @@
+<html><title>man/component.2</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
+        component - interface with components
+
+<span style="color:000000;font-weight:bold;">DESCRIPTION</span>
+        The <span style="color:000000;font-weight:bold;">component</span> API is provided by OpenComputers.  This manual page atte
+mpts to document it.
+
+        Note that this manual page covers both OS-provided methods and OpenCompu
+ters-provided methods.
+
+<span style="color:000000;font-weight:bold;">RAW METHODS
+        list</span>([<span style="color:000000;font-weight:bold;">filter</span>:<span style="color:FF0000;font-weight:bold;">string</span>[, <span style="color:000000;font-weight:bold;">exact</span>:<span style="color:FF00FF;font-weight:bold;">boolean</span>]]): <span style="color:00FF00;font-weight:bold;">table</span>
+                Returns an iterable list of components - keys addresses, values 
+types.  If <span style="color:FF0000;font-weight:bold;">filter</span> is specified, only includes matches of component type.  If <span style="color:FF00FF;font-weight:bold;">
+exact</span> is specified, only includes exact matches.
+
+        <span style="color:000000;font-weight:bold;">invoke</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>, <span style="color:000000;font-weight:bold;">method</span>:<span style="color:FF0000;font-weight:bold;">string</span>[, <span style="color:000000;font-weight:bold;">...</span>]): <span style="color:000000;font-weight:bold;">...</span>
+                Attempts to invoke the specified method on the component with ad
+dress <span style="color:FF0000;font-weight:bold;">address</span>.
+
+        <span style="color:000000;font-weight:bold;">proxy</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:00FF00;font-weight:bold;">table</span>
+                Creates a proxy of the component with address <span style="color:FF0000;font-weight:bold;">address</span>.  All ca
+llable fields are in the proxy, along with the address, type, and slot.
+
+        <span style="color:000000;font-weight:bold;">doc</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>, <span style="color:000000;font-weight:bold;">method</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF0000;font-weight:bold;">string</span>
+                Returns the documentation string for the component callback <span style="color:FF0000;font-weight:bold;">met
+hod</span>.  Note that the documenation string for most methods is also available by <span style="color:00AAFF;font-weight:bold;">
+tostring</span>ing the function in a proxy, i.e. <span style="color:00AAFF;font-weight:bold;">tostring</span>(component.screen.isOn).
+        
+        <span style="color:000000;font-weight:bold;">type</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string): string</span>
+                Returns the component type of the component with address <span style="color:FF0000;font-weight:bold;">addres
+s</span>.
+
+        <span style="color:000000;font-weight:bold;">slot</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the slot in which the component of address <span style="color:FF0000;font-weight:bold;">address</span> is 
+installed, or <span style="color:DDDD00;font-weight:bold;">-1</span> if it does not otherwise make sense.
+
+        <span style="color:000000;font-weight:bold;">fields</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:00FF00;font-weight:bold;">table</span>
+                Returns a table with the names of all non-callable fields that w
+ill be present in the proxy of a component, i.e. <span style="color:000000;font-weight:bold;">address</span> and <span style="color:000000;font-weight:bold;">type</span>, as keys. 
+ Complements <span style="color:00AAFF;font-weight:bold;">component.methods</span>.
+
+        <span style="color:000000;font-weight:bold;">methods</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:00FF00;font-weight:bold;">table</span>
+                Returns a table with the names of all callable methods that will
+ be present in the proxy of a component as keys.
+
+<span style="color:000000;font-weight:bold;">OS METHODS</span>
+        The following component API methods are provided by Monolith and OpenOS.
+
+        <span style="color:000000;font-weight:bold;">get</span>(<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>[, <span style="color:000000;font-weight:bold;">type</span>:<span style="color:FF0000;font-weight:bold;">string</span>]): <span style="color:FF0000;font-weight:bold;">string</span> or <span style="color:000000;font-weight:bold;">nil</span>, <span style="color:FF0000;font-weight:bold;">string
+</span>
+                Tries to resolve the abbreviated address <span style="color:FF0000;font-weight:bold;">address</span> to a full com
+ponent UUID.
+
+        <span style="color:000000;font-weight:bold;">isAvailable</span>(<span style="color:000000;font-weight:bold;">type</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF00FF;font-weight:bold;">boolean</span>
+                Returns whether at least one component of type <span style="color:FF0000;font-weight:bold;">type</span> is install
+ed in the computer.
+
+        Both OSes also provide a metatable that allows for the syntax <span style="color:00FF00;font-weight:bold;">component
+<span style="color:</span>000000;font-weight:bold;">.</span><<span style="color:000000;font-weight:bold;">componentType</span>> to obtain a proxy of a component of that type.
+
+<span style="color:000000;font-weight:bold;">NOTES</span>
+        The OpenOS implementation provides a system for "primary" components, wh
+ich Monolith deos not currently but may in the future.
+
+<span style="color:000000;font-weight:bold;">SEE ALSO
+        computer</span>(<span style="color:000000;font-weight:bold;">2</span>), <span style="color:000000;font-weight:bold;">unicode</span>(<span style="color:000000;font-weight:bold;">2</span>)
+
+</pre></div></body></html>

@@ -1,0 +1,79 @@
+*NAME&
+        computer - mod-provided API for interfacing with the computer directly
+
+*DESCRIPTION&
+        The *computer& API is provided by the OpenComputers Minecraft mod to all software running within.  This manual page attempts to properly document the available methods in the event that the OpenComputers wiki (^https://ocdoc.cil.li&) should be taken down, crash, or otherwise become inaccessible; it is also intended as part of the motion to document every aspect of the Monolith system.
+
+*METHODS
+        address&(): ~string&
+                Returns the component address of the computer.
+
+        *tmpAddress&(): ~string&
+                Returns the component address of the computer's *tmpfs&(*5&), if it exists.
+        
+        *freeMemory&(): #number&
+                Returns the amount of free memory, in bytes.  If this number gets close to 0, your computer will likely soon crash.  Note that for Monolith, a minimum of 256KB of memory is necessary to boot.
+
+        *totalMemory&(): #number&
+                Returns the total installed memory, in bytes.
+
+        *energy&(): #number&
+                Returns the current amount of energy stored in the computer's network.
+
+        *maxEnergy&(): #number&
+                Returns the maximum amount of energy the computer's network can hold.
+
+        *uptime&(): #number&
+                Returns the computer's real uptime in seconds.  Accurate to 0.05s, or one Minecraft tick.
+
+        *shutdown&([*reboot&:?boolean&])
+                Shuts down the computer.  If ?reboot& is ?true&, restarts the computer instead.
+
+        *getBootAddress&(): ~string&
+                Returns the address of the computer's boot filesystem.  Somewhat deprecated, provided by the BIOS, and may not always be present.  Direct wrapper around ^eeprom.setData&.
+        
+        *setBootAddress&([*address&:~string&])
+                Sets the filesystem address from which the computer will attempt to boot.  If called with *nil& or no arguments, clears the value.
+        
+        *users&(): ~string ...&
+                Returns all users currently registered with the computer as a tuple.  You may wish to wrap this function in ^table.pack&.
+
+                For details on user access, see *USERS& below.
+        
+        *addUser&(*name&:~string&): ?boolean& or *nil&, ~string&
+                Registers the user ~name& with the computer.  Returns ?true& on success, *nil& and an error message on failure.  Only online users may be registered, to avoid locking oneself out by mistyping a name.
+        
+        *removeUser&(*name&~string&): ?boolean&
+                Unregisters the user ~name& from the computer.  Returns ?true& on success, ?false& on failure (i.e., the user was not registered).  If no users are registered, any user may use a computer.
+        
+        *pushSignal&(*name&:~string&[, *...&])
+                Pushes a signal with name ~name&, and any other specified elements,  to the signal queue.
+
+        *pullSignal&([*timeout&:#number&]): ~name&, *...& or *nil&
+                Pulls a signal from the queue.  If #timeout& is specified, will only wait #timeout& seconds before returning *nil& if no signal is present.
+
+                For more details on signals, see *SIGNALS& below.
+        
+        *beep&([frequency:~string& or #number&[, *duration&:#number&]])
+                Emits a beep at #frequency& Hz for #duration& seconds.  If ~frequency& is a string, interprets the '.' character as a short beep and a '-' character as a long beep.
+        
+        *getDeviceInfo&(): @table&
+                Returns a table of information about installed components, such that @devInfo&[~"componentAddress"&] will have the fields ~description&, ~product&, ~class&, ~vendor&, and possibly any of ~capacity&, ~size&, ~clock&, ~width&, or ~height&.
+
+                This feature is heavily utilized in *lshw&(*1&) and *getty&(*1&).  Monolith terminals will not work properly without it.
+
+*USERS&
+        In addition to the facilities that Monolith provides, OpenComputers provides its own, and arguably better, method of completely locking users out from a computer.
+
+        If no users are registered with a computer, any user may use the computer.  Otherwise, only registered users may break the computer (robots are exempt, to prevent griefing), change the computer's inventory, or provide input.
+
+*SIGNALS&
+        Signals are OpenComputers's method of conveying user input to the operating system.  They are processed in a FIFO (first in, first out) order.  Only ~strings&, #numbers&, *nils&, and ?booleans& are supported (@tables& are supported also, but they must be made up only of the other supported types).  ^functions& and *threads& are not supported.
+
+        The signal queue is, by default, a maximum of 256 signals deep, but this can be changed in the mod's configuration.
+
+*NOTES&
+        ^computer.getDeviceInfo& may not work or return incomplete information on some emulators.
+
+*SEE ALSO
+        component&(*2&), *unicode&(*2&)

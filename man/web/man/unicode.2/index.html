@@ -1,0 +1,55 @@
+<html><title>man/unicode.2</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
+        unicode - API for working with UTF-8 strings
+
+<span style="color:000000;font-weight:bold;">DESCRIPTION</span>
+        The <span style="color:000000;font-weight:bold;">unicode</span> library provided by OpenComputers provides all functions o
+f the <span style="color:000000;font-weight:bold;">string</span> library, except UTF-8 aware.
+
+<span style="color:000000;font-weight:bold;">METHODS</span>
+        The following functions are provided to allow basic UTF-8 handling:
+
+        <span style="color:000000;font-weight:bold;">char</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:DDDD00;font-weight:bold;">number</span>, <span style="color:000000;font-weight:bold;">...</span>): <span style="color:FF0000;font-weight:bold;">string</span>
+                UTF-8 aware version of string.char. The <span style="color:000000;font-weight:bold;">value</span>s may be in the f
+ull UTF-8 range, not just ASCII.
+        
+        <span style="color:000000;font-weight:bold;">charWidth</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>, <span style="color:000000;font-weight:bold;">...</span>): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the width of the first character given. For example, for
+ シ it'll return 2, where a would return 1.
+        
+        <span style="color:000000;font-weight:bold;">isWide</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>, <span style="color:000000;font-weight:bold;">...</span>): <span style="color:FF00FF;font-weight:bold;">boolean</span>
+                Returns if the width of the first character given is greater tha
+n 1. For example, for シ it'll return true, where a would return false.
+        
+        <span style="color:000000;font-weight:bold;">len</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:DDDD00;font-weight:bold;">number</span>
+                UTF-8 aware version of string.len. For example, for <span style="color:FF0000;font-weight:bold;">Ümläüt</span> 
+it'll return 6, where string.len would return 9.
+        
+        <span style="color:000000;font-weight:bold;">lower</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF0000;font-weight:bold;">string</span>
+                UTF-8 aware version of string.lower.
+        
+        <span style="color:000000;font-weight:bold;">reverse</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF0000;font-weight:bold;">string</span>
+                UTF-8 aware version of string.reverse. For example, for Ümläü
+t it'll return tüälmÜ, where string.reverse would return tälm.
+        
+        <span style="color:000000;font-weight:bold;">sub</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>, <span style="color:000000;font-weight:bold;">i</span>:<span style="color:DDDD00;font-weight:bold;">number</span>[, <span style="color:000000;font-weight:bold;">j</span>:<span style="color:DDDD00;font-weight:bold;">number</span>]): <span style="color:FF0000;font-weight:bold;">string</span>
+                UTF-8 aware version of string.sub.
+        
+        <span style="color:000000;font-weight:bold;">upper</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF0000;font-weight:bold;">string</span>
+                UTF-8 aware version of string.upper.
+        
+        <span style="color:000000;font-weight:bold;">wlen</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the width of the entire string.
+        
+        <span style="color:000000;font-weight:bold;">wtrunc</span>(<span style="color:000000;font-weight:bold;">value</span>:<span style="color:FF0000;font-weight:bold;">string</span>, count: <span style="color:DDDD00;font-weight:bold;">number</span>): <span style="color:FF0000;font-weight:bold;">string</span>
+                Truncates the given <span style="color:FF0000;font-weight:bold;">string</span> up to but not including <span style="color:DDDD00;font-weight:bold;">count</span> wid
+th. If there are not enough characters to match the wanted width, the function e
+rrors.
+
+<span style="color:000000;font-weight:bold;">NOTES</span>
+        In Lua 5.3, some UTF-8 facilities may be used through the global <span style="color:000000;font-weight:bold;">utf8</span> 
+table.
+
+<span style="color:000000;font-weight:bold;">SEE ALSO
+        component</span>(<span style="color:000000;font-weight:bold;">2</span>), <span style="color:000000;font-weight:bold;">computer</span>(<span style="color:000000;font-weight:bold;">2</span>)
+
+</pre></div></body></html>

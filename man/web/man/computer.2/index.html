@@ -1,0 +1,118 @@
+<html><title>man/computer.2</title><body><div style="width:80ch;"><pre><span style="color:000000;font-weight:bold;">NAME</span>
+        computer - mod-provided API for interfacing with the computer directly
+
+<span style="color:000000;font-weight:bold;">DESCRIPTION</span>
+        The <span style="color:000000;font-weight:bold;">computer</span> API is provided by the OpenComputers Minecraft mod to all
+ software running within.  This manual page attempts to properly document the av
+ailable methods in the event that the OpenComputers wiki (<span style="color:00AAFF;font-weight:bold;">https://ocdoc.cil.li</span>
+) should be taken down, crash, or otherwise become inaccessible; it is also inte
+nded as part of the motion to document every aspect of the Monolith system.
+
+<span style="color:000000;font-weight:bold;">METHODS
+        address</span>(): <span style="color:FF0000;font-weight:bold;">string</span>
+                Returns the component address of the computer.
+
+        <span style="color:000000;font-weight:bold;">tmpAddress</span>(): <span style="color:FF0000;font-weight:bold;">string</span>
+                Returns the component address of the computer's <span style="color:000000;font-weight:bold;">tmpfs</span>(<span style="color:000000;font-weight:bold;">5</span>), if
+ it exists.
+        
+        <span style="color:000000;font-weight:bold;">freeMemory</span>(): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the amount of free memory, in bytes.  If this number get
+s close to 0, your computer will likely soon crash.  Note that for Monolith, a m
+inimum of 256KB of memory is necessary to boot.
+
+        <span style="color:000000;font-weight:bold;">totalMemory</span>(): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the total installed memory, in bytes.
+
+        <span style="color:000000;font-weight:bold;">energy</span>(): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the current amount of energy stored in the computer's ne
+twork.
+
+        <span style="color:000000;font-weight:bold;">maxEnergy</span>(): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the maximum amount of energy the computer's network can 
+hold.
+
+        <span style="color:000000;font-weight:bold;">uptime</span>(): <span style="color:DDDD00;font-weight:bold;">number</span>
+                Returns the computer's real uptime in seconds.  Accurate to 0.05
+s, or one Minecraft tick.
+
+        <span style="color:000000;font-weight:bold;">shutdown</span>([<span style="color:000000;font-weight:bold;">reboot</span>:<span style="color:FF00FF;font-weight:bold;">boolean</span>])
+                Shuts down the computer.  If <span style="color:FF00FF;font-weight:bold;">reboot</span> is <span style="color:FF00FF;font-weight:bold;">true</span>, restarts the co
+mputer instead.
+
+        <span style="color:000000;font-weight:bold;">getBootAddress</span>(): <span style="color:FF0000;font-weight:bold;">string</span>
+                Returns the address of the computer's boot filesystem.  Somewhat
+ deprecated, provided by the BIOS, and may not always be present.  Direct wrappe
+r around <span style="color:00AAFF;font-weight:bold;">eeprom.setData</span>.
+        
+        <span style="color:000000;font-weight:bold;">setBootAddress</span>([<span style="color:000000;font-weight:bold;">address</span>:<span style="color:FF0000;font-weight:bold;">string</span>])
+                Sets the filesystem address from which the computer will attempt
+ to boot.  If called with <span style="color:000000;font-weight:bold;">nil</span> or no arguments, clears the value.
+        
+        <span style="color:000000;font-weight:bold;">users</span>(): <span style="color:FF0000;font-weight:bold;">string ...</span>
+                Returns all users currently registered with the computer as a tu
+ple.  You may wish to wrap this function in <span style="color:00AAFF;font-weight:bold;">table.pack</span>.
+
+                For details on user access, see <span style="color:000000;font-weight:bold;">USERS</span> below.
+        
+        <span style="color:000000;font-weight:bold;">addUser</span>(<span style="color:000000;font-weight:bold;">name</span>:<span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF00FF;font-weight:bold;">boolean</span> or <span style="color:000000;font-weight:bold;">nil</span>, <span style="color:FF0000;font-weight:bold;">string</span>
+                Registers the user <span style="color:FF0000;font-weight:bold;">name</span> with the computer.  Returns <span style="color:FF00FF;font-weight:bold;">true</span> on 
+success, <span style="color:000000;font-weight:bold;">nil</span> and an error message on failure.  Only online users may be regist
+ered, to avoid locking oneself out by mistyping a name.
+        
+        <span style="color:000000;font-weight:bold;">removeUser</span>(<span style="color:000000;font-weight:bold;">name</span><span style="color:FF0000;font-weight:bold;">string</span>): <span style="color:FF00FF;font-weight:bold;">boolean</span>
+                Unregisters the user <span style="color:FF0000;font-weight:bold;">name</span> from the computer.  Returns <span style="color:FF00FF;font-weight:bold;">true</span> o
+n success, <span style="color:FF00FF;font-weight:bold;">false</span> on failure (i.e., the user was not registered).  If no users 
+are registered, any user may use a computer.
+        
+        <span style="color:000000;font-weight:bold;">pushSignal</span>(<span style="color:000000;font-weight:bold;">name</span>:<span style="color:FF0000;font-weight:bold;">string</span>[, <span style="color:000000;font-weight:bold;">...</span>])
+                Pushes a signal with name <span style="color:FF0000;font-weight:bold;">name</span>, and any other specified elemen
+ts,  to the signal queue.
+
+        <span style="color:000000;font-weight:bold;">pullSignal</span>([<span style="color:000000;font-weight:bold;">timeout</span>:<span style="color:DDDD00;font-weight:bold;">number</span>]): <span style="color:FF0000;font-weight:bold;">name</span>, <span style="color:000000;font-weight:bold;">...</span> or <span style="color:000000;font-weight:bold;">nil</span>
+                Pulls a signal from the queue.  If <span style="color:DDDD00;font-weight:bold;">timeout</span> is specified, will 
+only wait <span style="color:DDDD00;font-weight:bold;">timeout</span> seconds before returning <span style="color:000000;font-weight:bold;">nil</span> if no signal is present.
+
+                For more details on signals, see <span style="color:000000;font-weight:bold;">SIGNALS</span> below.
+        
+        <span style="color:000000;font-weight:bold;">beep</span>([frequency:<span style="color:FF0000;font-weight:bold;">string</span> or <span style="color:DDDD00;font-weight:bold;">number</span>[, <span style="color:000000;font-weight:bold;">duration</span>:<span style="color:DDDD00;font-weight:bold;">number</span>]])
+                Emits a beep at <span style="color:DDDD00;font-weight:bold;">frequency</span> Hz for <span style="color:DDDD00;font-weight:bold;">duration</span> seconds.  If <span style="color:FF0000;font-weight:bold;">freq
+uency</span> is a string, interprets the '.' character as a short beep and a '-' chara
+cter as a long beep.
+        
+        <span style="color:000000;font-weight:bold;">getDeviceInfo</span>(): <span style="color:00FF00;font-weight:bold;">table</span>
+                Returns a table of information about installed components, such 
+that <span style="color:00FF00;font-weight:bold;">devInfo</span>[<span style="color:FF0000;font-weight:bold;">"componentAddress"</span>] will have the fields <span style="color:FF0000;font-weight:bold;">description</span>, <span style="color:FF0000;font-weight:bold;">produc
+t</span>, <span style="color:FF0000;font-weight:bold;">class</span>, <span style="color:FF0000;font-weight:bold;">vendor</span>, and possibly any of <span style="color:FF0000;font-weight:bold;">capacity</span>, <span style="color:FF0000;font-weight:bold;">size</span>, <span style="color:FF0000;font-weight:bold;">clock</span>, <span style="color:FF0000;font-weight:bold;">width</span>,
+ or <span style="color:FF0000;font-weight:bold;">height</span>.
+
+                This feature is heavily utilized in <span style="color:000000;font-weight:bold;">lshw</span>(<span style="color:000000;font-weight:bold;">1</span>) and <span style="color:000000;font-weight:bold;">getty</span>(<span style="color:000000;font-weight:bold;">1</span>)
+.  Monolith terminals will not work properly without it.
+
+<span style="color:000000;font-weight:bold;">USERS</span>
+        In addition to the facilities that Monolith provides, OpenComputers prov
+ides its own, and arguably better, method of completely locking users out from a
+ computer.
+
+        If no users are registered with a computer, any user may use the compute
+r.  Otherwise, only registered users may break the computer (robots are exempt, 
+to prevent griefing), change the computer's inventory, or provide input.
+
+<span style="color:000000;font-weight:bold;">SIGNALS</span>
+        Signals are OpenComputers's method of conveying user input to the operat
+ing system.  They are processed in a FIFO (first in, first out) order.  Only <span style="color:FF0000;font-weight:bold;">st
+rings</span>, <span style="color:DDDD00;font-weight:bold;">numbers</span>, <span style="color:000000;font-weight:bold;">nils</span>, and <span style="color:FF00FF;font-weight:bold;">booleans</span> are supported (<span style="color:00FF00;font-weight:bold;">tables</span> are supported 
+also, but they must be made up only of the other supported types).  <span style="color:00AAFF;font-weight:bold;">functions</span> 
+and <span style="color:000000;font-weight:bold;">threads</span> are not supported.
+
+        The signal queue is, by default, a maximum of 256 signals deep, but this
+ can be changed in the mod's configuration.
+
+<span style="color:000000;font-weight:bold;">NOTES</span>
+        <span style="color:00AAFF;font-weight:bold;">computer.getDeviceInfo</span> may not work or return incomplete information o
+n some emulators.
+
+<span style="color:000000;font-weight:bold;">SEE ALSO
+        component</span>(<span style="color:000000;font-weight:bold;">2</span>), <span style="color:000000;font-weight:bold;">unicode</span>(<span style="color:000000;font-weight:bold;">2</span>)
+
+</pre></div></body></html>
