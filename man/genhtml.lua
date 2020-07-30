@@ -18,7 +18,7 @@ local patterns = {
   {"%?(.-)[%&%^%~%#%@%*]", "<span style=\"color:#FF00FF;font-weight:bold;\">%1</span>"},
   {"%@(.-)[%?%&%^%~%#%*]", "<span style=\"color:#00FF00;font-weight:bold;\">%1</span>"},
   {"%^(.-)[%?%&%~%#%@%*]", "<span style=\"color:#00AAFF;font-weight:bold;\">%1</span>"},
-  {"%&", "<span style=\"color:#000000\"></span>"},
+  {"%&", "<span style=\"color:#000000;\"></span>"},
   {"[%?%&%^%~%#%@%*]", ""}
 }
 

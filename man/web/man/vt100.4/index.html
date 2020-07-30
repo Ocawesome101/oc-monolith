@@ -16,37 +16,37 @@ Each is documented appropriately.
         All numbers, unless otherwise specified, default to 1.  Return values ar
 e usually read through <span style="color:00AAFF;font-weight:bold;">io.read</span>.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>A<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>A<span style="color:000000;"></span>
                 Move the cursor up <span style="color:DDDD00;font-weight:bold;">nn</span> rows.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>B<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>B<span style="color:000000;"></span>
                 Move the cursor down <span style="color:DDDD00;font-weight:bold;">nn</span> rows.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>C<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>C<span style="color:000000;"></span>
                 Move the cursor forward <span style="color:DDDD00;font-weight:bold;">nn</span> columns.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>c<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>c<span style="color:000000;"></span>
                 Get the terminal name. Returns <span style="color:FF0000;font-weight:bold;">{ESC}[?1ocansi0c</span>.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>D<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>D<span style="color:000000;"></span>
                 Move the cursor backward <span style="color:DDDD00;font-weight:bold;">nn</span> columns.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>E<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>E<span style="color:000000;"></span>
                 Moves the cursor down <span style="color:DDDD00;font-weight:bold;">nn</span> lines and sets the cursor position to
  column 1.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>F<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>F<span style="color:000000;"></span>
                 Moves the cursor up <span style="color:DDDD00;font-weight:bold;">nn</span> lines and sets the cursor position to c
 olumn 1.
         
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">yy;xx</span>f<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">yy;xx</span>f<span style="color:000000;"></span>
                 Identical to <span style="color:FF0000;font-weight:bold;">{ESC}[xx;yyH</span>.
         
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">yy;xx</span>H<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">yy;xx</span>H<span style="color:000000;"></span>
                 Move the cursor to row <span style="color:DDDD00;font-weight:bold;">yy</span>, column <span style="color:DDDD00;font-weight:bold;">xx</span>.  Does not scroll or go
  off-screen.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>J<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>J<span style="color:000000;"></span>
                 Clears portions of the screen.  <span style="color:DDDD00;font-weight:bold;">nn</span> defaults to 0.
 
                 If <span style="color:DDDD00;font-weight:bold;">nn</span> is 0, clears the screen from the current cursor position
@@ -58,7 +58,7 @@ or position.
                 If <span style="color:DDDD00;font-weight:bold;">nn</span> is 2, clears the entire screen. Resets the cursor positi
 on to <span style="color:000000;font-weight:bold;">1, 1</span>.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>K<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>K<span style="color:000000;"></span>
                 Clears portions of the current line.  <span style="color:DDDD00;font-weight:bold;">nn</span> defaults to 0.
 
                 If <span style="color:DDDD00;font-weight:bold;">nn</span> is 0, clears the current line from the current cursor po
@@ -69,7 +69,7 @@ line to the current cursor position.
 
                 If <span style="color:DDDD00;font-weight:bold;">nn</span> is 2, clears the entire current line.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">aa;bb;cc;...</span>m<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">aa;bb;cc;...</span>m<span style="color:000000;"></span>
                 Sets and unsets various terminal attributes such as text color. 
  Accepts multiple arguments per call.
 
@@ -91,25 +91,25 @@ nd colors.
 
                 If the argument is 28, enables text echo.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>n<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>n<span style="color:000000;"></span>
                 If <span style="color:DDDD00;font-weight:bold;">nn</span> is 6, returns the current cursor position as <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">yy;
-xx</span>R<span style="color:000000"></span>.
+xx</span>R<span style="color:000000;"></span>.
 
-                If <span style="color:DDDD00;font-weight:bold;">nn</span> is 5, returns <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">0</span>n<span style="color:000000"></span> if the terminal's GPU is boun
-d to a screen and <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">3</span>n<span style="color:000000"></span> if it is not.
+                If <span style="color:DDDD00;font-weight:bold;">nn</span> is 5, returns <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">0</span>n<span style="color:000000;"></span> if the terminal's GPU is boun
+d to a screen and <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">3</span>n<span style="color:000000;"></span> if it is not.
 
         <span style="color:FF0000;font-weight:bold;">{ESC}[S</span>
                 Scrolls the terminal down one line.  Does not restore previous c
 ontent.   
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>s<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>s<span style="color:000000;"></span>
                 Saves the current cursor position.
 
         <span style="color:FF0000;font-weight:bold;">{ESC}[T</span>
                 Scrolls the terminal up one line.  Does not restore previous con
 tent.
 
-        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>u<span style="color:000000"></span>
+        <span style="color:FF0000;font-weight:bold;">{ESC}[<span style="color:</span>DDDD00;font-weight:bold;">nn</span>u<span style="color:000000;"></span>
                 Restores the saved cursor position.
 
         <span style="color:FF0000;font-weight:bold;">{ESC}D</span>
