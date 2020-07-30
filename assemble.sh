@@ -33,10 +33,27 @@ log "$INFO Copying init to build"
 cp init/init.lua build/sbin
 cd man && ./docgen.sh && cd ..
 
-if [ "$1" == "release" ]; then
-  log "$WAIT Building release.cpio"
-	cd build && find ./* | cpio -o > ../release.cpio && cd ..
-fi
+while [ $# -gt 0 ]; do
+  case "$1" in
+    release)
+      log "$WAIT Building release.cpio"
+      cd build && find ./* | cpio -o > ../release.cpio && cd ..
+      shift
+      ;;
+    webdoc)
+      log "$WAIT Assembling man pages in web format"
+      cd man
+      ./genhtml.sh
+      cd web
+      push-man
+      cd ../..
+      shift
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
 
 log "$INFO Done."
 
