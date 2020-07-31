@@ -125,6 +125,11 @@ local ops = {
   end,
   ["^s/(%S+)/(%S*)/"] = function(f,r) -- current line substitute
     editor.buffers[cur].lines[line] = editor.buffers[cur].lines[line]:gsub(f,r) or editor.buffers[cur].lines[line]
+  end,
+  ["^(%d+)$"] = function(n)
+    local min = 1
+    local max = #editor.buffers[cur].lines
+    line = (n > max and max) or (n < min and min) or n
   end
 }
 
