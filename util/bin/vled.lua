@@ -127,6 +127,7 @@ local ops = {
     editor.buffers[cur].lines[line] = editor.buffers[cur].lines[line]:gsub(f,r) or editor.buffers[cur].lines[line]
   end,
   ["^(%d+)$"] = function(n)
+    n = tonumber(n)
     local min = 1
     local max = #editor.buffers[cur].lines
     line = (n > max and max) or (n < min and min) or n
