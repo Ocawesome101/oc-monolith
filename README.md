@@ -2,6 +2,8 @@
 
 Monolith is a monolithic, multitasking, multiuser, multiscreen operating system for the OpenComputers Minecraft mod. Documentation is mostly available in the DOCS.md files placed in the various directories. If any docs are missing, please raise an issue or let me know through Discord or IRC (Ocawesome101#5343 or Ocawesome101 in #oc on EsperNet).
 
+Documentation is available online [here](https://oz-craft.pickardayune.com/man).
+
 ## Pre-built releases
 
 I will try to set up automated builds, but no guarantees.
@@ -64,10 +66,10 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] `module`
     - [X] `modules`
     - [X] `kinfo`
-  - [ ] SH
+  - [X] SH
     - [X] Base
     - [X] Builtins
-    - [ ] Basic commands
+    - [X] Basic commands
   - [ ] MonoUI
     - [ ] Base
     - [ ] Window management
