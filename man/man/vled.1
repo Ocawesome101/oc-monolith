@@ -22,7 +22,7 @@
 
         Unlike *ed& and *fled&, *vled& will automatically create a buffer if there is no existing buffer for the specified file, or if the specified file is not found.
 
-        vled& supports several common commands, all of which are almost direct clones of their #vi& equivalents.
+        vled& supports several common commands, all of which are almost direct clones of their #vi& equivalents.  Commands must be prefixed with the *:& character.
 
         *w& [?filename&]
                 Write the current buffer.  If ?filename& is specified, writes to ?filename& instead of the buffer's name.
@@ -41,6 +41,8 @@
 
         *[%]s/?expr*/?string*/&
                 Substitute all matches for the Lua pattern ?expr& with ?string&.  If *%& is present, operate on the whole buffer instead of the current line.
+        
+        A command in the form *:#linenum& will jump the cursor to #linenum&.
 
 *COPYRIGHT&
         VLED (c) 2020 Ocawesome101 under the GNU GPLv3.

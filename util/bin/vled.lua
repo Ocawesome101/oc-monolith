@@ -63,7 +63,6 @@ end
 ::cont::
 local cmdhistory = {}
 local rlopts_cmd = {
-  prompt = ":",
   tabact = function(b)
     cmd = false
     return nil, "return_none"
@@ -94,39 +93,39 @@ local rlopts_cmd = {
 local running = true
 -- this is very vi-inspired
 local ops = {
-  ["^wq$"] = function() -- write & quit
+  ["^:wq$"] = function() -- write & quit
     editor.buffers[cur]:save()
     editor.buffers[cur] = nil
     running = false
   end,
-  ["^cq$"] = function() -- close & quit
+  ["^:cq$"] = function() -- close & quit
     editor.buffers[cur] = nil
     running = false
   end,
-  ["^w$"] = function() -- write
+  ["^:w$"] = function() -- write
     editor.buffers[cur]:save()
   end,
-  ["^w (%S*)"] = function(f) -- write to file
+  ["^:w (%S*)"] = function(f) -- write to file
     editor.buffers[cur]:save(f)
   end,
-  ["^q$"] = function() -- quit
+  ["^:q$"] = function() -- quit
     running = false
   end,
-  ["^d(%d*)"] = function(n) -- delete lines
+  ["^:d(%d*)"] = function(n) -- delete lines
     n = tonumber(n) or 1
     for i=1,n,1 do
       table.remove(editor.buffers[cur].lines, line)
     end
   end,
-  ["^%%s/(%S+)/(%S*)/"] = function(f,r) -- global substitute
+  ["^:%%s/(%S+)/(%S*)/"] = function(f,r) -- global substitute
     for n,line in ipairs(editor.buffers[cur].lines) do
       editor.buffers[cur].lines[n] = line:gsub(f,r) or line
     end
   end,
-  ["^s/(%S+)/(%S*)/"] = function(f,r) -- current line substitute
+  ["^:s/(%S+)/(%S*)/"] = function(f,r) -- current line substitute
     editor.buffers[cur].lines[line] = editor.buffers[cur].lines[line]:gsub(f,r) or editor.buffers[cur].lines[line]
   end,
-  ["^(%d+)$"] = function(n)
+  ["^:(%d+)$"] = function(n)
     n = tonumber(n)
     local min = 1
     local max = #editor.buffers[cur].lines

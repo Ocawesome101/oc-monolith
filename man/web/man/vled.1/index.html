@@ -34,7 +34,8 @@ re is no existing buffer for the specified file, or if the specified file is not
  found.
 
         vled<span style="color:000000;"></span> supports several common commands, all of which are almost direct c
-lones of their <span style="color:DDDD00;font-weight:bold;">vi</span> equivalents.
+lones of their <span style="color:DDDD00;font-weight:bold;">vi</span> equivalents.  Commands must be prefixed with the <span style="color:000000;font-weight:bold;">:</span> charact
+er.
 
         <span style="color:000000;font-weight:bold;">w</span> [<span style="color:FF00FF;font-weight:bold;">filename</span>]
                 Write the current buffer.  If <span style="color:FF00FF;font-weight:bold;">filename</span> is specified, writes to
@@ -56,6 +57,8 @@ sition and extending down.
         <span style="color:000000;font-weight:bold;">[?]s/</span>expr<span style="color:000000;font-weight:bold;">/</span>string<span style="color:000000;font-weight:bold;">/</span>
                 Substitute all matches for the Lua pattern <span style="color:FF00FF;font-weight:bold;">expr</span> with <span style="color:FF00FF;font-weight:bold;">string</span>.
   If <span style="color:000000;font-weight:bold;">?</span> is present, operate on the whole buffer instead of the current line.
+        
+        A command in the form <span style="color:000000;font-weight:bold;">:<span style="color:</span>DDDD00;font-weight:bold;">linenum</span> will jump the cursor to <span style="color:DDDD00;font-weight:bold;">linenum</span>.
 
 <span style="color:000000;font-weight:bold;">COPYRIGHT</span>
         VLED (c) 2020 Ocawesome101 under the GNU GPLv3.
