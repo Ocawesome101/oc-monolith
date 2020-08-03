@@ -3,7 +3,7 @@
 
 *SYNOPSIS
         svc ?list
-        *svc enable-&<*script&|*service&> ?service
+        *svc enable ?service
         *svc disable ?service
         *svc start&|*stop ?service
 
@@ -24,9 +24,11 @@
                 Stops the background service ?service&, if it is running.
 
 *NOTES&
-        [Until 2020.7.9]  Due to a limitation with the current InitMe configuration scheme, a script and a service cannot both have the same name and be simultaneously enabled.
+        [Until 2020.7.09]  Due to a limitation with the current InitMe configuration scheme, a script and a service cannot both have the same name and be simultaneously enabled.
 
-        [2020.7.9]  This has been fixed.  Scrips are now run in order from ~/lib/scripts&.
+        [2020.7.09]  This has been fixed.  Scripts are now run in order from #/lib/scripts&.
+
+        [2020.8.03]  Scripts are now run from #/lib/init/scripts&.
 
 *COPYRIGHT
         Monolith System Utilities& copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
