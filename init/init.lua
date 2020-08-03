@@ -241,14 +241,14 @@ do
 end
 
 
-log("INFO", "Running scripts from /lib/scripts/...")
+log("INFO", "Running scripts from /lib/init/scripts/...")
 
-local files = kernel.filesystem.list("/lib/scripts/")
+local files = kernel.filesystem.list("/lib/init/scripts/")
 if files then
   table.sort(files)
   for k, v in ipairs(files) do
     log("WAIT", v)
-    local full = kernel.filesystem.concat("/lib/scripts/", v)
+    local full = kernel.filesystem.concat("/lib/init/scripts/", v)
     local ok, err = loadfile(full)
     if not ok then
       panic(err)
@@ -280,7 +280,7 @@ if runlevel.levels[maxrunlevel].services then
   local fs = require("filesystem")
   local thread = require("thread")
   local users = require("users")
-  local services = "/lib/services/"
+  local services = "/lib/init/services/"
 
   local cfg = config.load("/etc/initsvc.cfg")
 

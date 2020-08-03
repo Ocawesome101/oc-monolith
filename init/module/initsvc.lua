@@ -11,7 +11,7 @@ if runlevel.levels[maxrunlevel].services then
   local fs = require("filesystem")
   local thread = require("thread")
   local users = require("users")
-  local services = "/lib/services/"
+  local services = "/lib/init/services/"
 
   local cfg = config.load("/etc/initsvc.cfg")
 

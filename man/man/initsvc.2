@@ -8,7 +8,7 @@
 
 *METHODS
         start&(*service&:~string&[, *handler&:^function&]): ?boolean& or *nil&, ~string&
-                Start service ~service&.  Looks for #/lib/services/~service*.lua&.
+                Start service ~service&.  Looks for #/lib/init/services/~service*.lua&.
 
         *list&(): @table&
                 Returns a table of services, and whether they are running.  Each entry is a sub-table with the fields *name&:~string& and *running&:?boolean&.
