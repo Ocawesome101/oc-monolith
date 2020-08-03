@@ -197,11 +197,7 @@ do
     if not threads[pid] then
       return nil, "no such thread"
     end
-    local ipc = table.pack(
-      "ipc",
-      cur,
-      ...
-    )
+    local ipc = table.pack("ipc", cur, ...)
     table.insert(threads[pid].ipc, ipc)
     return true
   end
@@ -230,13 +226,13 @@ do
   thread.signals = {
     interrupt = 2,
     quit      = 3,
-    stop      = 19,
-    continue  = 18,
+    kill      = 9
     term      = 15,
     terminate = 15,
+    continue  = 18,
+    stop      = 19,
     usr1      = 65,
     usr2      = 66,
-    kill      = 9
   }
 
   function thread.kill(pid, sig)
@@ -297,7 +293,7 @@ do
         kernel.logger.log("Low memory - collecting garbage")
         collectgarbage()
         if computer.freeMemory() < 1024 then -- GC didn't help. Panic!
-          kernel.logger.panic("out of memory")
+          kernel.logger.panic("ran out of memory")
         end
       end
       cleanup()
