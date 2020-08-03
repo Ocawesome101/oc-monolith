@@ -6,6 +6,10 @@ ed.buffer = {}
 
 function ed.buffer:load(file)
   checkArg(1, file, "string")
+  if require("filesystem").size(file) + 8192 >= require("computer").freeMemory() then
+    print("ed.buffer:load(): Not quite enough memory - collecting garbage")
+    collectgarbage()
+  end
   local handle, err = io.open(file, "r")
   if not handle then
     return nil, err
