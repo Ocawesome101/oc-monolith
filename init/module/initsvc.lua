@@ -102,6 +102,11 @@ if runlevel.levels[maxrunlevel].services then
 
   package.loaded.initsvc = initsvc
 
+  if require("computer").freeMemory() < 16384 then
+    log("WARN", "Low memory - collecting garbage")
+    collectgarbage()
+  end
+
   for sname in pairs(cfg) do
     log("WAIT", "Starting service " .. sname)
     local ok, err = initsvc.start(sname, panic)

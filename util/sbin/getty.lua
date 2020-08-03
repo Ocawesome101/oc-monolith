@@ -94,6 +94,7 @@ function getty.scan()
   end
 
   while true do
+    coroutine.yield(0)
     local gpu, screen = nextGPU(), nextScreen()
     if gpu and screen then
       local ok, err = loadfile(login)
