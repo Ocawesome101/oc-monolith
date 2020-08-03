@@ -217,9 +217,6 @@ do
   local fs = require("filesystem")
   local thread = require("thread")
   local stream = require("stream")
-  do
-    local f = buffer.formatted_read
-  end
 
   setmetatable(io, {__index = function(tbl, k)
     if k == "stdin" then

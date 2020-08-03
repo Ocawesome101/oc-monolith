@@ -183,11 +183,7 @@ do
     if threads[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
-    local msg = {
-      "signal",
-      cur,
-      sig
-    }
+    local msg = {"signal", cur, sig}
     table.insert(threads[pid].sig, msg)
     return true
   end
@@ -226,7 +222,7 @@ do
   thread.signals = {
     interrupt = 2,
     quit      = 3,
-    kill      = 9
+    kill      = 9,
     term      = 15,
     terminate = 15,
     continue  = 18,

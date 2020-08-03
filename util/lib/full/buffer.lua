@@ -160,58 +160,6 @@ function buffer:readBytesOrChars(readChunk, n)
   return data
 end
 
-function buffer:readAll(readChunk)
-  repeat
-    local result, reason = readChunk(self)
-    if not result and reason then
-      return result, reason
-    end
-  until not result -- eof
-  local result = self.bufferRead
-  self.bufferRead = ""
-  return result
-end
-
-function buffer:formatted_read(readChunk, ...)
-  self.timeout = require("computer").uptime() + self.readTimeout
-  local function read(n, format)
-    if type(format) == "number" then
-      return self:readBytesOrChars(readChunk, format)
-    else
-      local first_char_index = 1
-      if type(format) ~= "string" then
-        error("bad argument #" .. n .. " (invalid option)")
-      elseif unicode.sub(format, 1, 1) == "*"  then
-        first_char_index = 2
-      end
-      format = unicode.sub(format, first_char_index, first_char_index)
-      if format == "n" then
-        return self:readNumber(readChunk)
-      elseif format == "l" then
-        return self:readLine(true, self.timeout)
-      elseif format == "L" then
-        return self:readLine(false, self.timeout)
-      elseif format == "a" then
-        return self:readAll(readChunk)
-      else
-        error("bad argument #" .. n .. " (invalid format)")
-      end
-    end
-  end
-
-  local results = {}
-  local formats = table.pack(...)
-  for i = 1, formats.n do
-    local result, reason = read(i, formats[i])
-    if result then
-      results[i] = result
-    elseif reason then
-      return nil, reason
-    end
-  end
-  return table.unpack(results, 1, formats.n)
-end
-
 function buffer:size()
   local len = self.mode.b and rawlen or unicode.len
   local size = len(self.bufferRead)
