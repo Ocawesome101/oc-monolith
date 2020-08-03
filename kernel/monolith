@@ -767,11 +767,7 @@ do
     if threads[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
-    local msg = {
-      "signal",
-      cur,
-      sig
-    }
+    local msg = {"signal", cur, sig}
     table.insert(threads[pid].sig, msg)
     return true
   end
