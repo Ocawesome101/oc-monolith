@@ -11,8 +11,7 @@ do
     table = table,
     component = component,
     computer = computer,
-    unicode = unicode,
-    runlevel = runlevel
+    unicode = unicode
   }
 
   _G.component, _G.computer, _G.unicode = nil, nil, nil

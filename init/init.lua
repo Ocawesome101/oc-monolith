@@ -86,7 +86,8 @@ log("INFO", "Starting " .. _INITVERSION)
 
 do
   log("WAIT", "Initializing package library")
-  dofile("/lib/init/package.lua")
+
+  loadfile("/lib/init/package.lua")()
   kernel.logger.y = kernel.logger.y - 1
   log("OK", "Initialized package library    ")
 end
@@ -97,6 +98,7 @@ package.loaded.signals = kernel.thread.signals
 package.loaded.module = kernel.module
 package.loaded.modules = kernel.modules
 package.loaded.kinfo = kernel.info
+package.loaded.runlevel = runlevel
 package.loaded.syslog = {
   log = function(s,m)if not m then m, s = s, "OK"end log(s,m) end
 }
