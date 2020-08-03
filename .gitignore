@@ -1,3 +1,4 @@
 build
 kernel\/kernel\.lua
 init\/init\.lua
+\.lite_workspace.lua

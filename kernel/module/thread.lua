@@ -259,33 +259,33 @@ do
 
       for i, thd in ipairs(run) do
         cur = thd.pid
-        local ok, p1, p2 = _, _, _ -- make it work with the minifier :/
+        local ok, r1
         if #thd.ipc > 0 then
           local ipc = table.remove(thd.ipc, 1)
-          ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(ipc))
+          ok, r1 = coroutine.resume(thd.coro, table.unpack(ipc))
         elseif #thd.sig > 0 then
           local nsig = table.remove(thd.sig, 1)
           if nsig[3] == thread.signals.kill then
             thd.dead = true
-            ok, p1, p2 = true, nil, "killed"
+            ok, r1 = true, "killed"
           elseif nsig[3] == thread.signals.stop then
             thd.stopped = true
           elseif nsig[3] == thread.signals.continue then
             thd.stopped = false
           else
-            ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(nsig))
+            ok, r1 = coroutine.resume(thd.coro, table.unpack(nsig))
           end
         elseif sig and #sig > 0 then
-          ok, p1, p2 = coroutine.resume(thd.coro, table.unpack(sig))
+          ok, r1 = coroutine.resume(thd.coro, table.unpack(sig))
         else
-          ok, p1, p2 = coroutine.resume(thd.coro)
+          ok, r1 = coroutine.resume(thd.coro)
         end
-        --kernel.logger.log(tostring(ok) .. " " .. tostring(p1) .. " " .. tostring(p2))
-        if (not ok) and p1 then
-          handleProcessError(thd, p1)
+        --kernel.logger.log(tostring(ok) .. " " .. tostring(r1))
+        if (not ok) and r1 then
+          handleProcessError(thd, r1)
         elseif ok then
-          if p1 and type(p1) == "number" then
-            thd.deadline = computer.uptime() + p1
+          if r1 and type(r1) == "number" then
+            thd.deadline = computer.uptime() + r1
           else
             thd.deadline = math.huge
           end
@@ -303,6 +303,7 @@ do
       cleanup()
     end
     kernel.logger.log("thread: exited cleanly! this SHOULD NOT HAPPEN!")
+    kernel.logger.panic("thread: all threads died!")
   end
 
   kernel.thread = thread
