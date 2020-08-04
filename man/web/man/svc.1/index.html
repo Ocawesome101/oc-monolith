@@ -3,14 +3,14 @@
 
 <span style="color:000000;font-weight:bold;">SYNOPSIS
         svc </span>list
-        <span style="color:000000;font-weight:bold;">svc enable-</span><<span style="color:000000;font-weight:bold;">script</span>|<span style="color:000000;font-weight:bold;">service</span>> <span style="color:FF00FF;font-weight:bold;">service
-        <span style="color:</span>000000;font-weight:bold;">svc disable </span>service
+        <span style="color:000000;font-weight:bold;">svc enable </span>service
+        <span style="color:000000;font-weight:bold;">svc disable </span>service
         <span style="color:000000;font-weight:bold;">svc start</span>|<span style="color:000000;font-weight:bold;">stop </span>service
 
 <span style="color:000000;font-weight:bold;">DESCRIPTION
         svc</span> is the default service management tool for the <span style="color:000000;font-weight:bold;">InitMe</span>(<span style="color:000000;font-weight:bold;">1</span>) init s
-ystem shipped with Monolith.  It supports enabling and disabling of both scripts
- and services, as well as starting and stopping.
+ystem shipped with Monolith.  It supports enabling and disabling of services, as
+ well as starting and stopping.
 
 <span style="color:000000;font-weight:bold;">OPTIONS
         enable </span>service<span style="color:000000;"></span>
@@ -28,12 +28,14 @@ s, similar to event listeners.
                 Stops the background service <span style="color:FF00FF;font-weight:bold;">service</span>, if it is running.
 
 <span style="color:000000;font-weight:bold;">NOTES</span>
-        [Until 2020.7.9]  Due to a limitation with the current InitMe configurat
-ion scheme, a script and a service cannot both have the same name and be simulta
-neously enabled.
+        [Until 2020.7.09]  Due to a limitation with the current InitMe configura
+tion scheme, a script and a service cannot both have the same name and be simult
+aneously enabled.
 
-        [2020.7.9]  This has been fixed.  Scrips are now run in order from <span style="color:FF0000;font-weight:bold;">/lib
-/scripts</span>.
+        [2020.7.09]  This has been fixed.  Scripts are now run in order from <span style="color:DDDD00;font-weight:bold;">/l
+ib/scripts</span>.
+
+        [2020.8.03]  Scripts are now run from <span style="color:DDDD00;font-weight:bold;">/lib/init/scripts</span>.
 
 <span style="color:000000;font-weight:bold;">COPYRIGHT
         Monolith System Utilities</span> copyright (c) 2020 Ocawesome101 under the GNU
