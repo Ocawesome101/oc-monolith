@@ -1,7 +1,6 @@
 -- component API metatable allowing component.filesystem, and component.get --
 
 do
-  kernel.logger.log("component: initializing API")
   function component.get(addr)
     checkArg(1, addr, "string")
     for ca, ct in component.list() do
@@ -18,7 +17,6 @@ do
     return ok
   end
 
-  kernel.logger.log("component: initializing metatables")
   local mt = {
     __index = function(tbl, k)
       local addr = component.list(k, true)()
@@ -31,6 +29,4 @@ do
   }
 
   setmetatable(component, mt)
-
-  kernel.logger.log("component: done")
 end

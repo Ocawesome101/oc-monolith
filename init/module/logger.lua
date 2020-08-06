@@ -50,5 +50,3 @@ do
     end
   end
 end
-
-logger.log("OK", "Initialized init logger")

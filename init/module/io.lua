@@ -1,12 +1,8 @@
 -- `io` library --
 
 do
-  log("INFO", "Initializing IO library")
   dofile("/lib/init/io.lua")
-  kernel.logger.y = kernel.logger.y - 1
-  log("OK", "Initialized IO library ")
 
-  log("INFO", "redefining loadfile")
   function loadfile(file, mode, env)
     checkArg(1, file, "string")
     checkArg(2, mode, "string", "nil")

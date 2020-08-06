@@ -1,8 +1,6 @@
 -- os --
 
 do
-  log("INFO", "Finalizing 'os' API")
-
   local computer = computer or require("computer")
   local thread = thread or require("thread")
 
@@ -71,7 +69,4 @@ do
     end
     coroutine.yield(0)
   end
-
-  kernel.logger.y = kernel.logger.y - 1
-  log("OK", "Finalized 'os' API ")
 end

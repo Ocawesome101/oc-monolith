@@ -75,23 +75,15 @@ do
   end
 end
 
-logger.log("OK", "Initialized init logger")
-
 local log = logger.log
 
 log("INFO", "Starting " .. _INITVERSION)
 
+log("module/package")
 
 -- `package` library --
 
-do
-  log("WAIT", "Initializing package library")
-
-  loadfile("/lib/init/package.lua")()
-  kernel.logger.y = kernel.logger.y - 1
-  log("OK", "Initialized package library    ")
-end
-log("INFO", "Setting up libraries")
+loadfile("/lib/init/package.lua")()
 package.loaded.filesystem = kernel.filesystem
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
@@ -104,18 +96,14 @@ package.loaded.syslog = {
 }
 package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil
---log("OK", "Set up libraries")
 
+log("module/io")
 
 -- `io` library --
 
 do
-  log("INFO", "Initializing IO library")
   dofile("/lib/init/io.lua")
-  kernel.logger.y = kernel.logger.y - 1
-  log("OK", "Initialized IO library ")
 
-  log("INFO", "redefining loadfile")
   function loadfile(file, mode, env)
     checkArg(1, file, "string")
     checkArg(2, mode, "string", "nil")
@@ -132,12 +120,11 @@ do
   end
 end
 
+log("module/os")
 
 -- os --
 
 do
-  log("INFO", "Finalizing 'os' API")
-
   local computer = computer or require("computer")
   local thread = thread or require("thread")
 
@@ -206,17 +193,14 @@ do
     end
     coroutine.yield(0)
   end
-
-  kernel.logger.y = kernel.logger.y - 1
-  log("OK", "Finalized 'os' API ")
 end
 
+log("module/component")
 
 -- component API metatable allowing component.filesystem and things --
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
 
 do
-  log("WAIT", "Set up components")
   local component = require("component")
   local overrides = {
     gpu = function()return io.stdout.gpu end
@@ -236,10 +220,9 @@ do
   }
 
   setmetatable(component, mt)
-  kernel.logger.y = kernel.logger.y - 1
-  log("OK", "Set up components")
 end
 
+log("module/scripts")
 
 log("INFO", "Running scripts from /lib/init/scripts/...")
 
@@ -259,13 +242,12 @@ if files then
       log("FAIL", v)
       panic(r)
     end
-    kernel.logger.y = kernel.logger.y - 1
-    log("OK", v)
   end
 end
 
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
+log("module/initsvc")
 
 -- `initsvc` lib. --
 
@@ -274,8 +256,6 @@ function runlevel.max()
 end
 
 if runlevel.levels[maxrunlevel].services then
-  log("WAIT", "Initializing initsvc")
-
   local config = require("config")
   local fs = require("filesystem")
   local thread = require("thread")
@@ -382,11 +362,7 @@ if runlevel.levels[maxrunlevel].services then
     if not ok then
       panic(err)
     end
-    kernel.logger.y = kernel.logger.y - 1
-    log("OK", "Started service " .. sname .. "   ")
   end
-  coroutine.yield(0)
-  log("OK", "Initialized initsvc")
 end
 
 log("WAIT", "Starting getty")
@@ -394,9 +370,7 @@ local ok, err = loadfile("/sbin/getty.lua")
 if not ok then
   panic("GETTY load failed: " .. err)
 end
-kernel.logger.y = kernel.logger.y - 1
 require("thread").spawn(ok, "getty", error)
-log("OK", "Started getty    ")
 
 
 kernel.logger.setShown(false)

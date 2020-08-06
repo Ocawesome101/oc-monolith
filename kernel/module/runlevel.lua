@@ -1,7 +1,6 @@
 -- run levels --
 
 do
-  kernel.logger.log("runlevel: setting up system runlevels")
   local rl = {}
   rl.levels = {
     [0] = {
@@ -46,5 +45,4 @@ do
   end
 
   kernel.runlevel = rl
-  kernel.logger.log("runlevel: done")
 end

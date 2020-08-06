@@ -58,14 +58,23 @@ function collectgarbage()
   end
 end
 
+kernel.logger.log("module/component")
 --#include "module/component.lua"
+kernel.logger.log("module/users")
 --#include "module/users.lua"
---#include "module/module.lua"
+kernel.logger.log("module/dkms")
+--#include "module/dkms.lua"
+kernel.logger.log("module/filesystem")
 --#include "module/filesystem.lua"
+kernel.logger.log("module/computer")
 --#include "module/computer.lua"
+kernel.logger.log("module/runlevel")
 --#include "module/runlevel.lua"
+kernel.logger.log("module/thread")
 --#include "module/thread.lua"
+kernel.logger.log("module/sandbox")
 --#include "module/sandbox.lua"
+kernel.logger.log("module/loadfile")
 --#include "module/loadfile.lua"
 
 kernel.logger.log("loading init from " .. flags.init)

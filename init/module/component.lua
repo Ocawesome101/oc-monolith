@@ -2,7 +2,6 @@
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
 
 do
-  log("WAIT", "Set up components")
   local component = require("component")
   local overrides = {
     gpu = function()return io.stdout.gpu end
@@ -22,6 +21,4 @@ do
   }
 
   setmetatable(component, mt)
-  kernel.logger.y = kernel.logger.y - 1
-  log("OK", "Set up components")
 end

@@ -16,7 +16,5 @@ if files then
       log("FAIL", v)
       panic(r)
     end
-    kernel.logger.y = kernel.logger.y - 1
-    log("OK", v)
   end
 end
