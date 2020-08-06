@@ -217,10 +217,10 @@ function rl.readline(prompt, opts)
   end
   while true do
     redraw()
-    local char, err = rl.readlinebasic(screen, 1)
+    local char, err = rlbasic(screen, 1)
     if char == "\27" then
       if arrows then -- ANSI escape start
-        local esc = rl.readlinebasic(screen, 2)
+        local esc = rlbasic(screen, 2)
         local _, r
         if esc == "[A" and acts.up then
           _, r = pcall(acts.up)
