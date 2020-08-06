@@ -88,7 +88,7 @@ function rl.addscreen(screen, gpu)
 end
 
 -- basic readline function similar to the original vt100.session one
-function rl.readlinebasic(screen, n)
+local function rlbasic(screen, n)
   checkArg(1, screen, "string")
   checkArg(1, n, "number", "nil")
   if not buffers[screen] then
@@ -134,7 +134,7 @@ function rl.readline(prompt, opts)
   checkArg(2, opts, "table", "nil")
   local screen = io.output().screen
   if type(prompt) == "table" then opts = prompt prompt = nil end
-  if type(prompt) == "number" then return rl.readlinebasic(screen, prompt) end
+  if type(prompt) == "number" then return rlbasic(screen, prompt) end
   opts = opts or {}
   local pwchar = opts.pwchar or nil
   local history = opts.history or {}
@@ -190,7 +190,7 @@ function rl.readline(prompt, opts)
   io.output():write("\27[6n")
   local resp = ""
   repeat
-    local char = rl.readlinebasic(screen, 1)
+    local char = rlbasic(screen, 1)
     resp = resp .. char
   until char == "R"
   if io.output().gpu.address ~= io.input().gpu.address or io.output().screen ~= io.input().screen then
@@ -275,5 +275,4 @@ function rl.readline(prompt, opts)
   end
 end
 
--- we don't need readlinebasic, readline does that and much more besides
-return { readline = rl.readline, eof = rl.eof, addscreen = rl.addscreen, buffersize = rl.buffersize }
+return rl
