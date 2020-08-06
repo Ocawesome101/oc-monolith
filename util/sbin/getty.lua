@@ -6,16 +6,13 @@ local computer = require("computer")
 package.loaded.times.getty_start = computer.uptime()
 local vt100 = require("vt100")
 local readline = require("readline")
-local config = require("config")
+local login = "/sbin/login.lua"
+local login_name = "login"
 
-local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua"})
-local login = cfg.login or "/sbin/login.lua"
-local login_name = cfg.login_name or "login"
-cfg.login_name = login_name
-cfg.login = login
-config.save(cfg, "/etc/getty.conf")
-if not require("runlevel").levels[require("runlevel").max()].multiuser then
+local rl = require("runlevel")
+if not rl.levels[rl.max()].multiuser then
   login = "/bin/sh.lua"
+  login_name = "shell"
   local users = require("users")
   users.getname(0)
   os.setenv("UID", 0)
