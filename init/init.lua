@@ -79,7 +79,7 @@ local log = logger.log
 
 log("INFO", "Starting " .. _INITVERSION)
 
-log("module/package")
+log("OK", "module/package")
 
 -- `package` library --
 
@@ -97,7 +97,7 @@ package.loaded.syslog = {
 package.loaded.users = setmetatable({}, {__index = function(_,k) _G.kernel = kernel package.loaded.users = require("users", true) _G.kernel = nil return package.loaded.users[k] end})
 _G.kernel = nil
 
-log("module/io")
+log("OK", "module/io")
 
 -- `io` library --
 
@@ -120,7 +120,7 @@ do
   end
 end
 
-log("module/os")
+log("OK", "module/os")
 
 -- os --
 
@@ -195,7 +195,7 @@ do
   end
 end
 
-log("module/component")
+log("OK", "module/component")
 
 -- component API metatable allowing component.filesystem and things --
 -- the kernel implements this but metatables aren't copied to the sandbox currently so we redo it here --
@@ -222,7 +222,7 @@ do
   setmetatable(component, mt)
 end
 
-log("module/scripts")
+log("OK", "module/scripts")
 
 log("INFO", "Running scripts from /lib/init/scripts/...")
 
@@ -247,7 +247,7 @@ end
 
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
-log("module/initsvc")
+log("OK", "module/initsvc")
 
 -- `initsvc` lib. --
 

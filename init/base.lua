@@ -26,19 +26,19 @@ local log = logger.log
 
 log("INFO", "Starting " .. _INITVERSION)
 
-log("module/package")
+log("OK", "module/package")
 --#include "module/package.lua"
-log("module/io")
+log("OK", "module/io")
 --#include "module/io.lua"
-log("module/os")
+log("OK", "module/os")
 --#include "module/os.lua"
-log("module/component")
+log("OK", "module/component")
 --#include "module/component.lua"
-log("module/scripts")
+log("OK", "module/scripts")
 --#include "module/scripts.lua"
 runlevel.setrunlevel(2)
 runlevel.setrunlevel(3)
-log("module/initsvc")
+log("OK", "module/initsvc")
 --#include "module/initsvc.lua"
 
 kernel.logger.setShown(false)
