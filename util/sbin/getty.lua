@@ -6,7 +6,6 @@ local computer = require("computer")
 package.loaded.times.getty_start = computer.uptime()
 local vt100 = require("vt100")
 local readline = require("readline")
-local stream = require("stream")
 local config = require("config")
 
 local cfg = config.load("/etc/getty.conf", {start = "/sbin/login.lua"})
@@ -56,9 +55,9 @@ local function makeStream(gpu, screen)
   readline.addscreen(screen, gpu) -- register with readline so it listens for stuff
   local write = vt100.emu(gpu)
   local read = readline.readline
-  local close = function()end
   write("\27[2J")
-  return stream.new(read, write, close, {screen = screen, gpu = gpu})
+  local new = {read = function(s,...) return read(...) end, write = function(s,...) return write(...) end, close = function()end, screen = screen, gpu = gpu}
+  return new
 end
 
 local ttyn = 0

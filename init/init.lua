@@ -83,7 +83,107 @@ log("OK", "module/package")
 
 -- `package` library --
 
-loadfile("/lib/init/package.lua")()
+do
+  _G.package = {}
+
+  local loaded = {
+    ["_G"] = _G,
+    os = os,
+    math = math,
+    string = string,
+    table = table,
+    component = component,
+    computer = computer,
+    unicode = unicode
+  }
+
+  _G.component, _G.computer, _G.unicode = nil, nil, nil
+
+  package.loaded = loaded
+  local fs = kernel.filesystem
+
+  package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua;/usr/compat/?.lua;/usr/compat/lib?.lua"
+
+  local function libError(name, searched)
+    local err = "module '%s' not found:\n\tno field package.loaded['%s']"
+    err = err .. ("\n\tno file '%s'"):rep(#searched)
+    error(string.format(err, name, name, table.unpack(searched)))
+  end
+
+  function package.searchpath(name, path, sep, rep)
+    checkArg(1, name, "string")
+    checkArg(2, path, "string")
+    checkArg(3, sep, "string", "nil")
+    checkArg(4, rep, "string", "nil")
+    sep = "%" .. (sep or ".")
+    rep = rep or "/"
+    local searched = {}
+    name = name:gsub(sep, rep)
+    for search in path:gmatch("[^;]+") do
+      search = search:gsub("%?", name)
+      if fs.exists(search) then
+        return search
+      end
+      searched[#searched + 1] = search
+    end
+    return nil, searched
+  end
+
+  function package.protect(tbl, name)
+    return setmetatable(tbl, {
+      __newindex = function() error((name or "lib") .. " is read-only") end,
+      __metatable = {}
+    })
+  end
+
+  function package.delay(lib, file)
+    local mt = {
+      __index = function(tbl, key)
+        setmetatable(lib, nil)
+        setmetatable(lib.internal or {}, nil)
+        dofile(file)
+        return tbl[key]
+      end
+    }
+    if lib.internal then
+      setmetatable(lib.internal, mt)
+    end
+    setmetatable(lib, mt)
+  end
+
+  function _G.dofile(file)
+    checkArg(1, file, "string")
+    file = fs.canonical(file)
+    local ok, err = loadfile(file)
+    if not ok then
+      error(err)
+    end
+    local stat, ret = xpcall(ok, debug.traceback)
+    if not stat and ret then
+      error(ret)
+    end
+    return ret
+  end
+
+  function _G.require(lib, reload)
+    checkArg(1, lib, "string")
+    checkArg(2, reload, "boolean", "nil")
+    if loaded[lib] and not reload then
+      return loaded[lib]
+    else
+      local ok, searched = package.searchpath(lib, package.path, ".", "/")
+      if not ok then
+        libError(lib, searched)
+      end
+      local ok, err = dofile(ok)
+      if not ok then
+        error(string.format("failed loading module '%s':\n%s", lib, err))
+      end
+      loaded[lib] = ok
+      return ok
+    end
+  end
+end
 package.loaded.filesystem = kernel.filesystem
 package.loaded.thread = kernel.thread
 package.loaded.signals = kernel.thread.signals
@@ -102,8 +202,130 @@ log("OK", "module/io")
 -- `io` library --
 
 do
-  dofile("/lib/init/io.lua")
+  _G.io = {}
+  package.loaded.io = io
 
+  local buffer = require("buffer")
+  local fs = require("filesystem")
+  local thread = require("thread")
+
+  setmetatable(io, {__index = function(tbl, k)
+    if k == "stdin" then
+      return thread.info().data.io[0]
+    elseif k == "stdout" then
+      return thread.info().data.io[1]
+    elseif k == "stderr" then
+      return thread.info().data.io[2] or thread.info().data.io[1]
+    end
+  end})
+
+  function io.open(file, mode)
+    checkArg(1, file, "string")
+    checkArg(2, mode, "string", "nil")
+    file = fs.canonical(file)
+    mode = mode or "r"
+    local handle, err = fs.open(file, mode)
+    if not handle then
+      return nil, err
+    end
+    return buffer.new(mode, handle)
+  end
+
+  function io.popen(...)
+    return require("pipe").popen(...)
+  end
+
+  function io.output(file)
+    checkArg(1, file, "string", "table", "nil")
+    if type(file) == "string" then
+      file = io.open(file, "w")
+    end
+    if file then
+      thread.info().data.io[1] = file
+    end
+    return thread.info().data.io[1]
+  end
+
+  function io.input(file)
+    checkArg(1, file, "string", "table", "nil")
+    if type(file) == "string" then
+      file = io.open(file, "r")
+    end
+    if file then
+      thread.info().data.io[0] = file
+    end
+    return thread.info().data.io[0]
+  end
+
+  function io.error(file)
+    checkArg(1, file, "string", "table", "nil")
+    if type(file) == "string" then
+      file = io.open(file, "r")
+    end
+    if file then
+      thread.info().data.io[2] = file
+    end
+    return thread.info().data.io[2] or thread.info().data.io[1]
+  end
+
+  function io.lines(file, ...)
+    checkArg(1, file, "string", "table", "nil")
+    if file then
+      local err
+      if type(file) == "string" then
+        file, err = io.open(file)
+      end
+      if not file then return nil, err end
+      return file:lines()
+    end
+    return io.input():lines()
+  end
+
+  function io.close(file)
+    checkArg(1, file, "table", "nil")
+    if file then
+      return file:close()
+    end
+    return nil, "cannot close standard file"
+  end
+
+  function io.flush(file)
+    checkArg(1, file, "table", "nil")
+    file = file or io.output()
+    return file:flush()
+  end
+
+  function io.type(file)
+    checkArg(1, file, "table")
+    if file.closed then
+      return "closed file"
+    elseif (file.read or file.write) and file.close then
+      return "file"
+    end
+    return nil
+  end
+
+  function io.read(...)
+    return io.input():read(...)
+  end
+
+  function io.write(...)
+    return io.output():write(table.concat({...}))
+  end
+
+  function _G.print(...)
+    local args = table.pack(...)
+    local tp = ""
+    local n = args.n
+    for i=1, n, 1 do
+      local k, v = i, args[i]
+      tp = tp .. tostring(v) .. (k < n and "\t" or "")
+    end
+    return io.stdout:write(tp .. "\n")
+  end
+end
+
+do
   function loadfile(file, mode, env)
     checkArg(1, file, "string")
     checkArg(2, mode, "string", "nil")

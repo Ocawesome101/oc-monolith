@@ -6,7 +6,7 @@ local readline = require("readline")
 
 local out = io.output()
 local inp = io.input()
-out:write("\27[2J\27[1;1H\27[0;37m" .. _OSVERSION .. --[[" - " .. require("computer").freeMemory() // 1024 .. "k free]]"\n\n")
+out:write("\27[2J\27[1;1H\27[0;37m" .. _OSVERSION .. "\n\n")
 while true do
   readline.eof(false) -- disable Ctrl-D support
   local uname = readline.readline({prompt=(os.getenv("HOSTNAME") or "localhost").." login: "})
