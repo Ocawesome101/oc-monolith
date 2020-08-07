@@ -38,8 +38,7 @@ while [ $# -gt 0 ]; do
     release)
       log "$WAIT Building release.cpio"
       cd build && find ./* | cpio -o > ../release.cpio && cd ..
-      log "$INFO Copying release.cpio -> ../mpkg/packages/monolith.cpio"
-      cp release.cpio ../mpkg/packages/monolith.cpio
+      cp release.cpio ./packages/base.cpio
       shift
       ;;
     webdoc)
