@@ -20,9 +20,10 @@ local files = {}
 local all = opts.a or opts.all or false
 local inf = opts.l or false
 local hmr = opts.h or opts["human-readable"] or false
+local col = (not opts.nocolor) or (opts.color) or false
 
-local function color(col)
-  return string.format("\27[%dm", col)
+local function color(colo)
+  return string.format("\27[%dm", col and colo or 39)
 end
 
 if #args == 0 then args[1] = os.getenv("PWD") or "/" end
