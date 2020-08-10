@@ -31,7 +31,6 @@ cp kernel/monolith build/boot/
 build init
 log "$INFO Copying init to build"
 cp init/init.lua build/sbin
-cd man && ./docgen.sh && cd ..
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -43,11 +42,11 @@ while [ $# -gt 0 ]; do
       ;;
     webdoc)
       log "$WAIT Assembling man pages in web format"
-      cd man
+      cd ../mpkg/man
       ./genhtml.sh
       cd web
       push-man
-      cd ../..
+      cd ../../monolith
       shift
       ;;
     *)
