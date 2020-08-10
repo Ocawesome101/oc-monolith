@@ -36,6 +36,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     release)
       log "$WAIT Building release.cpio"
+      cp package.cfg build
       cd build && find ./* | cpio -o > ../release.cpio && cd ..
       cp release.cpio ./packages/base.cpio
       shift

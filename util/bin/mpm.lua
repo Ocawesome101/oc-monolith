@@ -120,7 +120,7 @@ local function remove(package)
   local ent = installed[package:lower()]
   logger:info("Removing files....")
   for _, file in pairs(ent.files) do
-    rm("-rvi", file)
+    rm("-rv", (opts.y and "" or "-i"), file)
   end
   logger:info("Unregistering package....")
   installed[package:lower()] = nil
