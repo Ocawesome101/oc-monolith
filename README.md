@@ -4,9 +4,13 @@ Monolith is a monolithic, multitasking, multiuser, multiscreen operating system 
 
 Documentation is available online [here](https://oz-craft.pickardayune.com/man).
 
+### A Note on Documentation
+
+As of Monolith version 2020.08.10, all manual pages (but not the `man` utility) have been split into a separate package in the `mbase` repo. Install them with `mpm install ocawesome101/mbase/man`.
+
 ## Pre-built releases
 
-I will try to set up automated builds, but no guarantees.
+The latest pre-built release will be downloaded through the installer. At any time, you may upgrade with `mpm install ocawesome101/oc-monolith/base`.
 
 ## Building
 
@@ -77,7 +81,7 @@ The following is a (hopefully up-to-date) representation of what I want to get d
       - [ ] Settings
       - [ ] Terminal
   - [X] Memory optimization - `/lib/full` + `package.delay`
-  - [ ] Editors
+  - [X] Editors
     - [X] Library (`/lib/editor.lua`)
     - [X] Line editor (`/bin/ed.lua`)
     - [X] Fullscreen editor (`/bin/fled.lua`)
