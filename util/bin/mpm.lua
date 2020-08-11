@@ -107,6 +107,8 @@ local function install(pack)
     local dest = file
     cp("-rvi", src, dest)
   end
+  logger:info("Cleaning up...")
+  rm("-r", path)
   logger:ok("Done.")
 end
 

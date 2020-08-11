@@ -131,7 +131,7 @@ function shell.parse(...)
   local cropt = ""
   local args, opts = {}, {}
   for i=1, #params, 1 do
-    local p = params[i]
+    local p = tostring(params[i])
     if p == "--" then inopt = false end
     if p:sub(1,2) == "--" and inopt then -- "long" option
       local o = p:sub(3)
@@ -158,7 +158,7 @@ function shell.altparse(...)
   local cropt = ""
   local args, opts = {}, {}
   for i=1, #params, 1 do
-    local p = params[i]
+    local p = tostring(params[i])
     if p == "--" then inopt = false end
     if p:sub(1,2) == "--" and inopt then -- "short" option
       for opt in p:sub(3):gmatch(".") do

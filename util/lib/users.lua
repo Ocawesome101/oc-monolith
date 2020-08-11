@@ -72,7 +72,7 @@ end
 function users.setShell(file)
   checkArg(1, file, "string")
   if fs.exists(file) then
-    old.passwd[uid].s = file
+    old.passwd[users.uid()].s = file
     config.save(old.passwd, "/etc/passwd")
   end
 end
