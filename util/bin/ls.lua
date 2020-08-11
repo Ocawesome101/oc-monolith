@@ -8,12 +8,6 @@ if io.stdout.gpu then
   w, h = io.stdout.gpu.getResolution()
 end
 
-local colors = {
-  dir = 34,
-  exec = 32,
-  file = 37,
-}
-
 local args, opts = shell.parse(...)
 
 local files = {}
@@ -22,41 +16,40 @@ local inf = opts.l or false
 local hmr = opts.h or opts["human-readable"] or false
 local col = (not opts.nocolor) or (opts.color) or false
 
+local colors = {dir=37, exec=37, file=37}
+if col then
+  local lscol = os.getenv("LS_COLORS") or "dir=34:exec=32:file=37"
+  for seg in lscol:gmatch("[^:]+") do
+    local k, v = seg:match("^(.-)=(.-)$")
+    k = k or ""
+    v = tonumber(v) or 37
+    colors[k] = v
+  end
+end
+
 local function color(colo)
   return string.format("\27[%dm", col and colo or 39)
 end
 
 if #args == 0 then args[1] = os.getenv("PWD") or "/" end
 
-local months = {
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec"
+local units = {
+  ".0",
+  "K",
+  "M",
+  "G",
+  "T"
 }
-
-local function date(ms)
-  local d = os.date("*t", ms)
-  local day = tostring(d.day)
-  if #day < 2 then day = day .. " " end
-  return d.year, months[d.month], day, d.hour, d.min
-end
 
 local function fsize(size)
   local ret = size or 0
-  if hmr and ret >= 1024 then
-    ret = ((size / 1024) - ((size / 1024) % 0.1)) .. "k"
+  local unit = 1
+  while hmr and ret >= 1024 do
+    ret = ((size / 1024) - ((size / 1024) % 0.1))
+    unit = unit + 1
   end
-  local r = tostring(ret)
-  return r .. (" "):rep(6 - #r)
+  local r = tostring(ret) .. units[unit]
+  return r .. (" "):rep(5 - #r)
 end
 
 for i=1, #args, 1 do
@@ -95,8 +88,8 @@ for i=1, #args, 1 do
       local size = fs.size(full)
       local isdr = fs.isDirectory(full)
       local isro = fs.isReadOnly(full)
-      local yr, mon, day, hr, min = date(fs.lastModified(full))
-      finfo = string.format("\27[37m%s%s %s %s %s %d %02d:%02d ", (isdr and "d") or "-", (isro and "r-") or "rw", fsize(size), mon, day, yr, hr, min)
+      local date = os.date("%b %d %Y %H:%M", fs.lastModified(full))
+      finfo = string.format("\27[37m%s%s %s %s ", isdr and "d" or "-", isro and "r-" or "rw", fsize(size), date)
     end
     out = out .. finfo
     if f:sub(-1) == "/" then

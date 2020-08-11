@@ -47,7 +47,7 @@ shell.builtins = {
       end
     else
       for k, v in pairs(set) do
-        local var, val = v:match("(.+)=(.+)")
+        local var, val = v:match("(.-)=(.+)")
         os.setenv(var, val:gsub("\\27", "\27"))
       end
     end

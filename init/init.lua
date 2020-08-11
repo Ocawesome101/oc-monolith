@@ -362,7 +362,7 @@ do
 
   -- we define os.getenv and os.setenv here now, rather than in kernel/module/thread
   function os.getenv(k)
-    checkArg(1, k, "string", "number")
+    checkArg(1, k, "string", "number", "nil")
     if k then
       return assert((kernel.thread or require("thread")).info()).data.env[k] or nil
     else -- return a copy of the env
