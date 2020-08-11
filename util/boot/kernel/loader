@@ -10,7 +10,6 @@ local flags = {
 
 _G._START = computer.uptime()
 
-
 _G.kernel = {}
 
 -- bootlogger --
@@ -82,9 +81,8 @@ function computer.shutdown(reboot)
   shutdown(reboot)
 end
 
-kernel.logger.log("Booting Monolith at " .. os.date())
-
 local kernelPath = "/boot/monolith"
+kernel.logger.log("loader: Loading kernel from " .. kernelPath)
 
 local handle, err = invoke(addr, "open", kernelPath)
 if not handle then
