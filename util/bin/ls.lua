@@ -34,7 +34,7 @@ end
 if #args == 0 then args[1] = os.getenv("PWD") or "/" end
 
 local units = {
-  ".0",
+  "",
   "K",
   "M",
   "G",
