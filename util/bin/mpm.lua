@@ -9,6 +9,8 @@ local  logger  = require (  "logger"  ).new("arrow")
 local    cp    = loadfile("/bin/cp.lua")
 local    rm    = loadfile("/bin/rm.lua")
 
+local args, opts = shell.parse(...)
+
 logger:ok("Initializing MPM")
 
 local cfg = config.load("/etc/mpm/mpm.cfg")
@@ -162,8 +164,6 @@ local ops = {
   remove = remove,
   clean = function()shell.execute("rm -r /var/cache/mpm")end
 }
-
-local args, opts = shell.parse(...)
 
 if opts.help then
   print(usage)

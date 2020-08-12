@@ -13,11 +13,9 @@ local streamX = {
     if self.what then
       return self.whatIO:read(len)
     end
-    while #self.buf[self.i] < len and not self.buf[self.i]:find("\0") do
-      coroutine.yield()
-    end
     local ret = self.buf[self.i]:sub(1, len)
     self.buf[self.i] = self.buf[self.i]:sub(len + 1)
+    if ret == "" then ret = nil end
     return ret
   end,
   write = function(self, data)
@@ -57,17 +55,21 @@ function pipe.chain(progs)
     local ok, err = loadfile(prog[1])
     if not ok then return nil, err end
     local function handler(...)
-      orig_io.output:write("\27[31m", ..., "\27[37m")
+      io.stderr:write(table.concat(table.pack("\27[31m", ..., "\27[37m\n")))
     end
     io.input ((i > 1 and last) or orig_io.input)
     io.output((i < #progs and new) or orig_io.output)
     table.insert(pids, thread.spawn(
       function()
-        local eh, x = pcall(ok, 
+        local eh, x = xpcall(ok,
+          debug.traceback,
           table.unpack(prog, 2, #prog)
         )
         if eh and x and x ~= 0 and type(x) == "number" then
           require("shell").error(prog[1]:match(".+/(.-)%.lua"), require("shell").errors[x])
+        end
+        if not eh and x then
+          handler(x)
         end
       end,
       table.concat(prog, " "),          --name

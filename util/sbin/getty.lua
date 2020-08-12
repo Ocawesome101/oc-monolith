@@ -101,6 +101,7 @@ function getty.scan()
       ios.tty = true
       io.input(ios)
       io.output(ios)
+      io.error(ios)
       local pid = thread.spawn(ok, login_name or login, error)
       gpus[gpu].bound = pid
       gpus[gpu].screen = screen
