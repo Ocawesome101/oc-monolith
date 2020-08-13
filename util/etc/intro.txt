@@ -6,4 +6,14 @@ Welcome!
 
 Since you've gotten this far, congratulations on logging in.
 
-I won't go in-depth here - the manual pages to a much better job.
+I won't go in-depth here - the manual pages to a much better job. Speaking of manual pages, where are they?
+
+First, Monolith's package manager, MPM.
+
+MPM is a pretty basic package manager, but works and is faster (not hard lol) than OPPM. For information on its usage, run 'mpm --help' in the shell. The most important commands to know are 'mpm install $user/$repo/$pkgname' to install packages, 'mpm remove $user/$repo/$pkgname' to remove packages, and 'mpm clean' if you're low on disk space or you just wanna clear the package cache.
+
+With that out of the way:
+
+To update Monolith to the latest release, run 'mpm install ocawesome101/oc-monolith/base'. To obtain all currently available manual pages, run 'mpm install ocawesome101/mbase/man'.
+
+To access a manual page, run 'man $topic'. For starters, try 'man man'.

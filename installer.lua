@@ -205,4 +205,6 @@ fs.makeDirectory(fs.concat(MOUNT, "/root"))
 fs.makeDirectory(fs.concat(MOUNT, "/home"))
 fs.makeDirectory(fs.concat(MOUNT, tpasswd[1].h))
 
-print("Done!")
+print("Done.")
+
+print("NOTE: Manual pages are excluded from Monolith builds. To install manual pages, run 'mpm install ocawesome101/mbase/man' in the Monolith shell.")
