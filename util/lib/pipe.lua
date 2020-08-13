@@ -24,9 +24,10 @@ local streamX = {
       error("broken pipe")
     end
     if self.what then
-      self.buf[self.i] = self.buf[self.i] .. data
+      self.buf[self.i] = self.buf[self.i] .. "W" .. data
+      return true
     end
-    return self.whatIO:write(data)
+    return self.whatIO:write("W" .. data)
   end,
   close = function(self)
     self.closed = true
@@ -46,7 +47,7 @@ function pipe.chain(progs)
       buf = buffers,
       i = i,
       whatIO = i % 2 == 0 and last or orig_io.input,
-      what = i % 2 == 0
+      what = i % 2 ~= 0
     }, {
       __index = streamX
     })

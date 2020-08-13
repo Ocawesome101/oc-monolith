@@ -9,13 +9,19 @@ local serialization = require("serialization")
 local component    = require("component")
 local computer    = require("computer")
 local internet   = require("internet")
+local fs      = require("filesystem")
+
+if fs.isReadOnly("/") then
+  print("Your OpenOS filesystem must be writable - exiting")
+  os.exit(1)
+end
+
 -- get sha3 if we don't have it
 if not require("sha3") then
   print("SHA-3 library not found - downloading")
   assert(loadfile("/bin/wget.lua"))("https://github.com/ocawesome101/oc-monolith/raw/master/util/lib/sha3.lua", "/lib/sha3.lua")
 end
-local sha3     = require("sha3")
-local fs      = require("filesystem")
+local sha3 = require("sha3")
 
 local ask = {}
 local fsl = component.list("filesystem")
@@ -192,5 +198,11 @@ local handle, err = io.open(passwd, "w")
 if not handle then error("failed opening etc/passwd: " .. err) end
 handle:write(serialization.serialize(tpasswd))
 handle:close()
+
+print("Creating user home directories")
+
+fs.makeDirectory(fs.concat(MOUNT, "/root"))
+fs.makeDirectory(fs.concat(MOUNT, "/home"))
+fs.makeDirectory(fs.concat(MOUNT, tpasswd[1].h))
 
 print("Done!")

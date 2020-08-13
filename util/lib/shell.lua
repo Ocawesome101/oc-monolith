@@ -18,6 +18,7 @@ function shell.error(cmd, err)
 end
 
 local defaultPath = "/bin:/usr/bin:/usr/local/bin"
+os.setenv("PATH", os.getenv("PATH") or defaultPath)
 
 shell.extensions = {
   lua = true,
