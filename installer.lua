@@ -1,5 +1,4 @@
 -- install Monolith --
--- requires an LZSS library --
 
 local CPIO = "https://raw.githubusercontent.com/ocawesome101/oc-monolith/master/release.cpio"
 local ARCPATH = "/mnt/monolith.cpio"
@@ -10,7 +9,11 @@ local serialization = require("serialization")
 local component    = require("component")
 local computer    = require("computer")
 local internet   = require("internet")
---local lzss      = require("lzss")
+-- get sha3 if we don't have it
+if not require("sha3") then
+  print("SHA-3 library not found - downloading")
+  assert(loadfile("/bin/wget.lua"))("https://github.com/ocawesome101/oc-monolith/raw/master/util/lib/sha3.lua", "/lib/sha3.lua")
+end
 local sha3     = require("sha3")
 local fs      = require("filesystem")
 
@@ -94,17 +97,6 @@ local function uncpio(file, dest)
   end
 end
 
-local function unlzss(file, dest)
-  local IN, err = io.open(file)
-  if not IN then error(err) end
-  local data = IN:read("*a")
-  IN:close()
-  local OUT, err = io.open(dest, "w")
-  if not OUT then error(err) end
-  OUT:write(lzss.decompress(data))
-  OUT:close()
-end
-
 local function menu(opts)
   print("\27[2J\27[1;1HPlease choose one:")
   for k, v in ipairs(opts) do
@@ -137,7 +129,6 @@ local function download(url, file)
   out:close()
 end
 
-print("Make sure your TMPFS is COMPLETELY empty!")
 ask[#ask + 1] = "Quit"
 local ifs = menu(ask)
 if ifs == "Quit" then return 0 end
@@ -148,19 +139,13 @@ print("Mounted install fs at " .. MOUNT)
 print("Downloading " .. CPIO .. " as " .. ARCPATH)
 download(CPIO, ARCPATH)
 
---print("Decompressing archive to " .. EXTPATH)
---unlzss(ARCPATH, EXTPATH)
-
 print("Extracting CPIO to " .. MOUNT)
 uncpio(ARCPATH, MOUNT)
 
 print("Cleaning up installation files...")
---fs.remove(EXTPATH)
 fs.remove(ARCPATH)
 
 print("Now that the system has been installed, you should set up a user.")
-
---print("\27[8mWARNING: if you can see this message, your terminal does NOT have support for hidden text input.\27[0m")
 
 local rootpass = prompt("root password: \27[30;40m")
 

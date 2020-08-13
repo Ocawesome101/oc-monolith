@@ -10,7 +10,10 @@ if #args == 0 or tonumber(args[1]) then
   return 0
 end
 
-local less = assert(loadfile("/bin/less.lua"))
+local mpg
+local pagerfile, err = shell.resolve(os.getenv("MANPAGER") or os.getenv("MAN_PAGER") or "/bin/less.lua")
+if pagerfile then mpg, err = loadfile(pagerfile) end
+local pager = assert(mpg, err or "failed loading " .. pagerfile .. " as manual pager")
 local manpath = os.getenv("MANPATH") or "/usr/man:/usr/local/man:/usr/share/man"
 os.setenv("MANPATH", manpath)
 
@@ -48,6 +51,6 @@ for i=1, #args, 1 do
   if not ok then
     print(err)
   else
-    less(ok)
+    pager(ok)
   end
 end

@@ -47,7 +47,7 @@ while [ $# -gt 0 ]; do
       ./genhtml.sh
       cd web
       push-man
-      cd ../../monolith
+      cd ../../monolith || cd ../../src
       shift
       ;;
     *)

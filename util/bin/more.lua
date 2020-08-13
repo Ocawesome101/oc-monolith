@@ -20,7 +20,7 @@ local written = 0
 repeat
   local line = handle:read("l")
   if line then
-    written = written + 1
+    written = written + math.max(1, math.ceil(#line / w))
     print(line)
   end
   if written >= h - 1 then
