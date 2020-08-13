@@ -4,6 +4,8 @@ local component = require("component")
 
 local adp = {}
 
+adp.name = "fl"
+
 function adp.instance(addr)
   local prx = component.proxy(addr)
   local inst = {

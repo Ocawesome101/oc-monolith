@@ -1,6 +1,7 @@
 -- relatively flexible readline implementation --
 
 local component = require("component")
+local unicode = require("unicode")
 local thread = require("thread")
 local rl = {}
 
@@ -50,7 +51,7 @@ local function listener()
     end
     if signal == "key_down" and buffers[keyboard] then
       local screen = buffers[keyboard]
-      local concat = string.char(character)
+      local concat = unicode.char(character)
       if character == 0 then
         concat = replacements[keycode]
       end
@@ -95,7 +96,7 @@ local function rlbasic(screen, n)
     return nil, "no such screen"
   end
   local buf = buffers[screen]
-  while #buf.buffer < n or (not n and not buf.buffer:find("\n")) do
+  while unicode.len(buf.buffer) < n or (not n and not buf.buffer:find("\n")) do
     coroutine.yield()
   end
   if buf.buffer:find("\4") and buf.eofenabled then
@@ -104,9 +105,9 @@ local function rlbasic(screen, n)
     os.exit()
   end
   local n = n or buf.buffer:find("\n")
-  local returnstr = buf.buffer:sub(1, n)
+  local returnstr = unicode.sub(buf.buffer, 1, n)
   if returnstr:sub(-1) == "\n" then returnstr = returnstr:sub(1,-2) end
-  buf.buffer = buf.buffer:sub(n + 1)
+  buf.buffer = unicode.sub(buf.buffer, n + 1)
   return returnstr
 end
 
@@ -115,7 +116,7 @@ function rl.buffersize(screen)
   if not buffers[screen] then
     return nil, "no such screen"
   end
-  return buffers[screen].buffer:len()
+  return unicode.len(buffers[screen].buffer)
 end
 
 function rl.eof(b)
@@ -152,7 +153,7 @@ function rl.readline(prompt, opts)
       if ent > 1 then
         history[ent] = buffer
         ent = ent - 1
-        buffer = (" "):rep(#buffer)
+        buffer = (" "):rep(unicode.len(buffer))
         redraw()
         buffer = history[ent] or ""
         pos = 1
@@ -162,7 +163,7 @@ function rl.readline(prompt, opts)
       if ent <= #history then
         history[ent] = buffer
         ent = ent + 1
-        buffer = (" "):rep(#buffer)
+        buffer = (" "):rep(unicode.len(buffer))
         redraw()
         buffer = history[ent] or ""
         pos = 1
@@ -170,8 +171,8 @@ function rl.readline(prompt, opts)
     end,
     left = function(ctrl)
       if ctrl then
-        pos = #buffer + 1
-      elseif pos <= #buffer then
+        pos = unicode.len(buffer) + 1
+      elseif pos <= unicode.len(buffer) then
         pos = pos + 1
       end
     end,
@@ -203,8 +204,8 @@ function rl.readline(prompt, opts)
   local lines = 1
   function redraw()
     local write = highlighter(buffer)
-    if pwchar then write = pwchar:rep(#buffer) end
-    local written = math.max(1, math.ceil((#buffer + #prompt) / w))
+    if pwchar then write = pwchar:rep(unicode.len(buffer)) end
+    local written = math.max(1, math.ceil((unicode.len(buffer) + unicode.len(prompt)) / w))
     if written > lines then
       local diff = written - lines
       io.write(string.rep("\27[B", diff) .. string.rep("\27[A", diff))
@@ -241,8 +242,8 @@ function rl.readline(prompt, opts)
         buffer = buffer .. "^"
       end
     elseif char == "\8" then
-      if #buffer > 0 and pos <= #buffer then
-        buffer = buffer:sub(1, (#buffer - pos)) .. buffer:sub((#buffer - pos) + 2)
+      if #buffer > 0 and pos <= unicode.len(buffer) then
+        buffer = buffer:sub(1, (unicode.len(buffer) - pos)) .. buffer:sub((unicode.len(buffer) - pos) + 2)
       end
     elseif char == "\13" or char == "\10" or char == "\n" then
       table.insert(history, buffer)
@@ -251,7 +252,7 @@ function rl.readline(prompt, opts)
       return buffer, history
     elseif buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol] then
       if char == "a" then
-        pos = #buffer
+        pos = unicode.len(buffer)
       elseif char == "b" then
         pos = 1
       end
@@ -270,7 +271,7 @@ function rl.readline(prompt, opts)
         return "\n"
       end
     else
-      buffer = buffer:sub(1, (#buffer - pos) + 1) .. char .. buffer:sub((#buffer - pos) + 2)
+      buffer = buffer:sub(1, (unicode.len(buffer) - pos) + 1) .. char .. buffer:sub((unicode.len(buffer) - pos) + 2)
     end
   end
 end

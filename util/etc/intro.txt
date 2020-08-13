@@ -1,0 +1,9 @@
+==================================================
+ Monolith Recommendations
+==================================================
+
+Welcome!
+
+Since you've gotten this far, congratulations on logging in.
+
+I won't go in-depth here - the manual pages to a much better job.

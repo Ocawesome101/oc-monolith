@@ -5,7 +5,7 @@ local fs = require("filesystem")
 
 local adp = {}
 
-adp.name = "fs"
+adp.name = "hd"
 
 function adp.instance(addr)
   local prx = component.proxy(addr)

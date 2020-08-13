@@ -7,27 +7,21 @@ local thread = require("thread")
 local streamX = {
   read = function(self, len)
     checkArg(1, len, "number")
-    if self.closed or self.whatIO.closed then
+    if self.closed then
       error("broken pipe")
     end
-    if self.what then
-      return self.whatIO:read(len)
-    end
-    local ret = self.buf[self.i]:sub(1, len)
-    self.buf[self.i] = self.buf[self.i]:sub(len + 1)
+    local ret = self.buf:sub(1, len)
+    self.buf = self.buf:sub(len + 1)
     if ret == "" then ret = nil end
     return ret
   end,
   write = function(self, data)
     checkArg(1, data, "string")
-    if self.closed or self.whatIO.closed then
-      error("broken pipe")
+    if self.closed then
+      return nil, "broken pipe"
     end
-    if self.what then
-      self.buf[self.i] = self.buf[self.i] .. "W" .. data
-      return true
-    end
-    return self.whatIO:write("W" .. data)
+    self.buf = self.buf .. "W" .. data
+    return true
   end,
   close = function(self)
     self.closed = true
@@ -37,17 +31,12 @@ local streamX = {
 -- e.g. A | B | C | ... | Z
 function pipe.chain(progs)
   checkArg(1, progs, "table")
-  local buffers = {}
   local last
   local pids = {}
   local orig_io = { input = io.input(), output = io.output() }
   for i=1, #progs, 1 do
-    buffers[i] = ""
     local new = setmetatable({
-      buf = buffers,
-      i = i,
-      whatIO = i % 2 == 0 and last or orig_io.input,
-      what = i % 2 ~= 0
+      buf = ""
     }, {
       __index = streamX
     })
