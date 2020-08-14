@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.08.13"
+local _INITVERSION = "InitMe 2020.08.14"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
@@ -129,11 +129,25 @@ do
     return nil, searched
   end
 
+  local rs = rawset
+  local blacklist = {}
+  do
+    function _G.rawset(tbl, k, v)
+      checkArg(1, tbl, "table")
+      if blacklist[tbl] then
+        tbl[k] = v
+      end
+      return rs(tbl, k, v)
+    end
+  end
+
   function package.protect(tbl, name)
-    return setmetatable(tbl, {
+    local new = setmetatable(tbl, {
       __newindex = function() error((name or "lib") .. " is read-only") end,
       __metatable = {}
     })
+    blacklist[new] = true
+    return new
   end
 
   function package.delay(lib, file)
