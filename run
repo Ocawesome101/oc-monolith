@@ -1,6 +1,7 @@
 #!/bin/bash
 
 ./assemble.sh
-rm -rf ../{bin,boot,etc,lib,mnt,tmp,home,root,sbin}
+rm -rf ../{bin,usr,boot,etc,lib,mnt,tmp,home,root,sbin}
 rm -f ../err*
 mv -f build/* ..
+cp -r ../mpkg/man/src/usr/man/* ../usr/man/
