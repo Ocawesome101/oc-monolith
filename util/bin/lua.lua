@@ -15,14 +15,8 @@ local function showerror(err)
   print(string.format("\27[31m%s\27[37m", err))
 end
 
-local exit = false
 local env = setmetatable({}, {__index = _G})
 env._PROMPT = "\27[37m> "
-
-env.os = setmetatable({}, {__index = os})
-function env.os.exit()
-  exit = true
-end
 
 if opts.e and type(opts.e) == "string" then
   print(opts.e)
@@ -59,7 +53,7 @@ end
 
 local history = {}
 io.write("\27[37m" .. _VERSION .. " Copyright (C) 1994-2018 Lua.org, PUC-Rio\n")
-while not exit do
+while true do
   local run = readline(env._PROMPT, {history = history,highlighter=opts.s and require("vled.lua") or function(x)return x end})
   local exec, reason
   if run:sub(1,1) == "=" then
