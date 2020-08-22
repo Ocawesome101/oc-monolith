@@ -3,13 +3,18 @@
 local pipe = {}
 
 local thread = require("thread")
+local buffer = require("buffer")
 
 local streamX = {
   read = function(self, len)
-    checkArg(1, len, "number")
-    if self.closed then
-      error("broken pipe")
+    checkArg(1, len, "number", "nil")
+    if self.closed and #self.buf == 0 then
+      return nil
     end
+    while not len and not self.buf:find("\n") and not self.closed do
+      coroutine.yield()
+    end
+    len = len or self.buf:find("\n") or #self.buf
     local ret = self.buf:sub(1, len)
     self.buf = self.buf:sub(len + 1)
     if ret == "" then ret = nil end
@@ -20,7 +25,7 @@ local streamX = {
     if self.closed then
       return nil, "broken pipe"
     end
-    self.buf = self.buf .. "W" .. data
+    self.buf = self.buf .. data
     return true
   end,
   close = function(self)
@@ -47,14 +52,17 @@ function pipe.chain(progs)
     local function handler(...)
       io.stderr:write(table.concat(table.pack("\27[31m", ..., "\27[37m\n")))
     end
-    io.input ((i > 1 and last) or orig_io.input)
-    io.output((i < #progs and new) or orig_io.output)
+    local l, n = last, new
     table.insert(pids, thread.spawn(
       function()
+        --print("A", i, l, n, orig_io.input, orig_io.output, "B")
+        io.input ((i > 1 and l) or orig_io.input)
+        io.output((i < #progs and n) or orig_io.output)
         local eh, x = xpcall(ok,
           debug.traceback,
           table.unpack(prog, 2, #prog)
         )
+        if n then n:close() end
         if eh and x and x ~= 0 and type(x) == "number" then
           require("shell").error(prog[1]:match(".+/(.-)%.lua"), require("shell").errors[x])
         end
@@ -65,6 +73,7 @@ function pipe.chain(progs)
       table.concat(prog, " "),          --name
       handler                           --handler
     ))
+    last = new
   end
   io.input(orig_io.input)
   io.output(orig_io.output)

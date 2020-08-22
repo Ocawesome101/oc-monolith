@@ -13,10 +13,12 @@ local shell = require("shell")
 
 local args, opts = shell.parse(...)
 if #args == 0 then
-  print("Reading from stdin.")
   while true do
     local data = io.read()
-    print("cat:", data)
+    if not data then
+      os.exit()
+    end
+    print(data)
   end
 else
   for k, v in ipairs(args) do

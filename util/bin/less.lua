@@ -11,14 +11,15 @@ end
 
 local handle = assert(io.open(args[1], "r"))
 
-io.write("\27[1000;1000H\27[6n\27[2J")
+--[[io.write("\27[1000;1000H\27[6n\27[2J")
 local resp = ""
 repeat
   local c = io.read(1)
   resp = resp .. c
 until c == "R"
 local h, w = resp:match("\27%[(%d+);(%d+)R")
-w, h = tonumber(w), tonumber(h)
+w, h = tonumber(w), tonumber(h)]]
+local w, h = io.stdout.gpu.getResolution()
 
 local lines = {}
 local screen = 0

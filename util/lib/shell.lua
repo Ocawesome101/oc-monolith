@@ -2,7 +2,6 @@
 
 local fs = require("filesystem")
 local text = require("text")
-local time = require("time").formatTime
 local pipe = require("pipe")
 local users = require("users")
 local thread = require("thread")
@@ -133,8 +132,9 @@ function shell.parse(...)
   local args, opts = {}, {}
   for i=1, #params, 1 do
     local p = tostring(params[i])
-    if p == "--" then inopt = false end
-    if p:sub(1,2) == "--" and inopt then -- "long" option
+    if p == "--" then
+      inopt = false
+    elseif p:sub(1,2) == "--" and inopt then -- "long" option
       local o = p:sub(3)
       local op, vl = o:match([[([%w]+)=([%w%/%,%.%:%s%'%"%=]+)]]) -- I amaze myself with these patterns sometimes
       if op and vl then
@@ -142,7 +142,7 @@ function shell.parse(...)
       else
         opts[o] = true
       end
-    elseif p:sub(1,1) == "-" and inopt then -- "short" option
+    elseif p:sub(1,1) == "-" and #p > 1 and inopt then -- "short" option
       for opt in p:gmatch(".") do
         opts[opt] = true
       end

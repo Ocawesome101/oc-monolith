@@ -21,6 +21,9 @@ do
   function io.open(file, mode)
     checkArg(1, file, "string")
     checkArg(2, mode, "string", "nil")
+    if file == "-" then -- support opening stdio in a fashion similar to *nix
+      return buffer.new(mode, (mode == "r" or mode == "a") and io.stdin or mode == "w" and io.stdout)
+    end
     file = fs.canonical(file)
     mode = mode or "r"
     local handle, err = fs.open(file, mode)
