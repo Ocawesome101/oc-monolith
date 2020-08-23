@@ -32,6 +32,12 @@ do
     local dead = {}
     for pid, thd in pairs(threads) do
       if checkDead(thd) then
+        for k, v in pairs(thd.closeOnExit) do
+          local status,ret = pcall(v.close, v)
+          if not status and ret then
+            kernel.logger.log("handle failed to close on exit for thread '" .. pid .. ", " .. thd.name .. "' - " .. ret)
+          end
+        end
         computer.pushSignal("thread_died", pid)
         dead[#dead + 1] = pid
       end
@@ -87,12 +93,16 @@ do
       uptime = 0,                               -- thread uptime
       stopped = false,                          -- is it stopped?
       started = computer.uptime(),              -- time of thread creation
+      closeOnExit = {},                         -- handles the scheduler should close on thread exit
       io      = {                               -- thread I/O streams
         [0] = current.data.io[0],
         [1] = current.data.io[1],
         [2] = current.data.io[2] or current.data.io[1]
       }
     }
+    new.closeOnExit[1] = new.io[0]
+    new.closeOnExit[2] = new.io[1]
+    new.closeOnExit[3] = new.io[2]
     if not new.env.PWD then
       new.env.PWD = "/"
     end
@@ -148,6 +158,20 @@ do
     return t
   end
 
+  function thread.closeOnExit(handle)
+    checkArg(1, handle, "table", "nil")
+    local info, err = thread.info()
+    if not info then return nil, err end
+    local old = handle.close
+    local i = #info.handles + 1
+    function handle:close()
+      info.handles[i] = nil
+      return close()
+    end
+    info.handles[i] = handle
+    return true
+  end
+
   function thread.info(pid)
     checkArg(1, pid, "number", "nil")
     pid = pid or cur
@@ -166,7 +190,8 @@ do
     if pid == cur then
       inf.data = {
         io = t.io,
-        env = t.env
+        env = t.env,
+        handles = t.closeOnExit
       }
     end
     return inf

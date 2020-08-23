@@ -1,6 +1,6 @@
-EDITOR=/bin/vled.lua
-PS1='\27[32m\u\27[37m@\27[32m\h\27[37m: \27[34m\W\27[37m\$ '
-LS_COLORS='dir=34:exec=32:file=37'
+set EDITOR=/bin/vled.lua
+set PS1='\27[32m\u\27[37m@\27[32m\h\27[37m: \27[34m\W\27[37m\$ '
+set LS_COLORS='dir=34:exec=32:file=37'
 
 alias reboot='shutdown -r'
 alias poweroff='shutdown -P'

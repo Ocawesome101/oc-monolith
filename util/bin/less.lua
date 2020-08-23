@@ -5,20 +5,13 @@ local readline = require("readline").readline
 
 local args, opts = shell.parse(...)
 
-if #args == 0 then
+if io.stdin.gpu and #args == 0 then -- not being piped
   return shell.codes.argument
 end
 
-local handle = assert(io.open(args[1], "r"))
+args[1] = args[1] or "-"
 
---[[io.write("\27[1000;1000H\27[6n\27[2J")
-local resp = ""
-repeat
-  local c = io.read(1)
-  resp = resp .. c
-until c == "R"
-local h, w = resp:match("\27%[(%d+);(%d+)R")
-w, h = tonumber(w), tonumber(h)]]
+local handle = assert(io.open(args[1], "r"))
 local w, h = io.stdout.gpu.getResolution()
 
 local lines = {}

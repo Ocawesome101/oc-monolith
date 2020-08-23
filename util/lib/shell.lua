@@ -13,7 +13,7 @@ shell.aliases = aliases
 function shell.error(cmd, err)
   checkArg(1, cmd, "string")
   checkArg(2, err, "string")
-  print(string.format("\27[31m%s: %s\27[37m", cmd, err))
+  io.stderr:write(string.format("\27[31m%s: %s\27[37m\n", cmd, err))
 end
 
 local defaultPath = "/bin:/usr/bin:/usr/local/bin"
@@ -123,7 +123,7 @@ function shell.expand(str)
   return str
 end
 
-shell.vars = shell.expand
+shell.vars = shell.expand -- backwards compatibility
 
 function shell.parse(...)
   local params = {...}
@@ -151,61 +151,6 @@ function shell.parse(...)
     end
   end
   return args, opts
-end
-
-function shell.altparse(...)
-  local params = {...}
-  local inopt = true
-  local cropt = ""
-  local args, opts = {}, {}
-  for i=1, #params, 1 do
-    local p = tostring(params[i])
-    if p == "--" then inopt = false end
-    if p:sub(1,2) == "--" and inopt then -- "short" option
-      for opt in p:sub(3):gmatch(".") do
-        opts[opt] = true
-      end
-    elseif p:sub(1,1) == "-" and inopt then -- "long" option
-      local o = p:sub(2)
-      local op, vl = o:match([["([%w]+)=([%w%/%,%.%:%s%'%"%=]+)]])
-      if op and vl then
-        opts[op] = vl or true
-      else
-        opts[o] = true
-      end
-    else
-      args[#args + 1] = p
-    end
-  end
-  return args, opts
-end
-
--- fancier split that deals with args like `prog print "this is cool" --text="this is also cool"`
-function shell.split(str)
-  checkArg(1, str, "string")
-  local inblock = false
-  local ret = {}
-  local cur = ""
-  local last = ""
-  for char in str:gmatch(".") do
-    if char == "'" then
-      if inblock == false then inblock = true end
-    elseif char == " " then
-      if inblock then
-        cur = cur .. " "
-      elseif cur ~= "" then
-        ret[#ret + 1] = cur:gsub("\\27", "\27")
-        cur = ""
-      end
-    else
-      cur = cur .. char
-    end
-    last = char
-  end
-  if #cur > 0 then
-    ret[#ret + 1] = cur:gsub("\\27", "\27")
-  end
-  return ret
 end
 
 function shell.resolve(path, ext)
@@ -236,68 +181,158 @@ function shell.resolve(path, ext)
   return fs.canonical(path)
 end
 
-local function split(str, pat)
-  local sep = {}
-  for seg in str:gmatch(pat) do
-    sep[#sep + 1] = seg
+-- replaces shell.split
+-- splits into tokens, such that
+-- "prg arg1 arg2 | prg 'arg with spaces' > outfile; ls /" becomes {{"prg", "arg1", "arg2"}, "|", {"prg", "arg with spaces"}, ">", {"outfile"}, ";", {"ls", "/"}}
+local special = {
+  [">"] = true,
+  [">>"] = true,
+  ["|"] = true
+}
+
+function shell.tokens(str)
+  checkArg(1, str, "string")
+  str = shell.expand(str)
+  local ret = {}
+  local in_str = false
+  local str_char = ""
+  local cur = ""
+  local cur_tab = {}
+  local i = 1
+  for char in str:gmatch(".") do
+    if char == "'" or char == "\"" then
+      if in_str then
+        if str_char == char then
+          in_str = false
+        else
+          cur = cur .. char
+        end
+      else
+        in_str = true
+        str_char = char
+      end
+    elseif special[char] then
+      if cur ~= "" then table.insert(cur_tab, cur) end
+      ret[i] = cur_tab
+      cur_tab = {}
+      cur = ""
+      ret[i + 1] = char
+      i = i + 2
+    elseif char == " " and not in_str then
+      if cur ~= "" then table.insert(cur_tab, cur) end
+    else
+      cur = cur .. char
+    end
   end
-  return sep
+  return ret
 end
 
+local basePipeStream = {
+  read = function(self, len)
+    checkArg(1, len, "number", "nil")
+    if self.closed and #self.buf == 0 then
+      return nil
+    end
+    while not ((len and #self.buf >= len) or self.buf:find("\n") or self.closed) do
+      coroutine.yield()
+    end
+    len = len or self.buf:find("\n") or #self.buf
+    local ret = self.buf:sub(1, len)
+    self.buf = self.buf:sub(len + 1)
+    return ret
+  end,
+  write = function(self, data)
+    checkArg(1, data, "string")
+    if self.closed then
+      return nil, "broken pipe"
+    end
+    self.buf = self.buf .. data
+    return true
+  end,
+  close = function()
+    self.closed = true
+  end
+}
+
+-- this function isn't pretty.
 local function execute(cmd)
-  local commands = split(shell.expand(cmd), "[^|]+")
-  local has_builtin = false
-  local builtin = {}
-  for k, v in pairs(commands) do
-    commands[k] = shell.split(v)
-    if #commands[k] == 0 then return end
-    if aliases[commands[k][1]] then
-      commands[k][1] = shell.expand(aliases[commands[k][1]])
-      commands[k] = shell.split(table.concat(commands[k], " "))
-    end
-    if commands[k][1]:match("(%S+)=(%S+)") then
-      shell.builtins.set(commands[k][1])
-      table.remove(commands[k], 1)
-    end
-    if #commands[k] == 0 then
-      table.remove(commands, k)
-      goto skip
-    end
-    if shell.builtins[commands[k][1]] then
-      has_builtin = true
-      builtin = commands[k]
-    else
-      commands[k][1] = shell.resolve(commands[k][1], "lua") or commands[k][1]
-    end
-    ::skip::
+  local tokens = shell.tokens(cmd)
+  if #tokens == 0 then
+    return
   end
-  if #commands > 1 and has_builtin then
-    shell.error("sh", "cannot pipe to or from builtin command")
-    return false
+  local pids = {}
+  local last_pipe
+  local command
+  local curcmd, totcmd = 1, 0
+  local orig = {input = io.input, output = io.output}
+  for i=1, #tokens, 1 do
+    local tok, l = tokens[i], tokens[i - 1] or nil
+    if type(tok) == "table" and ((not l) or (l ~= ">" and l ~= "<")) then
+      totcmd = totcmd + 1
+    end
   end
-  if has_builtin then
-    local cmd = commands[1]
-    return shell.builtins[cmd[1]](table.unpack(cmd, 2))
+
+  for i=1, #tokens, 1 do
+    local token = tokens[i]
+    if type(token) == "table" then
+      if iscmd then
+        if shell.builtins[token[1]] then
+          token[1] = {builtin = true, func = shell.builtins[token[1]]}
+          token[1].func(table.unpack(token, 2))
+          goto cont
+        else
+          local path, err = shell.resolve(token[1])
+          if not path then
+            return shell.error("sh: "..token[1], "command not found")
+          end
+          token[1] = {builtin = false, func = loadfile(path), name = path}
+        end
+      else
+        token[1] = fs.canonical(token[1])
+      end
+      if command then
+        table.insert(pids, thread.spawn(function() command[1].func(table.unpack(command, 2)) end, command[1].name))
+      end
+      command = token
+      ::cont::
+    elseif token == "|" then
+      if i == 1 or i == #tokens or not command then -- invalid as first or last token or if there isn't a command
+        return shell.error("sh", "syntax error near unexpected token '|'")
+      end
+      local commnd = command
+      if commnd[1].builtin then
+        return shell.error("sh", "cannot pipe builtin command")
+      end
+      local new_pipe = setmetatable({buf = ""}, {__index = basePipeStream})
+      local lp, np = last_pipe, new_pipe
+      local cmdn = curcmd
+      local new = thread.spawn(function()
+        io.input(cmdn > 1 and lp or orig.input)
+        io.output(cmdn < totcmd and np or orig.output)
+        commnd[1].func(table.unpack(commnd, 2))
+      end, commnd[1].name, shell.error)
+      table.insert(pids, new)
+      curcmd = curcmd + 1
+      last_pipe = new_pipe
+      command = nil
+    end
   end
-  local pids, err = pipe.chain(commands)
-  if not pids then
-    return shell.error("sh", err)
-  end
-  local running = true
-  while running do
-    running = false
+
+  local run = true
+  while run do
+    run = false
     for i, pid in pairs(pids) do
       if thread.info(pid) then
-        running = true
+        run = true
       else
         pids[i] = nil
       end
     end
-    local sig = table.pack(coroutine.yield(0)) -- effectively busywait
+    local sig = table.pack(coroutine.yield(0))
     if sig[1] == "thread_errored" then
-      for k,v in pairs(pids) do
+      for k, v in pairs(pids) do
         if sig[2] == v then
-          print("\27[31m" .. sig[3] .. "\27[37m")
+          io.stderr:write("\27[31m" .. sig[3] .. "\27[37m\n")
         end
       end
     end
@@ -305,15 +340,24 @@ local function execute(cmd)
   return true
 end
 
+local function split(s, p)
+  local S = {}
+  for m in s:gmatch(p) do
+    S[#S+1]=m
+  end
+  return S
+end
+
 function shell.execute(...)
   local args = table.pack(...)
   if args[2] == nil or type(args[2]) == "table" then -- discard the 'env' argument OpenOS programs may supply
     pcall(table.remove, args, 2)
   end
-  local commands = split(shell.expand(table.concat(args, " ")), "[^%;]+")
+  local commands = split(shell.expand(table.concat(args, "")), "[^%;]+")
   for i=1, #commands, 1 do
     execute(commands[i])
   end
+  return true
 end
 
 package.delay(shell, "/lib/full/shell.lua")
