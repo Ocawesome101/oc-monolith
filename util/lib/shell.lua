@@ -181,171 +181,101 @@ function shell.resolve(path, ext)
   return fs.canonical(path)
 end
 
--- replaces shell.split
--- splits into tokens, such that
--- "prg arg1 arg2 | prg 'arg with spaces' > outfile; ls /" becomes {{"prg", "arg1", "arg2"}, "|", {"prg", "arg with spaces"}, ">", {"outfile"}, ";", {"ls", "/"}}
-local special = {
-  [">"] = true,
-  [">>"] = true,
-  ["|"] = true
-}
-
-function shell.tokens(str)
+-- fancier split that deals with args like `prog print "this is cool" --text="this is also cool"`
+function shell.split(str)
   checkArg(1, str, "string")
-  str = shell.expand(str)
+  local inblock = false
   local ret = {}
-  local in_str = false
-  local str_char = ""
   local cur = ""
-  local cur_tab = {}
-  local i = 1
+  local last = ""
   for char in str:gmatch(".") do
-    if char == "'" or char == "\"" then
-      if in_str then
-        if str_char == char then
-          in_str = false
-        else
-          cur = cur .. char
-        end
-      else
-        in_str = true
-        str_char = char
+    if char == "'" then
+      if inblock == false then inblock = true end
+    elseif char == " " then
+      if inblock then
+        cur = cur .. " "
+      elseif cur ~= "" then
+        ret[#ret + 1] = cur:gsub("\\27", "\27")
+        cur = ""
       end
-    elseif special[char] then
-      if cur ~= "" then table.insert(cur_tab, cur) end
-      ret[i] = cur_tab
-      cur_tab = {}
-      cur = ""
-      ret[i + 1] = char
-      i = i + 2
-    elseif char == " " and not in_str then
-      if cur ~= "" then table.insert(cur_tab, cur) end
     else
       cur = cur .. char
     end
+    last = char
+  end
+  if #cur > 0 then
+    ret[#ret + 1] = cur:gsub("\\27", "\27")
   end
   return ret
 end
 
-local basePipeStream = {
-  read = function(self, len)
-    checkArg(1, len, "number", "nil")
-    if self.closed and #self.buf == 0 then
-      return nil
-    end
-    while not ((len and #self.buf >= len) or self.buf:find("\n") or self.closed) do
-      coroutine.yield()
-    end
-    len = len or self.buf:find("\n") or #self.buf
-    local ret = self.buf:sub(1, len)
-    self.buf = self.buf:sub(len + 1)
-    return ret
-  end,
-  write = function(self, data)
-    checkArg(1, data, "string")
-    if self.closed then
-      return nil, "broken pipe"
-    end
-    self.buf = self.buf .. data
-    return true
-  end,
-  close = function()
-    self.closed = true
+local function split(str, pat)
+  local sep = {}
+  for seg in str:gmatch(pat) do
+    sep[#sep + 1] = seg
   end
-}
+  return sep
+end
 
--- this function isn't pretty.
 local function execute(cmd)
-  local tokens = shell.tokens(cmd)
-  if #tokens == 0 then
-    return
-  end
-  local pids = {}
-  local last_pipe
-  local command
-  local curcmd, totcmd = 1, 0
-  local orig = {input = io.input, output = io.output}
-  for i=1, #tokens, 1 do
-    local tok, l = tokens[i], tokens[i - 1] or nil
-    if type(tok) == "table" and ((not l) or (l ~= ">" and l ~= "<")) then
-      totcmd = totcmd + 1
+  local commands = split(shell.expand(cmd), "[^|]+")
+  local has_builtin = false
+  local builtin = {}
+  for k, v in pairs(commands) do
+    commands[k] = shell.split(v)
+    if #commands[k] == 0 then return end
+    if aliases[commands[k][1]] then
+      commands[k][1] = shell.expand(aliases[commands[k][1]])
+      commands[k] = shell.split(table.concat(commands[k], " "))
     end
-  end
-
-  for i=1, #tokens, 1 do
-    local token = tokens[i]
-    if type(token) == "table" then
-      if iscmd then
-        if shell.builtins[token[1]] then
-          token[1] = {builtin = true, func = shell.builtins[token[1]]}
-          token[1].func(table.unpack(token, 2))
-          goto cont
-        else
-          local path, err = shell.resolve(token[1])
-          if not path then
-            return shell.error("sh: "..token[1], "command not found")
-          end
-          token[1] = {builtin = false, func = loadfile(path), name = path}
-        end
-      else
-        token[1] = fs.canonical(token[1])
-      end
-      if command then
-        table.insert(pids, thread.spawn(function() command[1].func(table.unpack(command, 2)) end, command[1].name))
-      end
-      command = token
-      ::cont::
-    elseif token == "|" then
-      if i == 1 or i == #tokens or not command then -- invalid as first or last token or if there isn't a command
-        return shell.error("sh", "syntax error near unexpected token '|'")
-      end
-      local commnd = command
-      if commnd[1].builtin then
-        return shell.error("sh", "cannot pipe builtin command")
-      end
-      local new_pipe = setmetatable({buf = ""}, {__index = basePipeStream})
-      local lp, np = last_pipe, new_pipe
-      local cmdn = curcmd
-      local new = thread.spawn(function()
-        io.input(cmdn > 1 and lp or orig.input)
-        io.output(cmdn < totcmd and np or orig.output)
-        commnd[1].func(table.unpack(commnd, 2))
-      end, commnd[1].name, shell.error)
-      table.insert(pids, new)
-      curcmd = curcmd + 1
-      last_pipe = new_pipe
-      command = nil
+    if commands[k][1]:match("(%S+)=(%S+)") then
+      shell.builtins.set(commands[k][1])
+      table.remove(commands[k], 1)
     end
+    if #commands[k] == 0 then
+      table.remove(commands, k)
+      goto skip
+    end
+    if shell.builtins[commands[k][1]] then
+      has_builtin = true
+      builtin = commands[k]
+    else
+      commands[k][1] = shell.resolve(commands[k][1], "lua") or commands[k][1]
+    end
+    ::skip::
   end
-
-  local run = true
-  while run do
-    run = false
+  if #commands > 1 and has_builtin then
+    shell.error("sh", "cannot pipe to or from builtin command")
+    return false
+  end
+  if has_builtin then
+    local cmd = commands[1]
+    return shell.builtins[cmd[1]](table.unpack(cmd, 2))
+  end
+  local pids, err = pipe.chain(commands)
+  if not pids then
+    return shell.error("sh", err)
+  end
+  local running = true
+  while running do
+    running = false
     for i, pid in pairs(pids) do
       if thread.info(pid) then
-        run = true
+        running = true
       else
         pids[i] = nil
       end
     end
-    local sig = table.pack(coroutine.yield(0))
+    local sig = table.pack(coroutine.yield(0)) -- effectively busywait
     if sig[1] == "thread_errored" then
-      for k, v in pairs(pids) do
+      for k,v in pairs(pids) do
         if sig[2] == v then
-          io.stderr:write("\27[31m" .. sig[3] .. "\27[37m\n")
+          print("\27[31m" .. sig[3] .. "\27[37m")
         end
       end
     end
   end
   return true
-end
-
-local function split(s, p)
-  local S = {}
-  for m in s:gmatch(p) do
-    S[#S+1]=m
-  end
-  return S
 end
 
 function shell.execute(...)
