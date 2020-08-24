@@ -10,25 +10,6 @@ builtins.unset = function(...)
     os.setenv(v, nil)
   end
 end
-builtins.alias = function(...)
-  local ali, opts = shell.parse(...)
-  if #ali == 0 then
-    for k, v in pairs(shell.aliases) do
-      print(string.format("alias %s='%s'", k, v))
-    end
-  else
-    for k, v in pairs(ali) do
-      local a, c = v:match("(.+)=(.+)")
-      if not c then
-        if shell.aliases[a] then
-          print(string.format("alias %s='%s'", a, shell.aliases[a]))
-        end
-      else
-        aliases[a] = c
-      end
-    end
-  end
-end
 builtins.unalias = function(...)
   local una, opts = shell.parse(...)
   for k, v in pairs(una) do
@@ -39,7 +20,7 @@ builtins.sleep = function(t)
   os.sleep(tonumber(t) or 1)
 end
 builtins.exit = function(code)
-  shell.exit(tonumber(code or 0))
+  shell.exit(tonumber(code) or 0)
 end
 builtins.pwd = function()
   print(os.getenv("PWD"))
@@ -76,7 +57,7 @@ builtins.kill = function(...)
 end
 builtins.time = function(...)
   local start = computer.uptime()
-  shell.execute(...)
+  shell.execute(table.concat(table.pack(...), " "))
   local total = computer.uptime() - start
   print("real", total .. "s")
 end

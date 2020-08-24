@@ -17,63 +17,49 @@ shell.errors = {
 
 setmetatable(shell.errors, {__index = function()return "failed" end})
 
-function shell.setAlias(k, v)
-  checkArg(1, k, "string")
-  checkArg(2, v, "string")
-  shell.aliases[k] = v
-end
-
 function shell.unsetAlias(k)
   checkArg(1, k, "string")
   shell.aliases[k] = nil
 end
 
--- more advanced argument parser similar to GNU getopt()
-function shell.getopt(args, argstring)
-  local parsed_args, parsed_opts = {}, {}
-  local done_opts = false
-  local opts = {}
-  local lastc = ""
-  local lastopt = false
-  for c in argstring:gmatch(".") do
-    if c == ":" then
-      if lastc == ":" then
-        opts[lastopt] = {req = false, opt = true}
-      else
-        opts[lastopt] = {req = true, opt = true}
+-- more advanced argument parser similar to GNU getopt() but with tables as arguments
+function shell.getopt(args, argdefs)
+  checkArg(1, args, "table")
+  checkArg(2, argdefs, "table")
+  local parsed_args, parsed_opts, done_opts, i = {}, {}, false, 1
+  local function get(opt)
+    local def = argdefs[opt] or {takesarg = false, reqarg = false}
+    if def.takesarg then
+      local try = args[i + 1] or nil
+      if def.reqarg and not try then
+        error("getopt: missing argument for option " .. opt)
       end
-    else
-      opts[lastopt] = opts[lastopt] or {req = false, opt = false}
-      lastopt = c
+      parsed_opts[opt] = try or parsed_opts[opt] or true
+      i = i + 1
     end
-    lastc = c
   end
-  for i=1, #args, 1 do
-    local parse = args[1]
-    if parse == "-" then
-      table.insert(parsed_args, parse)
-    elseif parse == "--" and not done_opts then
+  while i <= #args and not done_opts do
+    local opt = args[i]
+    if parse == "-" or done_opts then
+      table.insert(parsed_args, opt)
+    elseif parse == "--" then
       done_opts = true
-    elseif parse:sub(1,1) == "-" and not done_opts then
-      local opt = parse:sub(2,2)
-      if opts[opt] and opts[opt].opt then
-        if args[i + 1] then
-          parsed_opts[opt] = args[i + 1]
-          i = i + 2
-        elseif opts[opt].req then
-          shell.error("getopt", "missing argument")
-          os.exit(-1)
-        else
-          parsed_opts[opt] = parsed_opts[opt] or true
-        end
-      else
-        for c in opt:gmatch(".") do
-          parsed_opts[c] = parsed_opts[c] or true
-        end
-      end
     else
-      table.insert(parsed_args, parse)
+      local short = false
+      if parse:sub(1,2) == "--" then
+        parse = parse:sub(3)
+      elseif parse:sub(1,1) == "-" then
+        parse = parse:sub(2)
+        short = true
+      end
+      if short then
+        local o = parse:sub(1,1)
+        parsed_opts[o] = #parse > 1 and (parse:sub(2)) or parsed_opts[o] or true
+      else
+        get(parse)
+      end
     end
+    i = i + 1
   end
   return parsed_args, parsed_opts
 end

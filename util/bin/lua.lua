@@ -1,6 +1,6 @@
 -- a lua shell --
 
-local args, opts = require("shell").altparse(...)
+local args, opts = require("shell").getopt(table.pack(...), {e = {takesarg = true, reqopt = true}})
 
 local readline = require("readline").readline
 
@@ -19,7 +19,6 @@ local env = setmetatable({}, {__index = _G})
 env._PROMPT = "\27[37m> "
 
 if opts.e and type(opts.e) == "string" then
-  print(opts.e)
   local run = opts.e
   local exec, reason
   if run:sub(1,1) == "=" then

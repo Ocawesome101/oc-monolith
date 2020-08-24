@@ -10,6 +10,12 @@ local shell = {}
 local aliases = {}
 shell.aliases = aliases
 
+function shell.setAlias(k, v)
+  checkArg(1, k, "string")
+  checkArg(2, v, "string")
+  shell.aliases[k] = v
+end
+
 function shell.error(cmd, err)
   checkArg(1, cmd, "string")
   checkArg(2, err, "string")
@@ -79,6 +85,25 @@ options:
     end
 
     return shell.codes.argument
+  end,
+  alias = function(...)
+    local ali, opts = shell.parse(...)
+    if #ali == 0 then
+      for k, v in pairs(shell.aliases) do
+        print(string.format("alias %s='%s'", k, v))
+      end
+    else
+      for k, v in pairs(ali) do
+        local a, c = v:match("(.+)=(.+)")
+        if not c then
+          if shell.aliases[a] then
+            print(string.format("alias %s='%s'", a, shell.aliases[a]))
+          end
+        else
+          aliases[a] = c
+        end
+      end
+    end
   end
 }
 
