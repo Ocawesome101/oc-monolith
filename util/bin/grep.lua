@@ -190,7 +190,7 @@ local function readLines()
       if file == "-" then
         curFile = file
         meta.label = stdin_label
-        curHand = io.input()
+        curHand = io.open("-", 'r')
       else
         meta.label = file
         local file, reason = resolve(file)
@@ -246,7 +246,7 @@ local flush=(f_only or no_only or print_count) and function(m)
   end
 end
 local ec = nil
-local any_hit_ec = 1
+local any_hit_ec = 0
 local function test(m,p)
   local empty_line = true
   local last_index, slen = 1, #m.line
