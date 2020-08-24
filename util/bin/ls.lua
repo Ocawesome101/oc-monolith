@@ -15,6 +15,7 @@ local all = opts.a or opts.all or false
 local inf = opts.l or false
 local hmr = opts.h or opts["human-readable"] or false
 local col = (not opts.nocolor) or (opts.color) or false
+local opl = opts["1"] or opts.o or false
 
 local colors = {dir=37, exec=37, file=37}
 if col then
@@ -100,7 +101,7 @@ for i=1, #args, 1 do
       out = out .. color(colors.file)
     end
     if f:sub(1,1) ~= "." or all then
-      if inf then out = out .. f .. "\n"
+      if inf or opl then out = out .. f .. "\n"
       else
         if n + longest >= w and n ~= 1 then out = out .. "\n" n = 1 end
         out = out .. f
