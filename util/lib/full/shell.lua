@@ -30,7 +30,7 @@ function shell.getopt(args, argdefs)
   local function get(opt)
     local def = argdefs[opt] or {takesarg = false, reqarg = false}
     if def.takesarg then
-      local try = args[i + 1] or nil
+      local try = args[i + 1]
       if def.reqarg and not try then
         error("getopt: missing argument for option " .. opt)
       end
@@ -38,8 +38,8 @@ function shell.getopt(args, argdefs)
       i = i + 1
     end
   end
-  while i <= #args and not done_opts do
-    local opt = args[i]
+  while i <= #args do
+    local parse = args[i]
     if parse == "-" or done_opts then
       table.insert(parsed_args, opt)
     elseif parse == "--" then
@@ -52,9 +52,9 @@ function shell.getopt(args, argdefs)
         parse = parse:sub(2)
         short = true
       end
-      if short then
+      if short and #parse > 1 then
         local o = parse:sub(1,1)
-        parsed_opts[o] = #parse > 1 and (parse:sub(2)) or parsed_opts[o] or true
+        parsed_opts[o] = (parse:sub(2)) or parsed_opts[o] or true
       else
         get(parse)
       end
