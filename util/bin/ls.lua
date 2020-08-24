@@ -15,7 +15,7 @@ local all = opts.a or opts.all or false
 local inf = opts.l or false
 local hmr = opts.h or opts["human-readable"] or false
 local col = (not opts.nocolor) or (opts.color) or false
-local opl = opts["1"] or opts.o or false
+local opl = opts["1"] or false
 
 local colors = {dir=37, exec=37, file=37}
 if col then
