@@ -36,6 +36,8 @@ function shell.getopt(args, argdefs)
       end
       parsed_opts[opt] = try or parsed_opts[opt] or true
       i = i + 1
+    else
+      parsed_opts[opt] = true
     end
   end
   while i <= #args do
