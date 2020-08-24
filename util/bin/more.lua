@@ -9,7 +9,7 @@ if #args == 0 then
   return shell.codes.argument
 end
 
-local handle, err = io.open(args[1])
+local handle, err = io.open(args[1], "r")
 if not handle then
   shell.error("more", err)
   return shell.codes.failure

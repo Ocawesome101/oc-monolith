@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.08.23"
+local _INITVERSION = "InitMe 2020.08.24"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
@@ -237,7 +237,7 @@ do
     checkArg(1, file, "string")
     checkArg(2, mode, "string", "nil")
     if file == "-" then -- support opening stdio in a fashion similar to *nix
-      return buffer.new(mode, (mode == "r" or mode == "a") and io.stdin or mode == "w" and io.stdout)
+      return buffer.new(mode, ((mode == "r" or mode == "a") and io.stdin) or (mode == "w" and io.stdout))
     end
     file = fs.canonical(file)
     mode = mode or "r"

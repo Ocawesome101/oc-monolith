@@ -38,19 +38,21 @@ function pipe.chain(progs)
   checkArg(1, progs, "table")
   local last
   local pids = {}
-  local orig_io = { input = io.input(), output = io.output() }
+  local orig_io = { input = io.input(), output = io.output(), stderr = io.stderr }
   for i=1, #progs, 1 do
-    local new = setmetatable({
+    local bnew = setmetatable({
       buf = ""
     }, {
       __index = streamX
     })
+    local new = buffer.new("w", bnew)
+    new:setvbuf("no")
     local prog = (type(progs[i]) == "string" and require("text").split(progs[i], " ")) or progs[i]
     if #prog == 0 then return nil, "invalid program length " .. #prog .. " for " .. type(progs[i]) .. " entry " .. i end
     local ok, err = loadfile(prog[1])
     if not ok then return nil, err end
     local function handler(...)
-      io.stderr:write(table.concat(table.pack("\27[31m", ..., "\27[37m\n")))
+      orig_io.stderr:write(table.concat(table.pack("\27[31m", ..., "\27[37m\n")))
     end
     local l, n = last, new
     table.insert(pids, thread.spawn(
@@ -73,7 +75,8 @@ function pipe.chain(progs)
       table.concat(prog, " "),          --name
       handler                           --handler
     ))
-    last = new
+    last = buffer.new("r", bnew)
+    last:setvbuf("no")
   end
   io.input(orig_io.input)
   io.output(orig_io.output)

@@ -47,6 +47,7 @@ function sh.execute(file)
     shell.execute(line)
   end
   handle:close()
+  return true
 end
 
 
