@@ -65,9 +65,9 @@ function pipe.chain(progs)
           table.unpack(prog, 2, #prog)
         )
         if n then n:close() end
-        if eh and x and x ~= 0 and type(x) == "number" then
+        --[[if eh and x and x ~= 0 and type(x) == "number" then
           require("shell").error(prog[1]:match(".+/(.-)%.lua"), require("shell").errors[x])
-        end
+        end]]
         if not eh and x then
           handler(x)
         end
