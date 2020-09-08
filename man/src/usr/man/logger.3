@@ -1,0 +1,33 @@
+[97mNAME[37m
+        logger - styled command-line loggers
+
+[97mDESCRIPTION
+        logger[37m is a library that provides styled command-line loggers.  By default, three styles are provided:  [97mbracket[37m, which provides a logging style similar to [97minit[37m; [97marrow[37m, which provides a logging style similar to [93myay[37m or [93mmakepkg[37m; and [97mdouble[37m, which provides a slightly modified version of the [97marrow[37m style.
+
+[97mMETHODS
+        The [97mlogger[37m library can be directly called, identically to created objects.  The default style is [97mbracket[37m.  Styles are stored in [92mlogger.prefixes[37m.
+
+        new[37m([97mstyle[37m:[91mstring[37m): [92mtable[37m or [97mnil[37m, [91mstring[37m
+                Creates a new logger object using the specified style.
+
+        [97mlogger[37m object methods are listed below.
+
+        [97mobj[37m:[97mok[37m([97m...[37m:[91mstring[37m)
+                Print a message using the [97mok[37m prefix.
+
+        [97mobj[37m:[97minfo[37m([97m...[37m:[91mstring[37m)
+                Print a message using the [97minfo[37m prefix.
+
+        [97mobj[37m:[97mwarn[37m([97m...[37m:[91mstring[37m)
+                Print a message using the [97mwarn[37m prefix.
+
+        [97mobj[37m:[97mfail[37m([97m...[37m:[91mstring[37m)
+                Print a message using the [97mfail[37m prefix.
+
+[97mEXAMPLES[37m
+        [93mlocal[37m logger = [94mrequire[37m([91m"logger"[37m)
+        [93mlocal[37m new = [94mlogger[37m:[94mnew[37m([91m"bracket"[37m)
+        [94mnew[37m:[94mok[37m([91m"Created a logger"[37m) [94m-- prints "[37m[  [92mOK[37m  ] Created a logger[94m"[37m
+
+[97mCOPYRIGHT
+        Monolith Libraries[37m (c) 2020 Ocawesome101 under the GNU GPLv3.

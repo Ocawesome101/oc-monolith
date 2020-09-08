@@ -1,0 +1,45 @@
+*NAME&
+        lshw - list installed hardware
+
+*SYNOPSIS
+        lshw& [*-tdpcvws&]
+
+*DESCRIPTION
+        lshw& is a small tool to extract detailed information on the hardware configuration of the current machine, similar to *components&(*1&).  It can report memory configuration, CPU version and sppeed, GPU or screen capacity, etc. on *computer.getDeviceInfo&(*2&)-capable OpenComputers systems and some emulators (OCVM is known to work).
+
+        *lshw& currently only supports *computer.getDeviceInfo&(*2&).
+
+        *lshw& displays hardware information in the form of @columns&, each of which displays one form of information about a piece of hardware.  The only mandatory column is @Address&.
+
+*OPTIONS
+        -t&
+                Adds the @Class& column to the list.
+
+        *-d&
+                Registers the @Description& column.
+
+        *-p&
+                Registers the @Product& column.
+
+        *-v&
+                Registers the @Vendor& column.
+
+        *-c&
+                Registers the @Capacity& column.
+
+        *-w&
+                Registers the @Width& column.
+
+        *-s&
+                Registers the @Clock& column.
+
+*EXAMPLES
+        lshw&
+            Equivalent to *lshw -tdp&.  Displays the @Class&, @Description&, and @Product& columns.
+
+*COPYRIGHT
+        lshw& is copyright (c) 2016 ~Sangar& as part of OpenOS.
+
+*SEE ALSO
+        components&(*1&), *component&(*2&), *computer.getDeviceInfo&(*2&)
+

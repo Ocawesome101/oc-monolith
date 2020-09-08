@@ -1,0 +1,31 @@
+[97mNAME[37m
+        preproc - preprocessor library from PsychOS
+
+[97mDESCRIPTION
+        preproc[37m is a general-purpose preprocessor library written by [91mIzaya[37m for [93mPsychOS 2[37m.  It supports user-created directives and direct calling through the [94m__call[37m field of the returned library's metatable.  All methods will raise errors on failure.
+
+[97mFIELDS
+        directives[37m: [92mtable[37m
+            Table of preprocessor directives.  Directives should be in the format [94m--#<directive> <args>[37m in the processed file.  The only default directive is [94minclude[37m.
+
+[97mMETDHOS
+        parsewords[37m([97mline[37m:[91mstring[37m): [92mtable[37m
+            Returns a table of words from the string [91mline[37m, parsing quotes and escapes.
+
+        [97mline[37m([97mline[37m:[91mstring[37m)
+            Returns either a [94mfunction[37m - which can be called to get lines until it returns nil - or a string from processing [91mline[37m using preprocessor directives.
+
+        [97mpreproc[37m([97m...[37m:[91mstring[37m): [91mstring[37m
+            Returns the output from preprocessing the files listed in [91m...[37m.
+
+        <[97mmetatable field [94m__call[37m>([97m...[37m:[91mstring[37m, [97mout[37m:[91mstring[37m)
+            Writes the result of [94mpreproc.preproc[37m([91m...[37m) to file [91mout[37m.  This field allows syntax such as:
+
+                [93mlocal[37m preproc = [94mrequire[37m([91m"preproc"[37m)
+                [94mpreproc[37m([91m"filea"[37m, [91m"fileb"[37m, [91m"outfile"[37m)
+
+[97mCOPYRIGHT
+        preproc library[37m (c) 2020 Izaya.  Used with permission.  See [94mhttps://git.shadowkat.net/Izaya/OC-PsychOS2[37m.
+
+[97mSEE ALSO
+        preproc[37m([97m1[37m)

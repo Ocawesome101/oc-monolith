@@ -1,0 +1,27 @@
+*NAME&
+        usermgr - manage users
+
+*SYNOPSIS
+        usermgr
+
+        usermgr& [@option& [@param& ...]]
+
+*DESCRIPTION
+        usermgr& is Monolith's default user management tool, similar in concept and design to the #usermgr& tool from Open Kernel 2.  It supports adding and removing users, either through the command line or an interactive prompt.
+
+        Available *usermgr& commands are listed below. If optional arguments are not specified then *usermgr& will prompt the user.
+
+        *help&
+            Displays *usermgr&'s built-in help.
+
+        *add& [?user&] [?cansudo&]
+            Adds user ?user&. If ?cansudo& is true, the user can execute the *sudo&(*1&) command.
+
+        *del& [?user&]
+            Attempts to delete user ?user&.
+*COPYRIGHT
+        Monolith System Utilities& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        users&(*2&), users&(*3&), *sudo&(*1&)
+

@@ -1,0 +1,49 @@
+[97mNAME[37m
+        component - interface with components
+
+[97mDESCRIPTION[37m
+        The [97mcomponent[37m API is provided by OpenComputers.  This manual page attempts to document it.
+
+        Note that this manual page covers both OS-provided methods and OpenComputers-provided methods.
+
+[97mRAW METHODS
+        list[37m([[97mfilter[37m:[91mstring[37m[, [97mexact[37m:[95mboolean[37m]]): [92mtable[37m
+                Returns an iterable list of components - keys addresses, values types.  If [91mfilter[37m is specified, only includes matches of component type.  If [95mexact[37m is specified, only includes exact matches.
+
+        [97minvoke[37m([97maddress[37m:[91mstring[37m, [97mmethod[37m:[91mstring[37m[, [97m...[37m]): [97m...[37m
+                Attempts to invoke the specified method on the component with address [91maddress[37m.
+
+        [97mproxy[37m([97maddress[37m:[91mstring[37m): [92mtable[37m
+                Creates a proxy of the component with address [91maddress[37m.  All callable fields are in the proxy, along with the address, type, and slot.
+
+        [97mdoc[37m([97maddress[37m:[91mstring[37m, [97mmethod[37m:[91mstring[37m): [91mstring[37m
+                Returns the documentation string for the component callback [91mmethod[37m.  Note that the documenation string for most methods is also available by [94mtostring[37ming the function in a proxy, i.e. [94mtostring[37m(component.screen.isOn).
+        
+        [97mtype[37m([97maddress[37m:[91mstring): [91mstring[37m
+                Returns the component type of the component with address [91maddress[37m.
+
+        [97mslot[37m([97maddress[37m:[91mstring[37m): [93mnumber[37m
+                Returns the slot in which the component of address [91maddress[37m is installed, or [93m-1[37m if it does not otherwise make sense.
+
+        [97mfields[37m([97maddress[37m:[91mstring[37m): [92mtable[37m
+                Returns a table with the names of all non-callable fields that will be present in the proxy of a component, i.e. [97maddress[37m and [97mtype[37m, as keys.  Complements [94mcomponent.methods[37m.
+
+        [97mmethods[37m([97maddress[37m:[91mstring[37m): [92mtable[37m
+                Returns a table with the names of all callable methods that will be present in the proxy of a component as keys.
+
+[97mOS METHODS[37m
+        The following component API methods are provided by Monolith and OpenOS.
+
+        [97mget[37m([97maddress[37m:[91mstring[37m[, [97mtype[37m:[91mstring[37m]): [91mstring[37m or [97mnil[37m, [91mstring[37m
+                Tries to resolve the abbreviated address [91maddress[37m to a full component UUID.
+
+        [97misAvailable[37m([97mtype[37m:[91mstring[37m): [95mboolean[37m
+                Returns whether at least one component of type [91mtype[37m is installed in the computer.
+
+        Both OSes also provide a metatable that allows for the syntax [92mcomponent[97m.[37m<[97mcomponentType[37m> to obtain a proxy of a component of that type.
+
+[97mNOTES[37m
+        The OpenOS implementation provides a system for "primary" components, which Monolith deos not currently but may in the future.
+
+[97mSEE ALSO
+        computer[37m([97m2[37m), [97municode[37m([97m2[37m)

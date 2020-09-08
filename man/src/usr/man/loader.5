@@ -1,0 +1,22 @@
+[97mNAME[37m
+        loader - Monolith boot loader
+
+[97mDESCRIPTION[37m
+        The default Monolith loader is found at [93m/boot/kernel/loader[37m.  It exists primarily to keep compatibility with the OpenLoader BIOS - otherwise, its provisions would be placed in [93m/init.lua[37m.
+
+        [97mloader[37m provides the kernel logger and passes the kernel a table of flags.
+
+[97mCONFIGURATION[37m
+        The default loader script contains a table of flags starting on line 4.  The following flags are currently supported:
+
+        [97minit[37m[91mstring[37m
+                The script to load and run as the init process.  Should only be changed when developing alternate init systems.
+
+        [97mquiet[37m:[95mboolean[37m
+                Whether to disable screen logging on boot.  May slightly improve boot times.
+
+        [97mrunlevel[37m:[93mnumber[37m
+                The maximum runlevel the system should attempt to reach.  Values larger than 3 will have no effect.
+
+[97mCOPYRIGHT
+        Monolith System[37m (c) 2020 Ocawesome101 under the GNU GPLv3.

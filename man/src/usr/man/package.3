@@ -1,0 +1,31 @@
+[97mNAME[37m
+        package - reimplementation of the Lua standard package library
+
+[97mDESCRIPTION
+        package[37m is a partial re-implementation of the Lua-standard [97mpackage[37m library.
+
+[97mMETHODS
+        searchpath[37m([97mname[37m:[91mstring[37m, [97mpath[37m:[91mstring[37m[, [97msep[37m:[91mstring[37m[, [97mrep[37m:[91mstring[37m]]): [91mstring[37m or nil, [92mtable[37m
+                Used internally by [94mrequire[37m.  Searches the provided [91mpath[37m for [91mname[37m.  Replaces all instances of [91m?[37m in the path with [91mname[37m.
+
+                [91mpath[37m is expected to be formatted as a series of entries separated by the [91m;[37m character.
+
+[97mGLOBALS[37m
+        The [97mpackage[37m library defines the following globals.
+
+        [92mpackage.loaded[37m
+                A cache of all loaded libraries.
+
+        [91mpackage.path[37m
+                The path to search for libraries.
+
+        [94mdofile[37m([97mfile[37m:[91mstring[37m): ... or [97mnil[37m, [91mstring[37m
+                Attempt to execute file [91mfile[37m.
+
+        [94mrequire[37m([97mlib[37m:[91mstring[37m[, [97mreload[37m:[95mboolean[37m]): ...
+                Attempt to load library [91mlib[37m from the package path.  If the library is already loaded [97mand[37m [95mreload[37m is false or not specified, returns the cached library.  Othwewise, loads the library from disk.
+
+                On failure, [94mrequire[37m raises the error rather than returning it.
+
+[97mCOPYRIGHT
+        Monolith System Interfaces[37m (c) 2020 Ocawesome101 under the GNU GPLv3.

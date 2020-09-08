@@ -1,0 +1,47 @@
+*NAME&
+        readline - read text input from the user
+
+*DESCRIPTION
+        readline& will read a line from the terminal and return it, using *prompt& as a prompt.  If *prompt& is not provided, no prompt is issued. If *notrail& is specified, the line returned has the final newline removed so only the text of the line remains.
+
+        *readline& offers editing capabilities while the user is entering the line.  By default, the line editing commands are similar to those of emacs.
+
+*METHODS
+        readline&([*prompt&:~string& or #number&][, *opts&:@table&]): ~string&
+                The recommended method of reading text input.
+                
+                If ~prompt& is specified, it will be displayed to the user.  Otherwise, no prompt will be issued.  If #prompt& is a number, *readline& will return that number of characters from standard input and return them without printing to the screen.  If @prompt& is a table, it will be used in place of @opts&.
+                
+                Available @opts& are:
+
+                    {
+                      *pwchar& = ~string&,
+                      *history& = @table&,
+                      *prompt& = ~string&,
+                      *arrows& = ?boolean&,
+                      *actions& = @table&
+                    }
+
+                If ~opts.prompt& is specified and no ~prompt& is specified, ~opts.prompt& will be used instead.
+
+                ?arrows& specifies whether *readline& should act specially on arrow-key presses and defaults to ?true&.
+
+                @actions&, if specified, should have four fields: *up&:^function&, *down&:^function&, *left&:^function&, and *right&:^function&.  These functions are called upon their corresponding keypresses.
+        
+        *readlinebasic&(*screen&:~string&[, *n&:#number&]): ~string& or *nil&, ~string&
+                Reads *n& characters, or until return is pressed.  Does not output to the screen.  Used internally.  Not recommended, use *readline& instead.
+
+        *addscreen&(*screen&:~string&, *gpu&:~string& or @table&): ?boolean& or *nil&, ~string&
+                Does what it says on the tin.  Registers a screen and all its keyboards, plus a GPU.
+
+        *buffersize&(*screen&:~string&): #number& or *nil&, ?boolean&
+                Returns the size of the specified screen's input buffer.
+
+*NOTES
+        readline& is the preferred way to get keyboard input.
+
+*COPYRIGHT
+        Monolith System Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        *sh&(*1&), *login&(*1&), *io&(*3&)

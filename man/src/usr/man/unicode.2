@@ -1,0 +1,44 @@
+[97mNAME[37m
+        unicode - API for working with UTF-8 strings
+
+[97mDESCRIPTION[37m
+        The [97municode[37m library provided by OpenComputers provides all functions of the [97mstring[37m library, except UTF-8 aware.
+
+[97mMETHODS[37m
+        The following functions are provided to allow basic UTF-8 handling:
+
+        [97mchar[37m([97mvalue[37m:[93mnumber[37m, [97m...[37m): [91mstring[37m
+                UTF-8 aware version of string.char. The [97mvalue[37ms may be in the full UTF-8 range, not just ASCII.
+        
+        [97mcharWidth[37m([97mvalue[37m:[91mstring[37m, [97m...[37m): [93mnumber[37m
+                Returns the width of the first character given. For example, for シ it'll return 2, where a would return 1.
+        
+        [97misWide[37m([97mvalue[37m:[91mstring[37m, [97m...[37m): [95mboolean[37m
+                Returns if the width of the first character given is greater than 1. For example, for シ it'll return true, where a would return false.
+        
+        [97mlen[37m([97mvalue[37m:[91mstring[37m): [93mnumber[37m
+                UTF-8 aware version of string.len. For example, for [91mÜmläüt[37m it'll return 6, where string.len would return 9.
+        
+        [97mlower[37m([97mvalue[37m:[91mstring[37m): [91mstring[37m
+                UTF-8 aware version of string.lower.
+        
+        [97mreverse[37m([97mvalue[37m:[91mstring[37m): [91mstring[37m
+                UTF-8 aware version of string.reverse. For example, for Ümläüt it'll return tüälmÜ, where string.reverse would return tälm.
+        
+        [97msub[37m([97mvalue[37m:[91mstring[37m, [97mi[37m:[93mnumber[37m[, [97mj[37m:[93mnumber[37m]): [91mstring[37m
+                UTF-8 aware version of string.sub.
+        
+        [97mupper[37m([97mvalue[37m:[91mstring[37m): [91mstring[37m
+                UTF-8 aware version of string.upper.
+        
+        [97mwlen[37m([97mvalue[37m:[91mstring[37m): [93mnumber[37m
+                Returns the width of the entire string.
+        
+        [97mwtrunc[37m([97mvalue[37m:[91mstring[37m, count: [93mnumber[37m): [91mstring[37m
+                Truncates the given [91mstring[37m up to but not including [93mcount[37m width. If there are not enough characters to match the wanted width, the function errors.
+
+[97mNOTES[37m
+        In Lua 5.3, some UTF-8 facilities may be used through the global [97mutf8[37m table.
+
+[97mSEE ALSO
+        component[37m([97m2[37m), [97mcomputer[37m([97m2[37m)

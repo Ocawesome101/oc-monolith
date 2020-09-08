@@ -1,0 +1,65 @@
+[97mNAME[37m
+        thread - system thread management
+
+[97mDESCRIPTION
+        thread[37m provides thread management for the Monolith kernel.  In addition to a few functions, [97mthread[37m also provides a table of predefined [97msignals[37m([97m2[37m), not to be confused with the signals returned from [97mcomputer.pullSignal[37m([97m2[37m).
+
+[97mSIGNALS
+        thread_died[37m([97mpid[37m:[93mnumber[37m)
+                Queued on the death of a thread.
+
+        [97mthread_errored[37m([97mpid[37m:[93mnumber[37m, [97mreason[37m:[91mstring[37m)
+                Queued when a thread errors.
+
+        [97mipc[37m([97mfrom[37m:[93mnumber[37m, ...)
+                This signal is thread-local, and sent on IPC communication.
+
+        [97msignal[37m([97mfrom[37m:[93mnumber[37m, [97msignal[37m:[93mnumber[37m)
+                This signal is thread-local. Sent on signal reception.
+
+[97mMETHODS
+        spawn[37m([97mfunc[37m:[94mfunction[37m, [97mname[37m:[91mstring[37m[, [97mhandler[37m:[94mfunction[37m[, [97menv[37m:[92mtable[37m]]): [93mnumber[37m or [97mnil[37m, [91mstring[37m
+                Spawns a thread from function [94mfunc[37m named [91mname[37m.  If [94mhandler[37m is specified, it will be called if the thread errors.  [92menv[37m may be used to predefine environment variables.
+
+        [97mthreads[37m(): [92mtable[37m
+                Returns a table of running PIDs.
+
+        [97minfo[37m([[97mpid[37m:[93mnumber[37m]): [92mtable[37m or [97mnil[37m, [91mstring[37m
+                Returns a table of information about the specified thread (defaults to the current thread), or [97mnil[37m and an error message.
+
+                Information tables are formatted as such:
+
+                    [92m{
+                      [97mname[37m = [91mstring[37m,
+                      [97mowner[37m = [93mnumber[37m,
+                      [97mpriority[37m = [93mnumber[37m,
+                      [97mparent[37m = [93mnumber[37m,
+                      [97muptime[37m = [93mnumber[37m,
+                      [97mstarted[37m = [93mnumber[37m
+                    [92m}[37m
+
+                If the specified thread is the current one, the information table will have an additional field, [92mdata[37m:
+                    [97minfo.data[37m = [92m{
+                      [97mio[37m = [92m{
+                        [97m[0][37m = [92mtable[37m: [97mthread stdin[37m,
+                        [97m[1][37m = [92mtable[37m: [97mthread stdout[37m,
+                        [97m[2][37m = [92mtable[37m: [97mthread stderr[37m
+                      [92m}[37m,
+                      [97menv[37m = [92mtable[37m: [97mthread environment variables[37m
+                    [92m}[37m
+
+        [97mipc[37m([97mpid[37m:[93mnumber[37m, ...): [95mboolean[37m or [97mnil[37m, [91mstring[37m
+                Sends an IPC event to thread [93mpid[37m.
+
+        [97msignal[37m([97mpid[37m:[93mnumber[37m, [97msignal[37m:[93mnumber[37m): [95mboolean[37m or [97mnil[37m, [91mstring[37m
+                Sends signal [93msignal[37m to thread [93mpid[37m.
+
+        [97mkill[37m([97mpid[37m:[93mnumber[37m): [95mboolean[37m or [97mnil[37m, [91mstring[37m
+                Alias for [97msignal[37m([97mpid[37m, [97msignals.kill[37m)
+
+[97mCOPYRIGHT
+        Monolith Kernel Interfaces[37m (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+[97mSEE ALSO
+        computer[37m([97m2[37m), [97mps[37m([97m1[37m), [97mkill[37m([97m1[37m)
+

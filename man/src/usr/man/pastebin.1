@@ -1,0 +1,33 @@
+[97mNAME[37m
+        pastebin - tool to download, upload, and run pastes from Pastebin
+
+[97mSYNOPSIS
+        pastebin[37m [-[97mfk[37m] [95moperation [97m...[37m
+
+[97mDESCRIPTION
+        pastebin[37m is a tool used to download, upload, and run pastes from [94mhttps://pastebin.com[37m.
+
+        The Monolith version is a direct port of the OpenOS version, similar to [97mwget[37m([97m1[37m).
+        
+        Options:
+            [97m-f[37m
+                Force overwriting of existing files.
+
+            [97m-k[37m
+                Keep Windows line endings.  Otherwise, will convert Windows line endings to Unix.
+
+        Operations:
+            [97mput[37m [95mfile[37m
+                Upload [95mfile[37m to Pastebin.
+
+            [97mget [95mid file[37m
+                Download [94mhttps://pastebin.com/raw/[95mid[37m as [95mfile[37m.
+
+            [97mrun [95mid[37m [[97m...[37m]
+                Run [94mhttps://pastebin.com/raw/[95mid[37m.  Any additional arguments are passed to the paste.
+
+[97mCOPYRIGHT
+        pastebin[37m is copyright (c) 2013 [91mSangar[37m, [91mVexatos[37m as part of OpenOS.
+
+[97mSEE ALSO
+        wget[37m([97m1[37m), [97minternet[37m([97m3[37m)

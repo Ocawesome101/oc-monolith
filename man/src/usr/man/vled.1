@@ -1,0 +1,53 @@
+[97mNAME[37m
+        vled - Visual Lua EDitor
+
+[97mSYNOPSIS
+        vled[37m [[97m-s[37m|[97m--syntax[37m|[97m--highlight[37m] [[95mfile[37m]
+        [97mvled[37m [97m--syntax[37m=[95mlang[37m [[95mfile[37m]
+
+[97mDESCRIPTION
+        vled[37m is the successor to [97med[37m([97m1[37m) and [97mfled[37m([97m1[37m).  It provides a visual interface similar to both [97mfled[37m and the standard UNIX editor [93mvi[37m.
+
+        [97mvled[37m features several improvements over its predecessors.  The following is a non-exhaustive list of new or improved features over [97mfled[37m.
+
+            - Rudimentary and very experimental support for syntax highlighting;
+            - Uses of the [97meditor[37m([97m3[37m) library, rather than defining its own buffer management utilities. This allows for persistent state across launches, as well as allowing other programs to access and modify open buffers;
+            - Proper arrow-key support for navigating lines;
+            - Support for using the [94m<TAB>[37m key to switch between 'command' mode and 'visual' mode;
+            - Proper support for scrolling when the cursor goes offscreen, and when entering visual mode the cursor will be moved within the screen;
+
+        as well as others.
+
+        If the command-line flag [97m--syntax[37m, [97m-s[37m, or [97m--highlight[37m are specified, attempts to find a syntax highlighter for the file's extension.  IF [97m--syntax[37m is given a value and no other highlighting is found, attempts to load the specified highlighting.
+
+        Unlike [97med[37m and [97mfled[37m, [97mvled[37m will automatically create a buffer if there is no existing buffer for the specified file, or if the specified file is not found.
+
+        vled[37m supports several common commands, all of which are almost direct clones of their [93mvi[37m equivalents.  Commands must be prefixed with the [97m:[37m character.
+
+        [97mw[37m [[95mfilename[37m]
+                Write the current buffer.  If [95mfilename[37m is specified, writes to [95mfilename[37m instead of the buffer's name.
+
+        [97mq[37m
+                Exit [97mvled[37m.  Does not close or remove buffers.
+
+        [97mwq[37m
+                Exit [97mvled[37m, writing the current buffer and closing it.
+
+        [97mcq[37m
+                Exit [97mvled[37m, closing (but [91mNOT SAVING[37m) the current buffer.
+
+        [97md[37m[[95mn[37m]
+                Delete the current line, or [95mn[37m lines, starting at the cursor position and extending down.
+
+        [97m[?]s/[95mexpr[97m/[95mstring[97m/[37m
+                Substitute all matches for the Lua pattern [95mexpr[37m with [95mstring[37m.  If [97m?[37m is present, operate on the whole buffer instead of the current line.
+        
+        [93mlinenum[37m
+                Jump the cursor to line [93mlinenum[37m.
+
+[97mCOPYRIGHT[37m
+        VLED (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+[97mSEE ALSO
+        ed[37m([97m1[37m), [97mfled[37m([97m1[37m), [97meditor[37m([97m3[37m)
+

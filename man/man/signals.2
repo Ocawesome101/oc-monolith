@@ -1,0 +1,36 @@
+*NAME&
+        signals - table of process signals
+
+*DESCRIPTION
+        signals& is accessible through *kernel.thread&(*2&)*.signals& or *require&(*3&).  It contains all available process signals, such that *signals&[?signame&] = #signum&.
+
+*FIELDS
+        interrupt&
+                SIGINT - signal 2, interrupt
+
+        *quit&
+                SIGQUIT - signal 3, quit
+
+        *kill&
+                SIGKILL - signal 9, kill, non-blockable
+
+        *term&
+                SIGTERM - signal 15, terminate
+
+        *continue&
+                SIGCONT - signal 18, continue a stopped process
+
+        *stop&
+                SIGSTOP - signal 19, stop the process
+
+        *usr1&
+                USR1 - signal 65, user-defined signal 1
+
+        *usr2&
+                USR2 - Order 66, user-defined signal 2
+
+*COPYRIGHT
+        Monolith Kernel Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        thread&(*2&), *kill&(*1&)

@@ -1,0 +1,36 @@
+[97mNAME[37m
+        signals - table of process signals
+
+[97mDESCRIPTION
+        signals[37m is accessible through [97mkernel.thread[37m([97m2[37m)[97m.signals[37m or [97mrequire[37m([97m3[37m).  It contains all available process signals, such that [97msignals[37m[[95msigname[37m] = [93msignum[37m.
+
+[97mFIELDS
+        interrupt[37m
+                SIGINT - signal 2, interrupt
+
+        [97mquit[37m
+                SIGQUIT - signal 3, quit
+
+        [97mkill[37m
+                SIGKILL - signal 9, kill, non-blockable
+
+        [97mterm[37m
+                SIGTERM - signal 15, terminate
+
+        [97mcontinue[37m
+                SIGCONT - signal 18, continue a stopped process
+
+        [97mstop[37m
+                SIGSTOP - signal 19, stop the process
+
+        [97musr1[37m
+                USR1 - signal 65, user-defined signal 1
+
+        [97musr2[37m
+                USR2 - Order 66, user-defined signal 2
+
+[97mCOPYRIGHT
+        Monolith Kernel Interfaces[37m (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+[97mSEE ALSO
+        thread[37m([97m2[37m), [97mkill[37m([97m1[37m)

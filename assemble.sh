@@ -25,6 +25,8 @@ log "$INFO Building Monolith"
 mkdir -p build/{usr/man,sbin}
 cp -r util/* build
 log "$OK Built utilities"
+build man
+log "$OK Generated manual pages"
 build kernel
 log "$INFO Copying kernel to build" 
 cp kernel/monolith build/boot/
@@ -43,11 +45,11 @@ while [ $# -gt 0 ]; do
       ;;
     webdoc)
       log "$WAIT Assembling man pages in web format"
-      cd ../mpkg/man
+      cd man
       ./genhtml.sh
       cd web
       push-man
-      cd ../../monolith || cd ../../src
+      cd ..
       shift
       ;;
     *)

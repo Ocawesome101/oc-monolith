@@ -1,0 +1,47 @@
+[97mNAME[37m
+        readline - read text input from the user
+
+[97mDESCRIPTION
+        readline[37m will read a line from the terminal and return it, using [97mprompt[37m as a prompt.  If [97mprompt[37m is not provided, no prompt is issued. If [97mnotrail[37m is specified, the line returned has the final newline removed so only the text of the line remains.
+
+        [97mreadline[37m offers editing capabilities while the user is entering the line.  By default, the line editing commands are similar to those of emacs.
+
+[97mMETHODS
+        readline[37m([[97mprompt[37m:[91mstring[37m or [93mnumber[37m][, [97mopts[37m:[92mtable[37m]): [91mstring[37m
+                The recommended method of reading text input.
+                
+                If [91mprompt[37m is specified, it will be displayed to the user.  Otherwise, no prompt will be issued.  If [93mprompt[37m is a number, [97mreadline[37m will return that number of characters from standard input and return them without printing to the screen.  If [92mprompt[37m is a table, it will be used in place of [92mopts[37m.
+                
+                Available [92mopts[37m are:
+
+                    {
+                      [97mpwchar[37m = [91mstring[37m,
+                      [97mhistory[37m = [92mtable[37m,
+                      [97mprompt[37m = [91mstring[37m,
+                      [97marrows[37m = [95mboolean[37m,
+                      [97mactions[37m = [92mtable[37m
+                    }
+
+                If [91mopts.prompt[37m is specified and no [91mprompt[37m is specified, [91mopts.prompt[37m will be used instead.
+
+                [95marrows[37m specifies whether [97mreadline[37m should act specially on arrow-key presses and defaults to [95mtrue[37m.
+
+                [92mactions[37m, if specified, should have four fields: [97mup[37m:[94mfunction[37m, [97mdown[37m:[94mfunction[37m, [97mleft[37m:[94mfunction[37m, and [97mright[37m:[94mfunction[37m.  These functions are called upon their corresponding keypresses.
+        
+        [97mreadlinebasic[37m([97mscreen[37m:[91mstring[37m[, [97mn[37m:[93mnumber[37m]): [91mstring[37m or [97mnil[37m, [91mstring[37m
+                Reads [97mn[37m characters, or until return is pressed.  Does not output to the screen.  Used internally.  Not recommended, use [97mreadline[37m instead.
+
+        [97maddscreen[37m([97mscreen[37m:[91mstring[37m, [97mgpu[37m:[91mstring[37m or [92mtable[37m): [95mboolean[37m or [97mnil[37m, [91mstring[37m
+                Does what it says on the tin.  Registers a screen and all its keyboards, plus a GPU.
+
+        [97mbuffersize[37m([97mscreen[37m:[91mstring[37m): [93mnumber[37m or [97mnil[37m, [95mboolean[37m
+                Returns the size of the specified screen's input buffer.
+
+[97mNOTES
+        readline[37m is the preferred way to get keyboard input.
+
+[97mCOPYRIGHT
+        Monolith System Interfaces[37m (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+[97mSEE ALSO
+        [97msh[37m([97m1[37m), [97mlogin[37m([97m1[37m), [97mio[37m([97m3[37m)

@@ -1,0 +1,29 @@
+*NAME&
+        install - install files from one directory to another
+
+*SYNOPSIS
+        install --help
+        install& [*--from&=]?from& [*--to&=[?to&
+
+*DESCRIPTION
+        install& is a program that primarily serves as a compatibility program between Monolith and OpenOS.  At its most basic level, *install& simply copies files from ?from& to ?to&.
+
+        *install& will search for a @.install& file on the source media.  If found, *install& will execute it with an #install& table in its global environment containing fields #from& and #to&, similar to the OpenOS program.
+
+        If @.install& is not found, *install& will search for a @.prop& file on the source.  This file should contain a Lua table with the optional fields #setboot:boolean&, #setlabel:boolean&, #label:string&, and #reboot:boolean&.
+
+*EXAMPLES
+        install ?/& ?/mnt/0b2&
+                 Installs all files except @.prop& from ?/& to the filesystem mounted at ?/mnt/0b2&.
+
+        *install --from&=?/ *--to&=?/mnt/0b2&
+                 Performs exactly the same action as the above example.
+
+*NOTES
+        install& has only loosely been tested, but appears to work to the extent expected. Please report bugs at ^https://github.com/ocawesome101/oc-monolith/issues&.
+
+*COPYRIGHT
+        Monolith System Utilities& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        cp&(*1&)

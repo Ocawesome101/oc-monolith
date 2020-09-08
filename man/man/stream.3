@@ -1,0 +1,16 @@
+*NAME&
+        stream - create unbuffered faux io streams
+
+*DESCRIPTION
+        stream& is an API provided by Monolith, used in the *io&(*3&) library for standard input and output streams.
+
+*METHODS
+        new&(*read&:^function&, *write&:^function&, *close&:^function&[, *fields&:@table&]): @table&
+                Creates a stream with the methods ^read&, ^write&, and ^close& assigned to their corresponding arguments.  Any additional fields specified in the @fields& table are also copied to the output stream.
+
+*COPYRIGHT
+        Monolith System Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        io&(*3&), *buffer&(*3&)
+

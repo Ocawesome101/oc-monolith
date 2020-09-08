@@ -1,0 +1,79 @@
+[97mNAME[37m
+        computer - mod-provided API for interfacing with the computer directly
+
+[97mDESCRIPTION[37m
+        The [97mcomputer[37m API is provided by the OpenComputers Minecraft mod to all software running within.  This manual page attempts to properly document the available methods in the event that the OpenComputers wiki ([94mhttps://ocdoc.cil.li[37m) should be taken down, crash, or otherwise become inaccessible; it is also intended as part of the motion to document every aspect of the Monolith system.
+
+[97mMETHODS
+        address[37m(): [91mstring[37m
+                Returns the component address of the computer.
+
+        [97mtmpAddress[37m(): [91mstring[37m
+                Returns the component address of the computer's [97mtmpfs[37m([97m5[37m), if it exists.
+        
+        [97mfreeMemory[37m(): [93mnumber[37m
+                Returns the amount of free memory, in bytes.  If this number gets close to 0, your computer will likely soon crash.  Note that for Monolith, a minimum of 256KB of memory is necessary to boot.
+
+        [97mtotalMemory[37m(): [93mnumber[37m
+                Returns the total installed memory, in bytes.
+
+        [97menergy[37m(): [93mnumber[37m
+                Returns the current amount of energy stored in the computer's network.
+
+        [97mmaxEnergy[37m(): [93mnumber[37m
+                Returns the maximum amount of energy the computer's network can hold.
+
+        [97muptime[37m(): [93mnumber[37m
+                Returns the computer's real uptime in seconds.  Accurate to 0.05s, or one Minecraft tick.
+
+        [97mshutdown[37m([[97mreboot[37m:[95mboolean[37m])
+                Shuts down the computer.  If [95mreboot[37m is [95mtrue[37m, restarts the computer instead.
+
+        [97mgetBootAddress[37m(): [91mstring[37m
+                Returns the address of the computer's boot filesystem.  Somewhat deprecated, provided by the BIOS, and may not always be present.  Direct wrapper around [94meeprom.setData[37m.
+        
+        [97msetBootAddress[37m([[97maddress[37m:[91mstring[37m])
+                Sets the filesystem address from which the computer will attempt to boot.  If called with [97mnil[37m or no arguments, clears the value.
+        
+        [97musers[37m(): [91mstring ...[37m
+                Returns all users currently registered with the computer as a tuple.  You may wish to wrap this function in [94mtable.pack[37m.
+
+                For details on user access, see [97mUSERS[37m below.
+        
+        [97maddUser[37m([97mname[37m:[91mstring[37m): [95mboolean[37m or [97mnil[37m, [91mstring[37m
+                Registers the user [91mname[37m with the computer.  Returns [95mtrue[37m on success, [97mnil[37m and an error message on failure.  Only online users may be registered, to avoid locking oneself out by mistyping a name.
+        
+        [97mremoveUser[37m([97mname[37m[91mstring[37m): [95mboolean[37m
+                Unregisters the user [91mname[37m from the computer.  Returns [95mtrue[37m on success, [95mfalse[37m on failure (i.e., the user was not registered).  If no users are registered, any user may use a computer.
+        
+        [97mpushSignal[37m([97mname[37m:[91mstring[37m[, [97m...[37m])
+                Pushes a signal with name [91mname[37m, and any other specified elements,  to the signal queue.
+
+        [97mpullSignal[37m([[97mtimeout[37m:[93mnumber[37m]): [91mname[37m, [97m...[37m or [97mnil[37m
+                Pulls a signal from the queue.  If [93mtimeout[37m is specified, will only wait [93mtimeout[37m seconds before returning [97mnil[37m if no signal is present.
+
+                For more details on signals, see [97mSIGNALS[37m below.
+        
+        [97mbeep[37m([frequency:[91mstring[37m or [93mnumber[37m[, [97mduration[37m:[93mnumber[37m]])
+                Emits a beep at [93mfrequency[37m Hz for [93mduration[37m seconds.  If [91mfrequency[37m is a string, interprets the '.' character as a short beep and a '-' character as a long beep.
+        
+        [97mgetDeviceInfo[37m(): [92mtable[37m
+                Returns a table of information about installed components, such that [92mdevInfo[37m[[91m"componentAddress"[37m] will have the fields [91mdescription[37m, [91mproduct[37m, [91mclass[37m, [91mvendor[37m, and possibly any of [91mcapacity[37m, [91msize[37m, [91mclock[37m, [91mwidth[37m, or [91mheight[37m.
+
+                This feature is heavily utilized in [97mlshw[37m([97m1[37m) and [97mgetty[37m([97m1[37m).  Monolith terminals will not work properly without it.
+
+[97mUSERS[37m
+        In addition to the facilities that Monolith provides, OpenComputers provides its own, and arguably better, method of completely locking users out from a computer.
+
+        If no users are registered with a computer, any user may use the computer.  Otherwise, only registered users may break the computer (robots are exempt, to prevent griefing), change the computer's inventory, or provide input.
+
+[97mSIGNALS[37m
+        Signals are OpenComputers's method of conveying user input to the operating system.  They are processed in a FIFO (first in, first out) order.  Only [91mstrings[37m, [93mnumbers[37m, [97mnils[37m, and [95mbooleans[37m are supported ([92mtables[37m are supported also, but they must be made up only of the other supported types).  [94mfunctions[37m and [97mthreads[37m are not supported.
+
+        The signal queue is, by default, a maximum of 256 signals deep, but this can be changed in the mod's configuration.
+
+[97mNOTES[37m
+        [94mcomputer.getDeviceInfo[37m may not work or return incomplete information on some emulators.
+
+[97mSEE ALSO
+        component[37m([97m2[37m), [97municode[37m([97m2[37m)

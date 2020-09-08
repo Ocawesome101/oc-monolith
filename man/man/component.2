@@ -1,0 +1,49 @@
+*NAME&
+        component - interface with components
+
+*DESCRIPTION&
+        The *component& API is provided by OpenComputers.  This manual page attempts to document it.
+
+        Note that this manual page covers both OS-provided methods and OpenComputers-provided methods.
+
+*RAW METHODS
+        list&([*filter&:~string&[, *exact&:?boolean&]]): @table&
+                Returns an iterable list of components - keys addresses, values types.  If ~filter& is specified, only includes matches of component type.  If ?exact& is specified, only includes exact matches.
+
+        *invoke&(*address&:~string&, *method&:~string&[, *...&]): *...&
+                Attempts to invoke the specified method on the component with address ~address&.
+
+        *proxy&(*address&:~string&): @table&
+                Creates a proxy of the component with address ~address&.  All callable fields are in the proxy, along with the address, type, and slot.
+
+        *doc&(*address&:~string&, *method&:~string&): ~string&
+                Returns the documentation string for the component callback ~method&.  Note that the documenation string for most methods is also available by ^tostring&ing the function in a proxy, i.e. ^tostring&(component.screen.isOn).
+        
+        *type&(*address&:~string): ~string&
+                Returns the component type of the component with address ~address&.
+
+        *slot&(*address&:~string&): #number&
+                Returns the slot in which the component of address ~address& is installed, or #-1& if it does not otherwise make sense.
+
+        *fields&(*address&:~string&): @table&
+                Returns a table with the names of all non-callable fields that will be present in the proxy of a component, i.e. *address& and *type&, as keys.  Complements ^component.methods&.
+
+        *methods&(*address&:~string&): @table&
+                Returns a table with the names of all callable methods that will be present in the proxy of a component as keys.
+
+*OS METHODS&
+        The following component API methods are provided by Monolith and OpenOS.
+
+        *get&(*address&:~string&[, *type&:~string&]): ~string& or *nil&, ~string&
+                Tries to resolve the abbreviated address ~address& to a full component UUID.
+
+        *isAvailable&(*type&:~string&): ?boolean&
+                Returns whether at least one component of type ~type& is installed in the computer.
+
+        Both OSes also provide a metatable that allows for the syntax @component*.&<*componentType&> to obtain a proxy of a component of that type.
+
+*NOTES&
+        The OpenOS implementation provides a system for "primary" components, which Monolith deos not currently but may in the future.
+
+*SEE ALSO
+        computer&(*2&), *unicode&(*2&)

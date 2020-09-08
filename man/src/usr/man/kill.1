@@ -1,0 +1,25 @@
+[97mNAME[37m
+        kill (shell builtin) - kill processes
+
+[97mSYNOPSIS
+        kill [95mpid
+        [97mkill[37m [[92m-SIGKILL[37m|[92m-SIGTERM[37m|[92m-SIGINT[37m|[92m-SIGQUIT[37m|[92m-USR1[37m|[92m-USR2[37m] [95mPID[37m
+
+[97mDESCRIPTION
+        kill[37m is a shell builtin used to signal processes.  For an overview of available signals, see [97msignals[37m([97m2[37m).
+
+[97mEXAMPLES
+        kill [92m-SIGKILL [95m5[37m
+            Sends signal [92mSIGKILL[37m to process [95m5[37m.
+
+        [97mkill [95m5[37m
+            Performs the same action as the above example.
+
+        [97mkill [92m-USR1[37m [95m12[37m
+            Sends signal [92mUSR1[37m to process [95m12[37m.
+
+[97mCOPYRIGHT
+        Monolith System Interfaces[37m (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+[97mSEE ALSO
+        signals[37m([97m2[37m), [97mthread[37m([97m2[37m)

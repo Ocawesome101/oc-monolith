@@ -1,0 +1,33 @@
+*NAME&
+        logger - styled command-line loggers
+
+*DESCRIPTION
+        logger& is a library that provides styled command-line loggers.  By default, three styles are provided:  *bracket&, which provides a logging style similar to *init&; *arrow&, which provides a logging style similar to #yay& or #makepkg&; and *double&, which provides a slightly modified version of the *arrow& style.
+
+*METHODS
+        The *logger& library can be directly called, identically to created objects.  The default style is *bracket&.  Styles are stored in @logger.prefixes&.
+
+        new&(*style&:~string&): @table& or *nil&, ~string&
+                Creates a new logger object using the specified style.
+
+        *logger& object methods are listed below.
+
+        *obj&:*ok&(*...&:~string&)
+                Print a message using the *ok& prefix.
+
+        *obj&:*info&(*...&:~string&)
+                Print a message using the *info& prefix.
+
+        *obj&:*warn&(*...&:~string&)
+                Print a message using the *warn& prefix.
+
+        *obj&:*fail&(*...&:~string&)
+                Print a message using the *fail& prefix.
+
+*EXAMPLES&
+        #local& logger = ^require&(~"logger"&)
+        #local& new = ^logger&:^new&(~"bracket"&)
+        ^new&:^ok&(~"Created a logger"&) ^-- prints "&[  @OK&  ] Created a logger^"&
+
+*COPYRIGHT
+        Monolith Libraries& (c) 2020 Ocawesome101 under the GNU GPLv3.

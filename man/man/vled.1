@@ -1,0 +1,53 @@
+*NAME&
+        vled - Visual Lua EDitor
+
+*SYNOPSIS
+        vled& [*-s&|*--syntax&|*--highlight&] [?file&]
+        *vled& *--syntax&=?lang& [?file&]
+
+*DESCRIPTION
+        vled& is the successor to *ed&(*1&) and *fled&(*1&).  It provides a visual interface similar to both *fled& and the standard UNIX editor #vi&.
+
+        *vled& features several improvements over its predecessors.  The following is a non-exhaustive list of new or improved features over *fled&.
+
+            - Rudimentary and very experimental support for syntax highlighting;
+            - Uses of the *editor&(*3&) library, rather than defining its own buffer management utilities. This allows for persistent state across launches, as well as allowing other programs to access and modify open buffers;
+            - Proper arrow-key support for navigating lines;
+            - Support for using the ^<TAB>& key to switch between 'command' mode and 'visual' mode;
+            - Proper support for scrolling when the cursor goes offscreen, and when entering visual mode the cursor will be moved within the screen;
+
+        as well as others.
+
+        If the command-line flag *--syntax&, *-s&, or *--highlight& are specified, attempts to find a syntax highlighter for the file's extension.  IF *--syntax& is given a value and no other highlighting is found, attempts to load the specified highlighting.
+
+        Unlike *ed& and *fled&, *vled& will automatically create a buffer if there is no existing buffer for the specified file, or if the specified file is not found.
+
+        vled& supports several common commands, all of which are almost direct clones of their #vi& equivalents.  Commands must be prefixed with the *:& character.
+
+        *w& [?filename&]
+                Write the current buffer.  If ?filename& is specified, writes to ?filename& instead of the buffer's name.
+
+        *q&
+                Exit *vled&.  Does not close or remove buffers.
+
+        *wq&
+                Exit *vled&, writing the current buffer and closing it.
+
+        *cq&
+                Exit *vled&, closing (but ~NOT SAVING&) the current buffer.
+
+        *d&[?n&]
+                Delete the current line, or ?n& lines, starting at the cursor position and extending down.
+
+        *[%]s/?expr*/?string*/&
+                Substitute all matches for the Lua pattern ?expr& with ?string&.  If *%& is present, operate on the whole buffer instead of the current line.
+        
+        #linenum&
+                Jump the cursor to line #linenum&.
+
+*COPYRIGHT&
+        VLED (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        ed&(*1&), *fled&(*1&), *editor&(*3&)
+

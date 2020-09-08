@@ -1,0 +1,16 @@
+*NAME&
+        class - simple library for creating OOP classes
+
+*DESCRIPTION&
+        For those who wish to program in an object-oriented style, the *class& library is provided.
+
+*METHODS
+        ^require&(~"class"&) returns a function.  This function:
+
+        *class&([*tbl&:@table&]): @table&
+            Creates a class and returns it.  If @tbl& is provided, it will be used as the base for a class.
+
+            Classes can be called directly to create a new instance; if the class has an *__init& field, it will be called with any arguments passed.
+
+*COPYRIGHT
+        Monolith User Libraries& (c) 2020 Ocawesome101 under the GNU GPLv3.
