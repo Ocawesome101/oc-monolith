@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.08.27"
+local _INITVERSION = "InitMe 2020.09.08"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
@@ -156,6 +156,7 @@ do
         setmetatable(lib, nil)
         setmetatable(lib.internal or {}, nil)
         dofile(file)
+        log("INFO", "DELAYLOAD "..file..": "..tostring(key))
         return tbl[key]
       end
     }

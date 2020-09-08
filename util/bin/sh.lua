@@ -7,7 +7,7 @@ local thread = require("thread")
 
 sh.execute("/etc/profile")
 local exit = false
-local oexit = shell.exit
+local oexit = rawget(shell, "exit") -- avoid loading the full shell lib for memory reasons
 function shell.exit()
   shell.exit = oexit
   exit = true

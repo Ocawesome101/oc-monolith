@@ -73,6 +73,7 @@ do
         setmetatable(lib, nil)
         setmetatable(lib.internal or {}, nil)
         dofile(file)
+        log("INFO", "DELAYLOAD "..file..": "..tostring(key))
         return tbl[key]
       end
     }

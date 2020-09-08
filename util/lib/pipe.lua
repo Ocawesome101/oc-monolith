@@ -47,7 +47,7 @@ function pipe.chain(progs)
     })
     local new = buffer.new("w", bnew)
     new:setvbuf("no")
-    local prog = (type(progs[i]) == "string" and require("text").split(progs[i], " ")) or progs[i]
+    local prog = (type(progs[i]) == "string" and require("text").tokenize(progs[i])) or progs[i]
     if #prog == 0 then return nil, "invalid program length " .. #prog .. " for " .. type(progs[i]) .. " entry " .. i end
     local ok, err = loadfile(prog[1])
     if not ok then return nil, err end
