@@ -6,7 +6,15 @@ local readline = require("readline")
 
 local out = io.output()
 local inp = io.input()
-out:write("\27[2J\27[1;1H\27[0;37m" .. _OSVERSION .. "\nThis is the Monolith system. Welcome.\n\n")
+
+local logo = [[
+ _____                 _  o  _-_  _
+|     | ___  ___  ___ | | _ |_ _|| |_
+| | | || . ||   || . || || | | | |   |
+|_|_|_||___||_|_||___||_||_| |_| |_|_|
+ This is the Monolith system. Welcome.]]
+
+out:write("\27[2J\27[1;1H\27[0;37m" .. logo .. "\n\n")
 while true do
   readline.eof(false) -- disable Ctrl-D support
   local uname = readline.readline({prompt=(os.getenv("HOSTNAME") or "localhost").." login: "})
