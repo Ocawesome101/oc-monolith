@@ -10,6 +10,9 @@ local function get()
     end
     local name = handle:read("l")
     handle:close()
+    if name == "" or name == "\n" or name:match("[%W%-%_]") then
+      name = "localhost"
+    end
     os.setenv("HOSTNAME", name)
     return name
   end
