@@ -33,7 +33,7 @@ do
     gpu.bind(screen)
     w, h = gpu.maxResolution()
     gpu.setResolution(w, h)
-    gpu.setForeground(0xDDDDDD)
+    gpu.setForeground(0xAAAAAA)
     gpu.fill(1, 1, w, h, " ")
     function log(msg)
       if kernel.logger.y == h then

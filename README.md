@@ -14,7 +14,7 @@ The latest pre-built release will be downloaded through the installer. At any ti
 
 ## Building
 
-To build Monolith, you'll need [Luacomp](https://github.com/Adorable-Catgirl/luacomp/releases), `git`, `make`, and probably a Linux or macOS system (alternatively, you can download the latest prebuilt release in CPIO form). Clone this repository, `cd` to it, and run `make`. Copy all files in `build` to the root of your OpenComputers drive.
+To build Monolith, you'll need Lua 5.3, `git`, `make`, and probably a Linux or macOS system (alternatively, you can download the latest prebuilt release in CPIO form). Clone this repository, `cd` to it, and run `make`. Copy all files in `build` to the root of your OpenComputers drive.
 
 ## Project status
 
@@ -63,7 +63,9 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] `event`
     - [X] `uuid`
     - [X] `internet`
-    - [ ] `network` (may integrate with `internet`)
+    - [ ] `net`
+      - [ ] `minitel`
+      - [ ] `GERTi`
     - [X] `filesystem`
     - [X] `signals`
     - [X] `thread`
