@@ -73,6 +73,8 @@
 
                 If the argument is 28, enables text echo.
 
+                If the argument is 9 and GPU buffers are available, redirects all terminal output to the buffer. Useful for full-screen commands such as #vled& or #less&. An argument of 29 will redirect back to the screen and bitblt the terminal buffer to the screen.
+
         ~{ESC}[#nn~n&
                 If #nn& is 6, returns the current cursor position as ~{ESC}[#yy;xx~R&.
 

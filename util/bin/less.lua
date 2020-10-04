@@ -52,12 +52,16 @@ while true do
   local esc = readline(1)
   if esc == "\27" then esc = esc .. readline(2) end
   if esc == "\27[A" or esc == "w" then
-    if scroll > 0 then
-      scroll = scroll - 1
+    if scroll > 2 then
+      scroll = scroll - 3
+    else
+      scroll = 0
     end
   elseif esc == "\27[B" or esc == "s" then
-    if scroll + h <= screen then
-      scroll = scroll + 1
+    if scroll + h <= screen - 2 then
+      scroll = scroll + 3
+    else
+      scroll = screen - h + 1
     end
   elseif esc == " " or esc == "\27[6" then
     if scroll + h*2 <= screen then
