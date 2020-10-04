@@ -11,10 +11,10 @@
 
 *THE LANGUAGE&
         *Types&
-            Lua provides six basic types: *string&, *table&, *number&, *function&, *boolean&, and *nil&.  A seventh type, *userdata&, is sometimes used but will not be covered here.
+            Lua provides seven types: *string&, *table&, *number&, *function&, *boolean&, *thread&, and *nil&.  An eighth type, *userdata&, is sometimes used (usually from the C side) but will not be covered here.
 
         *Global Environment&
-            Lua's global environment takes the form of a table (see below).  This simpifies program flow and allows for easier sandbox creation (more on this later).
+            Lua's global environment (_G) takes the form of a table (see below).  This simpifies program flow and allows for easier sandbox creation (more on this later).
 
         *Variables&
             In Lua, unless explicitly declared as #local&, all variables are global - that is, not affected by scope.  Local variables are usually faster to access, and are lighter on memory as they are cleared when the scope is exited and garbage-collected.
@@ -22,23 +22,35 @@
             Variable names can contain any combination, except certain reserved keywords, of alphanumeric characters plus the underscore.  Variable names may not begin with a number and may be of any practical length - in my testing I was able to assign a roughly 28,700-character variable name.
 
         *Tables&
-            Lua's tables are simple collections of key-value pairs, similar to Python's *dictionary& or, loosely, C's *struct&.  Both keys and values can be of any type.
+            Lua's tables are simple collections of key-value pairs or hashmaps, similar to Python's *dictionary& or, loosely, C's *struct&.  Both keys and values can be of any type.
 
             Tables are declared using curly braces (*{}&) and indexed using square braces (*[]&).  Table keys provide value indices, and if a key is a syntactically valid variable name it can be indexed with the syntax *table&.*key& rather than *table&[*key&].
 
         *Metatables&
-            Metatables are tables containing specific fields which declare otherwise undefined behavior on certain objects.  Excepting tables, every type has a single shared metatable which cannot be changed (except through *debug.setmetatable&, which is not available in OpenComputers).
+            Metatables are tables containing specific fields which declare otherwise undefined behavior on certain objects.  Excepting tables and userdata, every type has a single shared metatable which cannot be changed except through *debug.setmetatable&, which is not available in OpenComputers.
 
             For example, metatables may be used to implement object-oriented programming (see the *class&(*3&) library included with Monolith).
 
             Monolith facilitates using the *__type& field of metatables to implement custom types, through an override of the *type& function in the kernel.
 
         *Threading&
+            Lua does not support multithreading.  Monolith, OpenOS, PsychOS, OpenNT, Fuchas, Plan9k, and many other operating systems that may provide the illusion of multithreading provide a cooperative implementation using Lua's built-in *coroutine& API.
 
         *Scoping&
+            In Lua, as in many other languages, local variables are local to the block they are in, and any sub-blocks.  For example, in the following code sample, variable *a& is available to the entire program, while variable *b& is available only to the block in which it is declared.  Local variables are only usable after they are declared, while global variables may be used and declared anywhere in a program.
+
+                #local& a = ~"This is a string."&
+                #do&
+                  #local& b = ~46209&
+                  ^print&(a, b) ^-- prints "This is a string.    46209"&
+                #end&
+                ^print&(b) ^-- prints "nil"&
+
+        *Libraries&
+            Lua libraries are loaded using the ^require& function.  In OpenComputers, this function is provided by the OS and is unavailable when programming an EEPROM or writing an OS from scratch.  The OS also provides many libraries such as *event&(*3&) or *io&(*2&).
 
 *NON-STANDARD LUA APIS PROVIDED BY OPENCOMPUTERS&
-        OpenComputers provides a few extra APIs and one extra function, to aid in writing programs.  These are the *component&(*2&) and *computer&(*2&) APIs, as well as the ^checkArg&(*2&) function.
+        OpenComputers provides a few extra APIs and one extra function, to aid in writing programs.  These are the *unicode&(*2&), *component&(*2&), and *computer&(*2&) APIs, as well as the ^checkArg&(*2&) function.
 
 *COPYRIGHT
-        Lua& is copyright (c) 1994-2018 Lua.org, PUC-Rio
+        Lua& is copyright (c) 1994-2020 Lua.org, PUC-Rio

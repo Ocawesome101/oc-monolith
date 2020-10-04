@@ -11,7 +11,7 @@ local psrep = {
   ["\\W"] = function() return fs.name(os.getenv("PWD") or "/") end,
   ["\\h"] = function() return os.getenv("HOSTNAME") end,
   ["\\s"] = function() return "sh" end,
-  ["\\v"] = function() return "0.1.0" end,
+  ["\\v"] = function() return "0.5.0" end,
   ["\\a"] = function() return "\a" end,
   ["\\u"] = function() return os.getenv("USER") or "[unknown]" end,
   ["\\%$"] = function() return (os.getenv("UID") == 0 and "#" or "$") end
