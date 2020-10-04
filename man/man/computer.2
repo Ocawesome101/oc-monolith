@@ -43,7 +43,7 @@
         *addUser&(*name&:~string&): ?boolean& or *nil&, ~string&
                 Registers the user ~name& with the computer.  Returns ?true& on success, *nil& and an error message on failure.  Only online users may be registered, to avoid locking oneself out by mistyping a name.
         
-        *removeUser&(*name&~string&): ?boolean&
+        *removeUser&(*name&:~string&): ?boolean&
                 Unregisters the user ~name& from the computer.  Returns ?true& on success, ?false& on failure (i.e., the user was not registered).  If no users are registered, any user may use a computer.
         
         *pushSignal&(*name&:~string&[, *...&])
