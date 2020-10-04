@@ -29,7 +29,7 @@ local function drawLine(y, txt)
 end
 
 local function redraw(a)
-  io.write("\27[2J")
+  io.write("\27[9m\27[2J")
   local y = 1
   local n = 1
   while y < h - 1 do
@@ -41,6 +41,7 @@ local function redraw(a)
   else
     drawLine(h, "\27[2K"..a..":")
   end
+  io.write("\27[29m")
   --io.write(string.format("\27[%d;%dH%5d/%5d", w - 11, h, h + scroll, screen))
 end
 

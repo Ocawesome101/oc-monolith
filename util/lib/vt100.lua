@@ -16,6 +16,10 @@ vt.reload()
 function vt.emu(gpu)
   checkArg(1, gpu, "table")
 
+  local gbuf -- the GPU buffer thing
+  if gpu.bitblt then -- we have buffer functionality
+    gbuf = gpu.allocateBuffer()
+  end
   local w, h = gpu.maxResolution()
   gpu.setResolution(w, h)
   local cx, cy, w, h = 1, 1, gpu.getResolution()
@@ -203,6 +207,10 @@ function vt.emu(gpu)
                 bg = bright[n - 99]
               elseif n == 255 then
                 shown = not shown
+              elseif n == 9 then
+                if gbuf then gpu.setActiveBuffer(gbuf) end
+              elseif n == 29 then
+                if gbuf then gpu.bitblt() gpu.setActiveBuffer(0) end
               end
             end
             local depth = gpu.getDepth()
@@ -233,6 +241,7 @@ function vt.emu(gpu)
       resp = ""
     end
   end
+
   return vtwrite
 end
 

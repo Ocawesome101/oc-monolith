@@ -152,7 +152,7 @@ while running do
   editor.buffers[cur]:draw()
   if line > #editor.buffers[cur].lines then line = #editor.buffers[cur].lines end
   if cmd then
-    io.write(string.format("\27[%d;1H", h - 1))
+    io.write(string.format("\27[%d;1H", h))
     parsecmd(readline(rlopts_cmd))
   else
     if editor.buffers[cur].scroll.h - line > h then
