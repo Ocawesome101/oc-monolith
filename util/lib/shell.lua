@@ -288,6 +288,7 @@ local function setup(str)
   return ret
 end
 
+local immediate = {set = true, cd = true}
 local function execute(str)
   local exec, err = setup(str)
   if not exec then
@@ -300,6 +301,9 @@ local function execute(str)
     local ex = exec[i]
     local cmd = ex.cmd[1]
     if shell.builtins[cmd] then
+      if immediate[cmd] then
+        shell.builtins[cmd](table.unpack(ex.cmd, 2))
+      end
       func = shell.builtins[cmd]
     else
       local path, err = shell.resolve(cmd)

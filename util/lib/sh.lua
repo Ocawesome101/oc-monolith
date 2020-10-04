@@ -8,7 +8,7 @@ local psrep = {
   ["\\w"] = function()
     return (os.getenv("PWD") and os.getenv("PWD"):gsub("^"..os.getenv("HOME").."?", "~")) or "/"
   end,
-  ["\\W"] = function() return os.getenv("PWD"):match("%/(.+)$") end,
+  ["\\W"] = function() return fs.name(os.getenv("PWD") or "/") end,
   ["\\h"] = function() return os.getenv("HOSTNAME") end,
   ["\\s"] = function() return "sh" end,
   ["\\v"] = function() return "0.1.0" end,
