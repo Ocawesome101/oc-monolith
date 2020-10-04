@@ -7,9 +7,9 @@
 *DESCRIPTION
         sh& is the default command interpreter for the Monolith system.  It supports a subset of features from the standard UNIX Bourne shell.
 
-        #sh& currently supports:
+        *sh& currently supports:
 
-            - Redirection to and from files through use of the *>&/*>>& and *<^ operators respectively - a single *>& will overwrite or create a file, and *>>& will append to a file;
+            - Redirection to and from files through use of the *>&/*>>& and *<& operators respectively - a single *>& will overwrite or create a file, and *>>& will append to a file;
 
             - Pipes, in the same manner as the Bourne shell, in the form *programA | programB&, to redirect the output from *programA& to the input of *programB&;
 
@@ -21,7 +21,7 @@
 
         All tokens excepting the semicolon (*;&) must be separated with a space in order to be properly interpreted.  Tokens containing spaces must be enclosed in *single& quotes (*'&).
 
-        As Lua is the native language of OpenComputers, easier to learn than shell scripting, and more powerful than shell scripting, the Monolith implementation of #sh& does not support scripting.
+        As Lua is the native language of OpenComputers, easier to learn than shell scripting, and more powerful than shell scripting, the Monolith implementation of *sh& does not support scripting.
 
 *NOTES&
         The new, more advanced implementation of *sh& may be more buggy but supports more features.
