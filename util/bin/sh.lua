@@ -19,8 +19,10 @@ if not require("filesystem").exists(os.getenv("HOME")) then
   os.setenv("HOME", "/")
 end
 
-os.setenv("PWD", os.getenv("HOME"))
-os.setenv("PS1", os.getenv("PS1") or "\\w\\$ ")
+os.setenv("PWD", os.getenv("PWD") or os.getenv("HOME") or "/")
+os.setenv("PATH", os.getenv("PATH") or "/bin:/sbin")
+os.setenv("SHLVL", (os.getenv("SHLVL") or "0") + 1)
+os.setenv("PS1", os.getenv("PS1") or "\\s-\\v$ ")
 local ok, err = pcall(sh.execute, ".shrc")
 if not ok then print("\27[31m.shrc: " .. err .. "\27[37m") end
 
