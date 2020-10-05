@@ -45,16 +45,19 @@ end
 
 kernel.logger.log("CPU architecture is Lua 5.3")
 
-function collectgarbage()
-  local missed = {}
-  for i=1,10,1 do
-    local sig = table.pack(computer.pullSignal(0))
-    if sig.n > 0 then
-      table.insert(missed, sig)
+do
+  local pullSignal = computer.pullSignal
+  function collectgarbage()
+    local missed = {}
+    for i=1,10,1 do
+      local sig = table.pack(pullSignal(0))
+      if sig.n > 0 then
+        table.insert(missed, sig)
+      end
     end
-  end
-  for i=1,#missed,1 do
-    computer.pushSignal(table.unpack(missed[i]))
+    for i=1,#missed,1 do
+      computer.pushSignal(table.unpack(missed[i]))
+    end
   end
 end
 

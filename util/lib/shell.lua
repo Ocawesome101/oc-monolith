@@ -308,10 +308,12 @@ local function execute(str)
     else
       local path, err = shell.resolve(cmd)
       if not path then
+        shell.error("sh", err)
         return nil, err
       end
       local ok, err = loadfile(path)
       if not ok then
+        shell.error(err)
         return nil, err
       end
       func = ok

@@ -310,7 +310,7 @@ do
       if computer.freeMemory() < 512 then -- oh no, we're out of memory
         kernel.logger.log("Low memory - collecting garbage")
         collectgarbage()
-        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+        if computer.freeMemory() < 256 then -- GC didn't help. Panic!
           kernel.logger.panic("ran out of memory")
         end
       end

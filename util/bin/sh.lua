@@ -36,7 +36,7 @@ local history = {}
 while not exit do
   local cmd = readline({prompt = "\27[0m" .. sh.prompt(os.getenv("PS1")), history = history, notrail = true})
   if cmd ~= "" then
-    local ok, err = xpcall(shell.execute, debug.traceback, cmd)
+    local ok, err = shell.execute(cmd)
     if not ok and err then
       shell.error("sh", err)
     end
