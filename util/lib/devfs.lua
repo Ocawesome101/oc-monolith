@@ -74,9 +74,8 @@ function fsc.exists(file)
   return ok
 end
 
-
-
 devfs.internal.fsc = fsc
+devfs.internal.open = {}
 
 package.delay(fsc, "/lib/full/devfs.lua")
 

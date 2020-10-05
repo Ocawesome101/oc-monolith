@@ -22,6 +22,7 @@ local patterns = {
   {"[%?%&%^%~%#%@%*]", ""},
   {"\n", "<br>"},
   {"%%%%", "?"},
+  {"%`", "#"},
   {"  ", "&nbsp;&nbsp;"}
 }
 
@@ -29,8 +30,6 @@ local data = inph:read("a")
 for _, pat in ipairs(patterns) do
   data = data:gsub(pat[1], pat[2])
 end
-data = data:gsub("%%", "?") -- always the edge case :P
-data = data:gsub("%`", "#") -- and another one
 outh:write("<html><title>" .. inp .. "</title><body style=\"font-family:Courier;background-color:#000;color:#FFF;\">" .. data .. "\n</body></html>")
 
 print("\27[A\27[2K[ \27[92m OK \27[39m ] generated manpage " .. args[1])

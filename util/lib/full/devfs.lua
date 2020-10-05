@@ -2,6 +2,7 @@ local devfs = require("devfs")
 
 local fsc = devfs.internal.fsc
 local find = devfs.internal.find
+local open = devfs.internal.open
 
 function fsc.lastModified()
   return 0
