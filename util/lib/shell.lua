@@ -313,7 +313,7 @@ local function execute(str)
       end
       local ok, err = loadfile(path)
       if not ok then
-        shell.error(err)
+        shell.error("sh", err)
         return nil, err
       end
       func = ok
