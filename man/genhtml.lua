@@ -21,6 +21,7 @@ local patterns = {
   {"%&", "<span style=\"color:#FFFFFF;font-weight:normal;\">"},
   {"[%?%&%^%~%#%@%*]", ""},
   {"\n", "<br>"},
+  {"%%%%", "?"},
   {"  ", "&nbsp;&nbsp;"}
 }
 

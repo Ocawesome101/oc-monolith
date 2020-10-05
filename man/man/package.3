@@ -6,7 +6,7 @@
 
 *METHODS
         searchpath&(*name&:~string&, *path&:~string&[, *sep&:~string&[, *rep&:~string&]]): ~string& or nil, @table&
-                Used internally by ^require&.  Searches the provided ~path& for ~name&.  Replaces all instances of ~%& in the path with ~name&.
+                Used internally by ^require&.  Searches the provided ~path& for ~name&.  Replaces all instances of ~%%& in the path with ~name&.
 
                 ~path& is expected to be formatted as a series of entries separated by the ~;& character.
 

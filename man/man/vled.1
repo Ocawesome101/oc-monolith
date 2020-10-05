@@ -11,14 +11,14 @@
         *vled& features several improvements over its predecessors.  The following is a non-exhaustive list of new or improved features over *fled&.
 
             - Rudimentary and very experimental support for syntax highlighting;
-            - Uses of the *editor&(*3&) library, rather than defining its own buffer management utilities. This allows for persistent state across launches, as well as allowing other programs to access and modify open buffers;
-            - Proper arrow-key support for navigating lines;
-            - Support for using the ^<TAB>& key to switch between 'command' mode and 'visual' mode;
+            - Use of the *editor&(*3&) library, rather than defining its own buffer management utilities. This allows for persistent state across launches, as well as allowing other programs to access and modify open buffers;
+            - Proper arrow-key navigation support;
+            - Support for using the ^[TAB]& key to switch between 'command' mode and 'visual' mode;
             - Proper support for scrolling when the cursor goes offscreen, and when entering visual mode the cursor will be moved within the screen;
 
         as well as others.
 
-        If the command-line flag *--syntax&, *-s&, or *--highlight& are specified, attempts to find a syntax highlighter for the file's extension.  IF *--syntax& is given a value and no other highlighting is found, attempts to load the specified highlighting.
+        If the command-line flag *--syntax&, *-s&, or *--highlight& are specified, *vled& attempts to find a syntax highlighter for the file's extension.  IF *--syntax& is given a value and no other highlighting is found, attempts to load the specified highlighting.
 
         Unlike *ed& and *fled&, *vled& will automatically create a buffer if there is no existing buffer for the specified file, or if the specified file is not found.
 

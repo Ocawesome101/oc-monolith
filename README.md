@@ -4,17 +4,13 @@ Monolith is a monolithic, multitasking, multiuser, multiscreen operating system 
 
 Documentation is available online [here](https://oz-craft.pickardayune.com/man).
 
-### A Note on Documentation
-
-As of Monolith version 2020.08.10, all manual pages (but not the `man` utility) have been split into a separate package in the `mbase` repo. Install them with `mpm install ocawesome101/mbase/man`.
-
 ## Pre-built releases
 
 The latest pre-built release will be downloaded through the installer. At any time, you may upgrade with `mpm install ocawesome101/oc-monolith/base`.
 
 ## Building
 
-To build Monolith, you'll need Lua 5.3, `git`, `make`, and probably a Linux or macOS system (alternatively, you can download the latest prebuilt release in CPIO form). Clone this repository, `cd` to it, and run `make`. Copy all files in `build` to the root of your OpenComputers drive.
+To build Monolith, you'll need Lua 5.3, `git`, `make`, and probably a Linux or macOS system (alternatively, you can download the latest prebuilt release in CPIO form from `release.cpio` in the repo). Clone this repository (`git clone https://github.com/ocawesome101/oc-monolith`), `cd` to it, and run `make`. Copy all files in `build` to the root of your OpenComputers drive.
 
 ## Project status
 
@@ -58,8 +54,7 @@ The following is a (hopefully up-to-date) representation of what I want to get d
     - [X] `users`
     - [X] `vt100`
     - [X] `protect`
-    - [X] `cp`
-      - [X] `copy`
+    - [X] `cp.copy`
     - [X] `event`
     - [X] `uuid`
     - [X] `internet`

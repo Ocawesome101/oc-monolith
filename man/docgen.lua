@@ -22,7 +22,7 @@ while true do
   line = line:gsub("%?", "\27[95m")
   line = line:gsub("%@", "\27[92m")
   line = line:gsub("%^", "\27[94m")
-  line = line:gsub("%%", "?") -- always the edge case :P
+  line = line:gsub("%%%%", "?") -- always the edge case :P
   line = line:gsub("%`", "#") -- and another one
   outh:write(line .. "\n")
 end
