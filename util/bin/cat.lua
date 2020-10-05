@@ -12,6 +12,7 @@ GNU General Public License for more details. ]]
 local shell = require("shell")
 
 local args, opts = shell.parse(...)
+
 if #args == 0 then
   while true do
     local data = io.read()
