@@ -3,4 +3,4 @@
 ./assemble.sh
 rm -rf ../{bin,usr,boot,etc,lib,mnt,tmp,home,root,sbin}
 rm -f ../err*
-mv -f build/* ..
+cp -rf build/* ..
