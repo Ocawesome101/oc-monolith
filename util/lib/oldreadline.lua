@@ -2,33 +2,140 @@
 
 local component = require("component")
 local unicode = require("unicode")
+local thread = require("thread")
 local rl = {}
 
--- basic readline function similar to the original vt100.session one
-local function rlbasic(n)
-  io.write("\27[108m")
-  local ret = io.read(1)
-  io.write("\27[128m")
-  return ret
+local buffers = {}
+
+local replacements = {
+  [200] = "\27[A", -- up
+  [201] = "\27[5", -- page up
+  [203] = "\27[D", -- left
+  [205] = "\27[C", -- right
+  [208] = "\27[B", -- down
+  [209] = "\27[6"  -- page down
+}
+
+-- needed modifier keys for readline
+local keys = {
+  lcontrol = 0x1D,
+  rcontrol = 0x9D,
+  lshift   = 0x2A,
+  rshift   = 0x36
+}
+
+-- setup metatable for convenience
+setmetatable(replacements, {__index = function() return "" end})
+
+-- first, we need to set up the key listener
+-- on a keypress, this does a couple of things
+-- 1. it checks if the keyboard is registered
+-- 2. if the keyboard is registered, it checks the character code
+-- 3. if the character code is >0, we concatenate it to the screen's buffer with string.char, else goto step 4
+-- 4. if the character code is 0, we concatenate one of the keycode replacements, or nothing
+--
+-- I'm fairly certain that one single key input thread will be
+-- faster, in most cases, than one per terminal session
+local function listener()
+  while true do
+    local signal, keyboard, character, keycode = coroutine.yield()
+    if not buffers[keyboard] and type(keyboard) == "string" then
+      for k, v in pairs(buffers) do
+        if component.type(k) == "screen" then
+          for i, a in pairs(component.invoke(k, "getKeyboards")) do
+            buffers[a] = k
+            buffers[k].keyboards[a] = true
+          end
+        end
+      end
+    end
+    if signal == "key_down" and buffers[keyboard] then
+      local screen = buffers[keyboard]
+      local concat = unicode.char(character)
+      if character == 0 then
+        concat = replacements[keycode]
+      end
+      buffers[screen].buffer = buffers[screen].buffer .. concat
+      buffers[screen].down[keycode] = true
+    elseif signal == "key_up" and buffers[keyboard] then
+      local screen = buffers[keyboard]
+      buffers[screen].down[keycode] = false
+    elseif signal == "clipboard" and buffers[keyboard] then
+      local screen = buffers[keyboard]
+      buffers[screen].buffer = buffers[screen].buffer .. character
+    elseif signal == "vt_response" and buffers[keyboard] then
+      local screen = keyboard
+      buffers[screen].buffer = buffers[screen].buffer .. character
+    end
+  end
 end
 
-local function getResolution()
-  io.write("\27[9999;9999H\27[6n")
-  local resp = ""
-  repeat
-    local c = rlbasic(1)
-    resp = resp .. c
-  until c == "R"
-  local h, w = resp:match("\27%[(%d+);(%d+)R")
-  return tonumber(w), tonumber(h)
+thread.spawn(listener, "[readline]", error)
+
+function rl.addscreen(screen, gpu)
+  checkArg(1, screen, "string")
+  checkArg(2, gpu, "string", "table")
+  if buffers[screen] then return true end
+  if type(gpu) == "string" then
+    gpu = assert(component.proxy(gpu))
+  end
+  buffers[screen] = {keyboards = {}, down = {}, buffer = "", gpu = gpu}
+  buffers[gpu.address] = buffers[screen]
+  for k, v in pairs(component.invoke(screen, "getKeyboards")) do
+    buffers[screen].keyboards[v] = true
+    buffers[v] = screen
+  end
+  return true
+end
+
+-- basic readline function similar to the original vt100.session one
+local function rlbasic(screen, n)
+  checkArg(1, screen, "string")
+  checkArg(1, n, "number", "nil")
+  if not buffers[screen] then
+    return nil, "no such screen"
+  end
+  local buf = buffers[screen]
+  while unicode.len(buf.buffer) < n or (not n and not buf.buffer:find("\n")) do
+    coroutine.yield()
+  end
+  if buf.buffer:find("\4") and buf.eofenabled then
+    buf.buffer = ""
+    io.write("\n")
+    os.exit()
+  end
+  local n = n or buf.buffer:find("\n")
+  local returnstr = unicode.sub(buf.buffer, 1, n)
+  if returnstr:sub(-1) == "\n" then returnstr = returnstr:sub(1,-2) end
+  buf.buffer = unicode.sub(buf.buffer, n + 1)
+  return returnstr
+end
+
+function rl.buffersize(screen)
+  checkArg(1, screen, "string")
+  if not buffers[screen] then
+    return nil, "no such screen"
+  end
+  return unicode.len(buffers[screen].buffer)
+end
+
+function rl.eof(b)
+  checkArg(1, b, "boolean", "nil")
+  local screen = io.stdout.screen
+  if b == nil then
+    return buffers[screen].eofenabled
+  end
+  buffers[screen].eofenabled = b
+  return true
 end
 
 -- fancier readline designed to be used directly
 function rl.readline(prompt, opts)
   checkArg(1, prompt, "string", "number", "table", "nil")
   checkArg(2, opts, "table", "nil")
+  local screen = io.output().screen
   if type(prompt) == "table" then opts = prompt prompt = nil end
-  if type(prompt) == "number" then return rlbasic(prompt) end
+  if type(prompt) == "number" then return rlbasic(screen, prompt) end
   opts = opts or {}
   local pwchar = opts.pwchar or nil
   local history = opts.history or {}
@@ -78,14 +185,20 @@ function rl.readline(prompt, opts)
     end
   }})
   local tabact = opts.complete or opts.tab or opts.tabact or function(x) return x end
+  if not buffers[screen] then
+    return nil
+  end
   io.output():write("\27[6n")
   local resp = ""
   repeat
-    local char = rlbasic(1)
+    local char = rlbasic(screen, 1)
     resp = resp .. char
   until char == "R"
+  if io.output().gpu.address ~= io.input().gpu.address or io.output().screen ~= io.input().screen then
+    error("io gpu/screen mismatch")
+  end
   local y, x = resp:match("\27%[(%d+);(%d+)R")
-  local w, h = getResolution() -- :^)
+  local w, h = io.output().gpu.getResolution() -- :^)
   local sy = tonumber(y) or 1
   prompt = ("\27[C"):rep((tonumber(x) or 1) - 1) .. (prompt or "")
   local lines = 1

@@ -16,7 +16,6 @@ local logo = [[
 
 out:write("\27[2J\27[1;1H\27[0;37m" .. logo .. "\n\n")
 while true do
-  readline.eof(false) -- disable Ctrl-D support
   local uname = readline.readline({prompt=(os.getenv("HOSTNAME") or "localhost").." login: "})
   uname = (uname or ""):gsub("\n", "")
   local pwd = readline.readline({prompt="password: ", pwchar="*", notrail = true})
@@ -32,7 +31,6 @@ while true do
       out:write("\27[31m" .. err .. "\27[37m\n")
     else
       local pid = thread.spawn(ok, shell, function(err)out:write("\27[31m" .. err .. "\27[37m\n")end)
-      readline.eof(true)
       repeat
         local sig, dpid, err = coroutine.yield()
         if sig == "thread_errored" and err and dpid == pid then
