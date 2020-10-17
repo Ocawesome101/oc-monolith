@@ -359,12 +359,13 @@ function vt.emu(gpu, screen)
         end
       end
       local ret
+      local sub = rb:find("\n")
       if n == "a" then
         ret = rb
         rb = ""
       elseif n == "l" then
-        ret = rb:sub(1, (rb:find("\n")))
-        rb = rb:sub(#ret + 1)
+        ret = rb:sub(1, sub)
+        rb = rb:sub(sub + 1)
         ret = ret:gsub("\n", "")
       elseif n == "L" then
         ret = rb:sub(1, (rb:find("\n")))
@@ -393,7 +394,7 @@ function vt.emu(gpu, screen)
     n = n or rb:find("\n")
     local ret = rb:sub(1, n)
     rb = rb:sub(n + 1)
-    return ret:gsub("\n", "") -- default to "l"
+    return (ret:gsub("\n", "")) -- default to "l"
   end
 
   local boards = {}

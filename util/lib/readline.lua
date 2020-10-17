@@ -7,7 +7,7 @@ local rl = {}
 -- basic readline function similar to the original vt100.session one
 local function rlbasic(n)
   io.write("\27[108m")
-  local ret = io.read(1)
+  local ret = io.read(n)
   io.write("\27[128m")
   return ret
 end
@@ -115,9 +115,9 @@ function rl.readline(prompt, opts)
         elseif esc == "[B" and acts.down then
           _, r = pcall(acts.down)
         elseif esc == "[C" then
-          _, r = pcall(acts.right, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
+          _, r = pcall(acts.right, ctrlDown)
         elseif esc == "[D" then
-          _, r = pcall(acts.left, buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol])
+          _, r = pcall(acts.left, ctrlDown)
         end
         if r == "return" then -- HAX
           table.insert(history, buffer)
@@ -137,7 +137,7 @@ function rl.readline(prompt, opts)
       io.write("\n")
       if not opts.notrail then buffer = buffer .. "\n" end
       return buffer, history
-    elseif buffers[screen].down[keys.lcontrol] or buffers[screen].down[keys.rcontrol] then
+    elseif ctrlDown then
       if char == "a" then
         pos = unicode.len(buffer)
       elseif char == "b" then

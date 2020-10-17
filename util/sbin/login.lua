@@ -2,7 +2,6 @@
 
 local users = require("users")
 local thread = require("thread")
-local readline = require("readline")
 
 local out = io.output()
 local inp = io.input()
@@ -16,9 +15,13 @@ local logo = [[
 
 out:write("\27[2J\27[1;1H\27[0;37m" .. logo .. "\n\n")
 while true do
-  local uname = readline.readline({prompt=(os.getenv("HOSTNAME") or "localhost").." login: "})
+  io.write((os.getenv("HOSTNAME") or "localhost") .. " login: ")
+  local uname = io.read()
   uname = (uname or ""):gsub("\n", "")
-  local pwd = readline.readline({prompt="password: ", pwchar="*", notrail = true})
+  io.write("password: \27[8m")
+  local pwd = io.read()
+  io.write("\27[0m**")
+  pwd = pwd:gsub("\n", "")
   out:write("\n")
 
   local ok, err = users.login(uname, pwd)

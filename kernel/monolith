@@ -862,7 +862,6 @@ do
         else
           ok, r1 = coroutine.resume(thd.coro)
         end
-        --kernel.logger.log(tostring(ok) .. " " .. tostring(r1))
         if (not ok) and r1 then
           handleProcessError(thd, r1)
         elseif ok then
