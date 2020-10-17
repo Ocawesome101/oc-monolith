@@ -54,5 +54,5 @@ package.loaded.times = {
 }
 
 while true do
-  coroutine.yield()
+  require("event").pull()
 end
