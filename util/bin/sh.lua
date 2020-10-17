@@ -2,7 +2,7 @@
 
 local shell = require("shell")
 local sh = require("sh")
-local readline = require("readline").readline
+local readline = io.read--require("readline").readline
 local thread = require("thread")
 
 sh.execute("/etc/profile")
@@ -34,7 +34,9 @@ end
 
 local history = {}
 while not exit do
-  local cmd = readline({prompt = "\27[0m" .. sh.prompt(os.getenv("PS1")), history = history, notrail = true})
+  require("component").sandbox.log("SHELL LOOP")
+  io.write(sh.prompt(os.getenv("PS1")))
+  local cmd = readline()--{prompt = "\27[0m" .. sh.prompt(os.getenv("PS1")), history = history, notrail = true})
   if cmd ~= "" then
     local ok, err = shell.execute(cmd)
     if not ok and err then

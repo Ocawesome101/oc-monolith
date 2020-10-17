@@ -73,6 +73,7 @@ do
     checkArg(2, name, "string")
     checkArg(3, handler, "function", "nil")
     checkArg(4, env, "table", "nil")
+    component.sandbox.log("SPAWN", name)
     last = last + 1
     local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
     env = env or kernel.table_copy(current.data.env)

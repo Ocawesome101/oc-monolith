@@ -348,52 +348,32 @@ function vt.emu(gpu, screen)
 
   -- Returns characters from the keyboard input buffer.
   function stream:read(n)
-    checkArg(1, n, "string", "number", "nil")
+    checkArg(1, n, "number", "nil")
+    stream:write("READ:"..(n or "NaN"))
     if self.closed then
       return nil, "input/output error"
     end
-    if type(n) == "string" then
-      if lm or n == "l" or n == "L" then
-        while not rb:find("\n") do
-          coroutine.yield()
-        end
-      end
-      local ret
-      local sub = rb:find("\n")
-      if n == "a" then
-        ret = rb
+    if n and not lm then
+      if n == math.huge then
+        local tmp = rb
         rb = ""
-      elseif n == "l" then
-        ret = rb:sub(1, sub)
-        rb = rb:sub(sub + 1)
-        ret = ret:gsub("\n", "")
-      elseif n == "L" then
-        ret = rb:sub(1, (rb:find("\n")))
-        rb = rb:sub(#ret + 1)
-      else
-        error("bad argument to read (expected a, l, or L)")
+        return rb
       end
-      return ret
+      while (#rb < n) do
+        coroutine.yield()
+      end
     else
-      if n and not lm then
-        if n == math.huge then
-          local tmp = rb
-          rb = ""
-          return rb
-        end
-        while (unicode.len(rb) < n) do
-          coroutine.yield()
-        end
-      else
-        local m = n or 0
-        while unicode.len(rb) < m or not rb:find("\n") do
-          coroutine.yield()
-        end
+      local m = n or 0
+      while #rb < m or not rb:find("\n") do
+        coroutine.yield()
       end
     end
+    stream:write(rb..":RB\n")
     n = n or rb:find("\n")
     local ret = rb:sub(1, n)
     rb = rb:sub(n + 1)
+    stream:write(rb..":RB\n")
+    stream:write(ret..":RET\n")
     return (ret:gsub("\n", "")) -- default to "l"
   end
 
@@ -409,7 +389,7 @@ function vt.emu(gpu, screen)
     [205] = "\27[C",
     [208] = "\27[B"
   }
-  -- key input listener. this is an event listener, so it should be
+  -- key input listener. this is an event listener, so it should(tm) be
   -- faster than using a thread, especially per-terminal.
   local function listener(sig, addr, char, code)
     if boards[addr] then
