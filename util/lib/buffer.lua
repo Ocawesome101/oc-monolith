@@ -96,8 +96,7 @@ end
 
 function buffer:lines(fmt)
   return function()
-    local result = table.pack(self:read(fmt))
-    return table.unpack(result, 1, result.n)
+    return self:read(fmt)
   end
 end
 
