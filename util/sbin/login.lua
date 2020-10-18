@@ -18,7 +18,7 @@ while true do
   io.write((os.getenv("HOSTNAME") or "localhost") .. " login: ")
   local uname = io.read()
   uname = (uname or ""):gsub("\n", "")
-  io.write("password: ")
+  io.write("password: \27[8m")
   local pwd = io.read()
   io.write("\27[0m")
   pwd = pwd:gsub("\n", "")

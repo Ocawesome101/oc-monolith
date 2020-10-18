@@ -328,7 +328,7 @@ do
   end
 
   function io.write(...)
-    return io.output():write(table.concat({...}))
+    return io.output():write(...)
   end
 
   function _G.print(...)

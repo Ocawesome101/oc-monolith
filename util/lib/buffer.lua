@@ -95,13 +95,9 @@ function buffer:read(fmt)
 end
 
 function buffer:lines(fmt)
-  checkArg(1, fmt, "string")
-  fmt = fmt or "l"
-  if fmt ~= "L" and fmt ~= "l" then
-    error("bad argument #1 to 'lines' (invalid format)")
-  end
   return function()
-    return self:read(fmt)
+    local result = table.pack(self:read(fmt))
+    return table.unpack(result, 1, result.n)
   end
 end
 

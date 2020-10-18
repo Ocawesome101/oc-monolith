@@ -1,11 +1,12 @@
 -- very heavily inspired by the default *nix Bourne shell --
 
+assert(xpcall(function()
 local shell = require("shell")
 local sh = require("sh")
 local readline = io.read--require("readline").readline
 local thread = require("thread")
 
-sh.execute("/etc/profile")
+--sh.execute("/etc/profile")
 local exit = false
 local oexit = rawget(shell, "exit") -- avoid loading the full shell lib for memory reasons
 function shell.exit()
@@ -28,7 +29,7 @@ if not ok then print("\27[31m.shrc: " .. err .. "\27[37m") end
 
 local handle, err = io.open("/etc/motd.txt")
 if handle then
-  io.write(handle:read("*a"))
+  io.write((handle:read("a")))
   handle:close()
 end
 
@@ -44,3 +45,5 @@ while not exit do
     end
   end
 end
+end,
+debug.traceback))
