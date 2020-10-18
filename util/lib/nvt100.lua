@@ -2,6 +2,7 @@
 -- This is actually ported from the failed Paragon project.
 
 local event = require("event")
+local buffer = require("buffer")
 local unicode = require("unicode")
 local computer = require("computer")
 local component = require("component")
@@ -88,19 +89,10 @@ end
 
 local min, max = math.min, math.max
 
--- TODO: possibly make the terminal stream object-oriented so we don't use as
--- TODO: much memory on multi-screen systems. this would probably not impact
--- TODO: much since multi-screen systems tend to have more RAM anyway
 -- This function takes a gpu and screen address and returns a (non-buffered!) stream.
 function vt.emu(gpu, screen)
   checkArg(1, gpu, "string", "table")
   checkArg(2, screen, "string", "nil")
-  --[[if type(gpu) == "string" and (component.type(gpu) ~= "gpu" or
-        (screen and component.type(screen) ~= "screen")) or gpu.type ~= "gpu"
-           
-        then
-    return nil, "invalid gpu/screen"
-  end]]
   if type(gpu) == "string" then gpu = component.proxy(gpu) end
   if screen then gpu.bind(screen) end
   local mode = 0
@@ -112,7 +104,7 @@ function vt.emu(gpu, screen)
   local wb = ""
   local nb = ""
   local ec = true -- local echo
-  local lm = true -- line mode
+  local lm = false -- line mode
   local cx, cy = 1, 1
   local fg, bg = colors[8], colors[1]
   local w, h = gpu.maxResolution()
@@ -293,8 +285,8 @@ function vt.emu(gpu, screen)
                 icn = 0
                 if n == 0 then -- reset terminal attributes
                   fg, bg = colors[8], colors[1]
-                ec = true
-                  lm = true
+                  ec = true
+--                  lm = true
                 elseif n == 8 then -- disable local echo
                   ec = false
                 elseif n == 28 then -- enable local echo
@@ -320,7 +312,7 @@ function vt.emu(gpu, screen)
                 elseif n == 108 then -- disable line mode
                   lm = false
                 elseif n == 128 then -- enable line mode
-                  lm = true
+--                  lm = true
                 end
                 gpu.setForeground(fg)
                 gpu.setBackground(bg)
@@ -346,83 +338,102 @@ function vt.emu(gpu, screen)
     return true
   end
 
-  -- Returns characters from the keyboard input buffer.
-  function stream:read(n)
-    checkArg(1, n, "number", "nil")
-    stream:write("READ:"..(n or "NaN"))
-    if self.closed then
-      return nil, "input/output error"
-    end
-    if n and not lm then
-      if n == math.huge then
-        local tmp = rb
-        rb = ""
-        return rb
+  local keys = {
+    lcontrol = 0x1D,
+    rcontrol = 0x9D,
+  }
+
+  local keyboards = {}
+  local ctrlHeld = false
+  for k,v in pairs(component.invoke(screen or gpu.getScreen(),"getKeyboards"))do
+    keyboards[v] = true
+  end
+
+  local function key_down(sig, kb, char, code)
+    if keyboards[kb] then
+      if char == 8 then
+        if #rb > 0 and rb:sub(-1) ~= "\n" then
+          rb = unicode.sub(rb, 1, -2)
+          stream:write("\8 \8")
+        end
+      elseif char == 13 then
+        stream:write("\n")
+        rb = rb .. "\n"
+      elseif char == 0 and code > 200 then
+        local add = ctrlHeld and "\27[1;5" or "\27["
+        if code == keys.lcontrol or code == keys.rcontrol then
+          ctrlHeld = true
+          add = ""
+        elseif code == 200 then -- up
+          add = add .. "A"
+        elseif code == 201 then -- page up
+          -- TODO: does this behave differently when ctrl is held?
+          add = "\27[5~"
+        elseif code == 203 then -- left
+          add = add .. "D"
+        elseif code == 205 then
+          add = add .. "C"
+        elseif code == 208 then -- down
+          add = add .. "B"
+        elseif code == 209 then -- page down
+          add = add .. "6~"
+        end
+        rb = rb .. add
+        stream:write((add:gsub("\27", "^")))
+      elseif char ~= 0 then
+        local c = unicode.char(char)
+        stream:write(c)
+        rb = rb .. c
       end
-      while (#rb < n) do
-        stream:write("YIELD\n")
+    end
+  end
+
+  local function key_up(sig, kb, char, code)
+    if keyboards[kb] then
+      if code == keys.lcontrol or code == keys.rcontrol then
+        ctrlHeld = false
+      end
+    end
+  end
+
+  event.listen("key_down", key_down)
+  event.listen("key_up", key_up)
+
+  -- simpler than the original stream:read implementation:
+  --   -> required 'n' argument
+  --   -> does not support 'n' as string
+  --   -> far simpler text reading logic
+  function stream:read(n)
+    checkArg(1, n, "number")
+    if lm then
+      while (not rb:find("\n")) or (rb:find("\n") < n) do
         coroutine.yield()
       end
     else
-      local m = n or 0
-      while #rb < m or not rb:find("\n") do
-        stream:write("YIELD\n")
+      while #rb < n do
         coroutine.yield()
       end
     end
-    stream:write(rb..":RB\n")
-    n = n or rb:find("\n")
     local ret = rb:sub(1, n)
     rb = rb:sub(n + 1)
-    stream:write(rb..":RB\n")
-    stream:write(ret..":RET\n")
-    return (ret:gsub("\n", "")) -- default to "l"
+    return ret
   end
 
-  local boards = {}
-  for k,v in pairs(component.invoke(screen or gpu.getScreen(), "getKeyboards")) do
-    boards[v] = true
-  end
-  local sub = {
-    [200] = "\27[A",
-    [201] = "\27[5~",
-    [209] = "\27[6~",
-    [203] = "\27[D",
-    [205] = "\27[C",
-    [208] = "\27[B"
-  }
-  -- key input listener. this is an event listener, so it should(tm) be
-  -- faster than using a thread, especially per-terminal.
-  local function listener(sig, addr, char, code)
-    if boards[addr] then
-      if char == 0 then
-        char = sub[code] or ""
-      elseif char == 8 and lm then
-        if #rb > 0 and unicode.sub(rb, unicode.len(rb)) ~= "\n" then
-          rb = unicode.sub(rb, 1, unicode.len(rb) - 1)
-          stream:write("\8 \8")
-        end
-        return true
-      else
-        if char == 13 then char = 10 end
-        char = unicode.char(char)
-      end
-      rb = rb .. char
-      stream:write((char:gsub("\27", "^")))
-    end
+  function stream:seek()
+    return nil, "Illegal seek"
   end
 
-  local id = event.listen("key_down", listener)
-  -- we should unregister the listener when the terminal stream is closed to
-  -- help memory usage and responsiveness
-  -- stream:close(): boolean
-  --   Close the terminal stream. Unregisters the key listener.
   function stream:close()
     self.closed = true
-    event.ignore("key_down", listener)
+    event.ignore("key_down", key_down)
+    event.ignore("key_up", key_up)
     return true
   end
 
-  return stream
+  local new = buffer.new("rw", stream)
+  new:setvbuf("no")
+  new.tty = true
+  return new
 end
+
 return vt
