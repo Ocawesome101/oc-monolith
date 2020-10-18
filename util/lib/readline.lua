@@ -2,25 +2,14 @@
 
 local component = require("component")
 local unicode = require("unicode")
+local vt = require("libvt")
 local rl = {}
 
--- basic readline function similar to the original vt100.session one
 local function rlbasic(n)
   io.write("\27[108m")
-  local ret = io.read(n)
+  local ret = io.read(n or 1)
   io.write("\27[128m")
   return ret
-end
-
-local function getResolution()
-  io.write("\27[9999;9999H\27[6n")
-  local resp = ""
-  repeat
-    local c = rlbasic(1)
-    resp = resp .. c
-  until c == "R"
-  local h, w = resp:match("\27%[(%d+);(%d+)R")
-  return tonumber(w), tonumber(h)
 end
 
 -- fancier readline designed to be used directly
@@ -78,14 +67,8 @@ function rl.readline(prompt, opts)
     end
   }})
   local tabact = opts.complete or opts.tab or opts.tabact or function(x) return x end
-  io.output():write("\27[6n")
-  local resp = ""
-  repeat
-    local char = rlbasic(1)
-    resp = resp .. char
-  until char == "R"
-  local y, x = resp:match("\27%[(%d+);(%d+)R")
-  local w, h = getResolution() -- :^)
+  local x, y = vt.getCursor()
+  local w, h = vt.getResolution() -- :^)
   local sy = tonumber(y) or 1
   prompt = ("\27[C"):rep((tonumber(x) or 1) - 1) .. (prompt or "")
   local lines = 1
@@ -101,7 +84,8 @@ function rl.readline(prompt, opts)
       end
       lines = written
     end
-    io.write(string.format("\27[%d;%dH%s%s %s", sy, 1, prompt, write, string.rep("\8", pos)))
+    vt.setCursor(1, sy)
+    io.write(string.format("%s%s %s", prompt, write, string.rep("\8", pos)))
   end
   while true do
     redraw()

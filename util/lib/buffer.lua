@@ -201,7 +201,7 @@ function buffer:formatted_read(readChunk, ...)
     else
       local first_char_index = 1
       if type(format) ~= "string" then
-        error("bad argument #" .. n .. " (invalid option)")
+        error("bad argument #" .. n .. " (invalid option '"..tostring(format).."')")
       elseif unicode.sub(format, 1, 1) == "*"  then
         first_char_index = 2
       end

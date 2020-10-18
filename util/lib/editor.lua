@@ -12,7 +12,7 @@ function ed.buffer:load(file)
     return nil, err
   end
   local lines = {}
-  for line in handle:lines() do
+  for line in handle:lines("l") do
     lines[#lines + 1] = line:gsub("\n", "") .. "\n"
   end
   handle:close()
@@ -47,7 +47,7 @@ local function drawline(y, n, l, L)
 end
 
 function ed.buffer:draw(num)
-  local w, h = ed.getScreenSize()
+  local w, h = vt.getResolution()
   if num == false then num = false else num = true end
   local y = 1
   io.write("\27[9m\27[1H\27[K")
