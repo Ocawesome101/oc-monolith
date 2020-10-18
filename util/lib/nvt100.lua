@@ -111,14 +111,14 @@ function vt.emu(gpu, screen)
   gpu.setResolution(w, h)
 
   local function scroll(n)
+    n = n or 1
     gpu.copy(1, 1, w, h, 0, -n)
-    gpu.fill(1, h - n, w, n, " ")
-    cy = cy - (n - 2)
+    gpu.fill(1, h - n + 1, w, n + 1, " ")
   end
 
   local function checkCursor()
     if cx > w then cx, cy = 1, cy + 1 end
-    if cy > h then scroll(1) cy = h end
+    if cy >= h then cy = h - 1scroll(1) end
     if cx < 1 then cx = w cy = cy - 1 end
     if cy < 1 then cy = 1 end
   end
