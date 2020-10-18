@@ -4,6 +4,7 @@ local shell = require("shell")
 local fs = require("filesystem")
 local vt = require("vt")
 
+local x, y = vt.getCursor()
 local w, h = vt.getResolution()
 
 local args, opts = shell.parse(...)
@@ -87,7 +88,10 @@ for i=1, #args, 1 do
       local isdr = fs.isDirectory(full)
       local isro = fs.isReadOnly(full)
       local date = os.date("%b %d %Y %H:%M", fs.lastModified(full))
-      finfo = string.format("\27[37m%s%s %s %s ", isdr and "d" or "-", isro and "r-" or "rw", fsize(size), date)
+      finfo = string.format("\27[37m%s%s %s %s ",
+                            isdr and "d" or "-",
+                            isro and "r-" or "rw",
+                            fsize(size), date)
     end
     out = out .. finfo
     if f:sub(-1) == "/" then
@@ -103,12 +107,17 @@ for i=1, #args, 1 do
         if n + longest >= w and n ~= 1 then out = out .. "\n" n = 1 end
         out = out .. f
         n = n + longest + 1
-        if n + (longest - #f + 1) >= w then n = 1 out = out .. "\n" else out = out .. (" "):rep(longest - #f + 1) end
+        if n + (longest - #f + 1) >= w then
+          n = 1 out = out .. "\n"
+        else
+          out = out .. (" "):rep(longest - #f + 1)
+        end
       end
     end
   end
   print(out .. color(37))
 end
 
-print(w, h)
+--print(w, h)
+--print(x, y)
 return shell.codes.exit

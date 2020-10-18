@@ -17,6 +17,7 @@ function vt.getCursor()
   until c == "R"
   io.write("\27[128m")
   local y, x = resp:match("\27%[(%d+);(%d+)R")
+--  require("component").sandbox.log(resp, x, y)
   return tonumber(x), tonumber(y)
 end
 
@@ -24,7 +25,7 @@ function vt.getResolution()
   local x, y = vt.getCursor()
   vt.setCursor(9999, 9999)
   local w, h = vt.getCursor()
-  vt.setCursor(y, x)
+  vt.setCursor(x, y)
   return w, h
 end
 
