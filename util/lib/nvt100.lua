@@ -156,11 +156,13 @@ function vt.emu(gpu, screen)
           cx, cy = 1, cy + 1
           checkCursor()
         elseif c == "\t" then
-          if cx + 8 > w then
+          local t = cx + #wb
+          t = ((t-1) - ((t-1) % 8)) + 9
+          if t > w then
             cx, cy = 1, cy + 1
             checkCursor()
           else
-            wb = wb .. (" "):rep(max(0, (cx + 8) % 8))
+            wb = wb .. (" "):rep(t - (cx + #wb))
           end
         elseif c == "\27" then
           flushwb()
@@ -205,7 +207,7 @@ function vt.emu(gpu, screen)
           elseif c == "G" then
             cx = min(w, max(p[1] or 1))
           elseif c == "H" or c == "f" then
-            cx, cy = min(w, max(0, p[2] or 1)), min(h, max(0, p[1] or 1))
+            cx, cy = min(w, max(0, p[2] or 1)), max(0, min(h, p[1] or 1))
           elseif c == "J" then
             local n = p[1] or 0
             if n == 0 then

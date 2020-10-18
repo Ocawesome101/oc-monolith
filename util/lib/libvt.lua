@@ -24,7 +24,7 @@ function vt.getResolution()
   local x, y = vt.getCursor()
   vt.setCursor(9999, 9999)
   local w, h = vt.getCursor()
-  vt.setCursor(x, y)
+  vt.setCursor(y, x)
   return w, h
 end
 

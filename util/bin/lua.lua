@@ -2,7 +2,7 @@
 
 local args, opts = require("shell").getopt(table.pack(...), {e = {takesarg = true, reqopt = true}})
 
-local readline = require("readline").readline
+local readline = io.read --require("readline").readline
 
 local function tryget(...)
   local s, m = pcall(require, ...)
@@ -53,7 +53,8 @@ end
 local history = {}
 io.write("\27[37m" .. _VERSION .. " Copyright (C) 1994-2018 Lua.org, PUC-Rio\n")
 while true do
-  local run = readline(env._PROMPT, {history = history,highlighter=opts.s and require("vled.lua") or function(x)return x end})
+  io.write(env._PROMPT)
+  local run = readline()--env._PROMPT, {history = history,highlighter=opts.s and require("vled.lua") or function(x)return x end})
   local exec, reason
   if run:sub(1,1) == "=" then
     exec, reason = load("return " .. run:sub(1,2), "=stdin", "t", env)

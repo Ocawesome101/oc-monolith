@@ -2,6 +2,9 @@
 
 local shell = require("shell")
 local fs = require("filesystem")
+local vt = require("vt")
+
+local w, h = vt.getResolution()
 
 local args, opts = shell.parse(...)
 
@@ -97,11 +100,15 @@ for i=1, #args, 1 do
     if f:sub(1,1) ~= "." or all then
       if inf then out = out .. f .. "\n"
       else
-        out = out .. f .. " \t"
+        if n + longest >= w and n ~= 1 then out = out .. "\n" n = 1 end
+        out = out .. f
+        n = n + longest + 1
+        if n + (longest - #f + 1) >= w then n = 1 out = out .. "\n" else out = out .. (" "):rep(longest - #f + 1) end
       end
     end
   end
   print(out .. color(37))
 end
 
+print(w, h)
 return shell.codes.exit
