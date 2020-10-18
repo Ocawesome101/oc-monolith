@@ -286,7 +286,7 @@ function vt.emu(gpu, screen)
                 if n == 0 then -- reset terminal attributes
                   fg, bg = colors[8], colors[1]
                   ec = true
---                  lm = true
+                  lm = true
                 elseif n == 8 then -- disable local echo
                   ec = false
                 elseif n == 28 then -- enable local echo
@@ -312,7 +312,7 @@ function vt.emu(gpu, screen)
                 elseif n == 108 then -- disable line mode
                   lm = false
                 elseif n == 128 then -- enable line mode
---                  lm = true
+                  lm = true
                 end
                 gpu.setForeground(fg)
                 gpu.setBackground(bg)

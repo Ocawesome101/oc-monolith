@@ -63,7 +63,7 @@ do
     threads[thd.pid] = nil
     computer.pushSignal("thread_errored", thd.pid, string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
     kernel.logger.log("thread errored: " .. string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
-    h(thd.name .. ": " .. err)
+    h(thd.name .. ": " .. tostring(err))
   end
 
   local global_env = {}
@@ -295,6 +295,7 @@ do
         else
           ok, r1 = coroutine.resume(thd.coro)
         end
+        component.sandbox.log(thd.pid, ok, r1)
         if (not ok) and r1 then
           handleProcessError(thd, r1)
         elseif ok then

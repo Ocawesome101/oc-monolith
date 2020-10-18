@@ -23,7 +23,7 @@ flags.quiet = flags.quiet or false
 flags.runlevel = flags.runlevel or 3
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "2020.10.17"
+local _KERNEL_REVISION = "2020.10.18"
 
 _G._OSVERSION = string.format("%s version %s", _KERNEL_NAME, _KERNEL_REVISION)
 
@@ -631,7 +631,7 @@ do
     threads[thd.pid] = nil
     computer.pushSignal("thread_errored", thd.pid, string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
     kernel.logger.log("thread errored: " .. string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
-    h(thd.name .. ": " .. err)
+    h(thd.name .. ": " .. tostring(err))
   end
 
   local global_env = {}
@@ -863,6 +863,7 @@ do
         else
           ok, r1 = coroutine.resume(thd.coro)
         end
+        component.sandbox.log(thd.pid, ok, r1)
         if (not ok) and r1 then
           handleProcessError(thd, r1)
         elseif ok then
