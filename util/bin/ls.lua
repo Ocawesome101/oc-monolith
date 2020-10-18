@@ -3,11 +3,6 @@
 local shell = require("shell")
 local fs = require("filesystem")
 
-local w, h = math.huge, math.huge
-if io.stdout.gpu then
-  w, h = io.stdout.gpu.getResolution()
-end
-
 local args, opts = shell.parse(...)
 
 local files = {}
@@ -102,10 +97,7 @@ for i=1, #args, 1 do
     if f:sub(1,1) ~= "." or all then
       if inf then out = out .. f .. "\n"
       else
-        if n + longest >= w and n ~= 1 then out = out .. "\n" n = 1 end
-        out = out .. f
-        n = n + longest + 1
-        if n + (longest - #f + 1) >= w then n = 1 out = out .. "\n" else out = out .. (" "):rep(longest - #f + 1) end
+        out = out .. f .. " \t"
       end
     end
   end

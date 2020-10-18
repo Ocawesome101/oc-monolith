@@ -160,7 +160,7 @@ function vt.emu(gpu, screen)
             cx, cy = 1, cy + 1
             checkCursor()
           else
-            wb = wb .. (" "):rep(max(1, (cx + 4) % 8))
+            wb = wb .. (" "):rep(max(0, (cx + 4) % 8))
           end
         elseif c == "\27" then
           flushwb()
