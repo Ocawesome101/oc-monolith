@@ -179,17 +179,19 @@ function vt.emu(gpu, screen)
           mode = 0
         end
       elseif mode == 2 then
-        if c:match("%d+") then
+        if tonumber(c) then
           nb = nb .. c
         elseif c == ";" then
-          if #nb > 0 then
-            p[#p+1] = tonumber(nb) or 0
-            nb = ""
-          end
+          component.sandbox.log(nb, tonumber(nb), #p)
+          p[#p+1] = tonumber(nb) or 0
+          component.sandbox.log(#p)
+          nb = ""
         else
           mode = 0
           if #nb > 0 then
+            component.sandbox.log(nb, tonumber(nb), #p)
             p[#p+1] = tonumber(nb) or 0
+            component.sandbox.log(#p)
             nb = ""
           end
           if c == "A" then
@@ -205,9 +207,14 @@ function vt.emu(gpu, screen)
           elseif c == "F" then
             cx, cy = 1, cy - max(0, p[1] or 1)
           elseif c == "G" then
+            component.sandbox.log("\\27[G", p[1])
+            component.sandbox.log(cx)
             cx = min(w, max(p[1] or 1))
+            component.sandbox.log(cx)
           elseif c == "H" or c == "f" then
-            cx, cy = min(w, max(0, p[2] or 1)), max(0, min(h, p[1] or 1))
+            component.sandbox.log("\\27[H", 'x:', p[2], 'y:', p[1])
+            cx, cy = max(0, min(w, p[2] or 1)), max(0, min(h - 1, p[1] or 1))
+            component.sandbox.log("\\27[H", cx, cy)
           elseif c == "J" then
             local n = p[1] or 0
             if n == 0 then
@@ -314,8 +321,8 @@ function vt.emu(gpu, screen)
               rb = rb .. string.format("\27[%d;%dR", cy, cx)
             end
           end
+          p = {}
         end
-        p = {}
       end
     end
     flushwb()
@@ -398,13 +405,16 @@ function vt.emu(gpu, screen)
     checkArg(1, n, "number")
     if lm then
       while (not rb:find("\n")) or (rb:find("\n") < n) do
+        if rb:find("\4") then os.exit() end
         coroutine.yield()
       end
     else
       while #rb < n do
+        if rb:find("\4") then os.exit() end
         coroutine.yield()
       end
     end
+    if rb:find("\4") then os.exit() end
     local ret = rb:sub(1, n)
     rb = rb:sub(n + 1)
     return ret
@@ -421,10 +431,9 @@ function vt.emu(gpu, screen)
     return true
   end
 
-  local new = buffer.new("rwb", stream)
+  local new = buffer.new("rbwb", stream)
   new.tty = true
-  new.bufferSize = 0
-  new:setvbuf("no")
+  new:setvbuf("no", 0)
   return new
 end
 
