@@ -104,7 +104,7 @@ function vt.emu(gpu, screen)
   local wb = ""
   local nb = ""
   local ec = true -- local echo
-  local lm = false -- line mode
+  local lm = true -- line mode
   local cx, cy = 1, 1
   local fg, bg = colors[8], colors[1]
   local w, h = gpu.maxResolution()
@@ -156,7 +156,12 @@ function vt.emu(gpu, screen)
           cx, cy = 1, cy + 1
           checkCursor()
         elseif c == "\t" then
-          wb = wb .. (" "):rep(max(1, (cx + 4) % 8))
+          if cx + 8 > w then
+            cx, cy = 1, cy + 1
+            checkCursor()
+          else
+            wb = wb .. (" "):rep(max(1, (cx + 4) % 8))
+          end
         elseif c == "\27" then
           flushwb()
           mode = 1
@@ -172,7 +177,7 @@ function vt.emu(gpu, screen)
           mode = 0
         end
       elseif mode == 2 then
-        if c:match("[%d]") then
+        if c:match("%d+") then
           nb = nb .. c
         elseif c == ";" then
           if #nb > 0 then
@@ -182,7 +187,7 @@ function vt.emu(gpu, screen)
         else
           mode = 0
           if #nb > 0 then
-            p[#p+1] = tonumber(nb)
+            p[#p+1] = tonumber(nb) or 0
             nb = ""
           end
           if c == "A" then
