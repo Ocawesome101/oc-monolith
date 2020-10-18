@@ -182,16 +182,16 @@ function vt.emu(gpu, screen)
         if tonumber(c) then
           nb = nb .. c
         elseif c == ";" then
-          component.sandbox.log(nb, tonumber(nb), #p)
+          --component.sandbox.log(nb, tonumber(nb), #p)
           p[#p+1] = tonumber(nb) or 0
-          component.sandbox.log(#p)
+          --component.sandbox.log(#p)
           nb = ""
         else
           mode = 0
           if #nb > 0 then
-            component.sandbox.log(nb, tonumber(nb), #p)
+            --component.sandbox.log(nb, tonumber(nb), #p)
             p[#p+1] = tonumber(nb) or 0
-            component.sandbox.log(#p)
+            --component.sandbox.log(#p)
             nb = ""
           end
           if c == "A" then
@@ -207,14 +207,14 @@ function vt.emu(gpu, screen)
           elseif c == "F" then
             cx, cy = 1, cy - max(0, p[1] or 1)
           elseif c == "G" then
-            component.sandbox.log("\\27[G", p[1])
-            component.sandbox.log(cx)
+            --component.sandbox.log("\\27[G", p[1])
+            --component.sandbox.log(cx)
             cx = min(w, max(p[1] or 1))
-            component.sandbox.log(cx)
+            --component.sandbox.log(cx)
           elseif c == "H" or c == "f" then
-            component.sandbox.log("\\27[H", 'x:', p[2], 'y:', p[1])
+            --component.sandbox.log("\\27[H", 'x:', p[2], 'y:', p[1])
             cx, cy = max(0, min(w, p[2] or 1)), max(0, min(h - 1, p[1] or 1))
-            component.sandbox.log("\\27[H", cx, cy)
+            --component.sandbox.log("\\27[H", cx, cy)
           elseif c == "J" then
             local n = p[1] or 0
             if n == 0 then
