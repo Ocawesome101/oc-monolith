@@ -360,11 +360,13 @@ function vt.emu(gpu, screen)
         return rb
       end
       while (#rb < n) do
+        stream:write("YIELD\n")
         coroutine.yield()
       end
     else
       local m = n or 0
       while #rb < m or not rb:find("\n") do
+        stream:write("YIELD\n")
         coroutine.yield()
       end
     end

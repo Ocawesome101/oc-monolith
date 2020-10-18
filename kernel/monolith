@@ -23,7 +23,7 @@ flags.quiet = flags.quiet or false
 flags.runlevel = flags.runlevel or 3
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "2020.10.16"
+local _KERNEL_REVISION = "2020.10.17"
 
 _G._OSVERSION = string.format("%s version %s", _KERNEL_NAME, _KERNEL_REVISION)
 
@@ -641,7 +641,7 @@ do
     checkArg(2, name, "string")
     checkArg(3, handler, "function", "nil")
     checkArg(4, env, "table", "nil")
-    component.sandbox.log("SPAWN", name)
+    --component.sandbox.log("SPAWN", name)
     last = last + 1
     local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
     env = env or kernel.table_copy(current.data.env)
