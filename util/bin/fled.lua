@@ -2,7 +2,12 @@
 
 local args = {...}
 
-local w, h = io.output().gpu.getResolution() -- tee hee hee --rsp:match("\27%[(%d+);(%d+)R")
+error([[FLED is currently broken due to a bug in readline(). Please use 'ed' or
+'led' in the meantime.
+]])
+
+local vt = require("vt")
+local w, h = vt.getResolution() -- tee hee hee
 w = tonumber(w)
 h = tonumber(h)
 
