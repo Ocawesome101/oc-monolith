@@ -6,7 +6,7 @@ local sh = require("sh")
 local readline = io.read--require("readline").readline
 local thread = require("thread")
 
---sh.execute("/etc/profile")
+sh.execute("/etc/profile")
 local exit = false
 local oexit = rawget(shell, "exit") -- avoid loading the full shell lib for memory reasons
 function shell.exit()

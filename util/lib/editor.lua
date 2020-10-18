@@ -1,5 +1,6 @@
 -- common editor functions --
 
+local vt = require("vt")
 local ed = {}
 ed.buffers = {}
 ed.buffer = {}
@@ -41,7 +42,7 @@ local function drawline(y, n, l, L)
   n = (n and tostring(n)) or "\27[94m~"
   local nl = tostring(L):len()
   local out = string.format("\27[%d;1H\27[93m%"..nl.."s\27[37m %s", y, n, l)
-  out = out .. (" "):rep((ed.getScreenSize()))
+  out = out .. (" "):rep((vt.getResolution()))
   io.write(out)
 end
 
@@ -59,10 +60,6 @@ function ed.buffer:draw(num)
     end
   end
   io.write("\27[29m")
-end
-
-function ed.getScreenSize()
-  return io.stdout.gpu.getResolution()
 end
 
 function ed.new(file)

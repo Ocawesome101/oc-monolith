@@ -415,8 +415,9 @@ function vt.emu(gpu, screen)
   end
 
   local new = buffer.new("rw", stream)
-  new:setvbuf("no")
   new.tty = true
+  new.bufferSize = 0
+  new:setvbuf("no")
   return new
 end
 

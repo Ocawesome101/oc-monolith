@@ -1,155 +1,284 @@
--- smol buffer library --
+-- Thank you, Payonel, for your buffer library --
+
+local computer = require("computer")
+local unicode = require("unicode")
 
 local buffer = {}
-local computer = require("computer")
+local metatable = {
+  __index = buffer,
+  __metatable = "file"
+}
 
 function buffer.new(mode, stream)
-  local new = {
+  local result = {
+    closed = false,
     tty = false,
     mode = {},
-    rbuf = "",
-    wbuf = "",
     stream = stream,
-    closed = false,
-    bufsize = math.max(512, math.min(8 * 1024, computer.freeMemory() / 8))
+    bufferRead = "",
+    bufferWrite = "",
+    bufferSize = math.max(512, math.min(8 * 1024, computer.freeMemory() / 8)),
+    bufferMode = "full",
+    readTimeout = math.huge,
   }
-  for c in mode:gmatch(".") do
-    new.mode[c] = true
+  mode = mode or "r"
+  for i = 1, unicode.len(mode) do
+    result.mode[unicode.sub(mode, i, i)] = true
   end
-  local ts = tostring(new):gsub("table", "FILE")
-  return setmetatable(new, {
-    __index = buffer,
-    __tostring = function()
-      return ts
-    end,
-    __metatable = {}
-  })
-end
-
--- this might be inefficient but it's still much better than raw file handles!
-function buffer:read_byte()
-  if self.bufsize == 0 then
-    return self.stream:read(1)
-  end
-  if #self.rbuf <= 0 then
-    self.rbuf = self.stream:read(self.bufsize) or ""
-  end
-  local read = self.rbuf:sub(1,1)
-  --require("component").sandbox.log(self.bufsize, read, self.rbuf, #self.rbuf)
-  self.rbuf = self.rbuf:sub(2)
-  return read
-end
-
-function buffer:write_byte(byte)
-  checkArg(1, byte, "string")
-  byte = byte:sub(1,1)
-  if #self.wbuf >= self.bufsize then
-    self.stream:write(self.wbuf)
-    self.wbuf = ""
-  end
-  self.wbuf = self.wbuf .. byte
-end
-
-function buffer:read(fmt)
-  checkArg(1, fmt, "string", "number", "nil")
-  fmt = fmt or "l"
-  if type(fmt) == "number" then
-    local ret = ""
-    if self.bufsize == 0 then
-      ret = self.stream:read(fmt)
-    else
-      for i=1, fmt, 1 do
-        ret = ret .. (self:read_byte() or "")
-      end
-    end
-    return ret, self
-  else
-    fmt = fmt:gsub("%*", "")
-    fmt = fmt:sub(1,1)
-    -- TODO: support more formats
-    if fmt == "l" or fmt == "L" then
-      local ret = ""
-      repeat
-        local byte = self:read_byte()
-        if byte == "\n" then
-          ret = ret .. (fmt == "L" and byte or "")
-        else
-          ret = ret .. (byte or "")
-        end
-      until byte == "\n" or #byte == 0 or not byte
-      return ret, self
-    elseif fmt == "a" then
-      local ret, rf = "", function()return self:read_byte()end
-      if self.bufsize == 0 then
-        rf = function()return self.stream:read(math.huge)end
-      end
-      repeat
-        local chunk = rf()
-        ret = ret .. (chunk or "")
-      until #chunk == 0 or not chunk
-      return ret, self
-    else
-      error("bad argument #1 to 'read' (invalid format)")
-    end
-  end
-end
-
-function buffer:lines(fmt)
-  return function()
-    return self:read(fmt)
-  end
-end
-
-function buffer:write(...)
-  local args = table.pack(...)
-  for i=1, args.n, 1 do
-    args[i] = tostring(args[i])
-  end
-  local write = table.concat(args)
-  if self.bufsize == 0 then
-    self.stream:write(write)
-  else
-    for byte in write:gmatch(".") do
-      self:write_byte(byte)
-    end
-  end
-  return self
-end
-
-function buffer:seek(whence, offset)
-  checkArg(1, whence, "string", "nil")
-  checkArg(2, offset, "number", "nil")
-  if whence then
-    self:flush()
-    return self.stream:seek(whence, offset)
-  end
-  if self.mode.r then
-    return self.stream:seek() + #self.rbuf
-  elseif self.mode.w or self.mode.a then
-    return self.stream:seek() + #self.wbuf
-  end
-  return 0, self
-end
-
-function buffer:flush()
-  if self.mode.w then
-    self.stream:write(self.wbuf)
-  end
-  return true, self
-end
-
-function buffer:setvbuf(mode)
-  if mode == "no" then
-    self.bufsize = 0
-  else
-    self.bufsize = 512
-  end
+  -- when stream closes, result should close first
+  -- when result closes, stream should close after
+  -- when stream closes, it is removed from the proc
+  stream.close = setmetatable({close = stream.close,parent = result},{__call = buffer.close})
+  return setmetatable(result, metatable)
 end
 
 function buffer:close()
-  self:flush()
-  self.closed = true
-  return true
+  -- self is either the buffer, or the stream.close callable
+  local meta = getmetatable(self)
+  if meta == metatable.__metatable then
+    return self.stream:close()
+  end
+  local parent = self.parent
+
+  if parent.mode.w or parent.mode.a then
+    parent:flush()
+  end
+  parent.closed = true
+  return self.close(parent.stream)
 end
+
+function buffer:flush()
+  if #self.bufferWrite > 0 then
+    local tmp = self.bufferWrite
+    self.bufferWrite = ""
+    local result, reason = self.stream:write(tmp)
+    if not result then
+      return nil, reason or "bad file descriptor"
+    end
+  end
+
+  return self
+end
+
+function buffer:lines(...)
+  local args = table.pack(...)
+  return function()
+    local result = table.pack(self:read(table.unpack(args, 1, args.n)))
+    if not result[1] and result[2] then
+      error(result[2])
+    end
+    return table.unpack(result, 1, result.n)
+  end
+end
+
+local function readChunk(self)
+  if computer.uptime() > self.timeout then
+    error("timeout")
+  end
+  local result, reason = self.stream:read(math.max(1,self.bufferSize))
+  if result then
+    self.bufferRead = self.bufferRead .. result
+    return self
+  else -- error or eof
+    return result, reason
+  end
+end
+
+function buffer:readLine(chop, timeout)
+  self.timeout = timeout or (computer.uptime() + self.readTimeout)
+  local start = 1
+  while true do
+    local buf = self.bufferRead
+    local i = buf:find("[\r\n]", start)
+    local c = i and buf:sub(i,i)
+    local is_cr = c == "\r"
+    if i and (not is_cr or i < #buf) then
+      local n = buf:sub(i+1,i+1)
+      if is_cr and n == "\n" then
+        c = c .. n
+      end
+      local result = buf:sub(1, i - 1) .. (chop and "" or c)
+      self.bufferRead = buf:sub(i + #c)
+      return result
+    else
+      start = #self.bufferRead - (is_cr and 1 or 0)
+      local result, reason = readChunk(self)
+      if not result then
+        if reason then
+          return result, reason
+        else -- eof
+          result = #self.bufferRead > 0 and self.bufferRead or nil
+          self.bufferRead = ""
+          return result
+        end
+      end
+    end
+  end
+end
+
+function buffer:read(...)
+  if not self.mode.r then
+    return nil, "read mode was not enabled for this stream"
+  end
+
+  if self.mode.w or self.mode.a then
+    self:flush()
+  end
+
+  if select("#", ...) == 0 then
+    return self:readLine(true)
+  end
+  return self:formatted_read(readChunk, ...)
+end
+
+function buffer:setvbuf(mode, size)
+  mode = mode or self.bufferMode
+  size = size or self.bufferSize
+
+  assert(mode == "no" or mode == "full" or mode == "line",
+    "bad argument #1 (no, full or line expected, got " .. tostring(mode) .. ")")
+  assert(mode == "no" or type(size) == "number",
+    "bad argument #2 (number expected, got " .. type(size) .. ")")
+
+  self.bufferMode = mode
+  self.bufferSize = size
+
+  return self.bufferMode, self.bufferSize
+end
+
+function buffer:write(...)
+  if self.closed then
+    return nil, "bad file descriptor"
+  end
+  if not self.mode.w and not self.mode.a then
+    return nil, "write mode was not enabled for this stream"
+  end
+  local args = table.pack(...)
+  for i = 1, args.n do
+    if type(args[i]) == "number" then
+      args[i] = tostring(args[i])
+    end
+    checkArg(i, args[i], "string")
+  end
+
+  for i = 1, args.n do
+    local arg = args[i]
+    local result, reason
+
+    if self.bufferMode == "no" then
+      result, reason = self.stream:write(arg)
+    else
+      result, reason = self:buffered_write(arg)
+    end
+
+    if not result then
+      return nil, reason
+    end
+  end
+
+  return self
+end
+
+-- moved here because reasons
+
+function buffer:readAll(readChunk)
+  repeat
+    local result, reason = readChunk(self)
+    if not result and reason then
+      return result, reason
+    end
+  until not result -- eof
+  local result = self.bufferRead
+  self.bufferRead = ""
+  return result
+end
+
+function buffer:formatted_read(readChunk, ...)
+  self.timeout = require("computer").uptime() + self.readTimeout
+  local function read(n, format)
+    if type(format) == "number" then
+      return self:readBytesOrChars(readChunk, format)
+    else
+      local first_char_index = 1
+      if type(format) ~= "string" then
+        error("bad argument #" .. n .. " (invalid option)")
+      elseif unicode.sub(format, 1, 1) == "*"  then
+        first_char_index = 2
+      end
+      format = unicode.sub(format, first_char_index, first_char_index)
+      if format == "n" then
+        return self:readNumber(readChunk)
+      elseif format == "l" then
+        return self:readLine(true, self.timeout)
+      elseif format == "L" then
+        return self:readLine(false, self.timeout)
+      elseif format == "a" then
+        return self:readAll(readChunk)
+      else
+        error("bad argument #" .. n .. " (invalid format)")
+      end
+    end
+  end
+
+  local results = {}
+  local formats = table.pack(...)
+  for i = 1, formats.n do
+    local result, reason = read(i, formats[i])
+    if result then
+      results[i] = result
+    elseif reason then
+      return nil, reason
+    end
+  end
+  return table.unpack(results, 1, formats.n)
+end
+
+function buffer:buffered_write(arg)
+  local result, reason
+  if self.bufferMode == "full" then
+    if self.bufferSize - #self.bufferWrite < #arg then
+      result, reason = self:flush()
+      if not result then
+        return nil, reason
+      end
+    end
+    if #arg > self.bufferSize then
+      result, reason = self.stream:write(arg)
+    else
+      self.bufferWrite = self.bufferWrite .. arg
+      result = self
+    end
+  else--if self.bufferMode == "line" then
+    local l
+    repeat
+      local idx = arg:find("\n", (l or 0) + 1, true)
+      if idx then
+        l = idx
+      end
+    until not idx
+    if l or #arg > self.bufferSize then
+      result, reason = self:flush()
+      if not result then
+        return nil, reason
+      end
+    end
+    if l then
+      result, reason = self.stream:write(arg:sub(1, l))
+      if not result then
+        return nil, reason
+      end
+      arg = arg:sub(l + 1)
+    end
+    if #arg > self.bufferSize then
+      result, reason = self.stream:write(arg)
+    else
+      self.bufferWrite = self.bufferWrite .. arg
+      result = self
+    end
+  end
+  return result, reason
+end
+
+package.delay(buffer, "/lib/full/buffer.lua")
 
 return buffer

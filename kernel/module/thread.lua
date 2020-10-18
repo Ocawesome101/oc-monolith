@@ -33,9 +33,11 @@ do
     for pid, thd in pairs(threads) do
       if checkDead(thd) then
         for k, v in pairs(thd.closeOnExit) do
-          local status,ret = pcall(v.close, v)
-          if not status and ret then
-            kernel.logger.log("handle failed to close on exit for thread '" .. pid .. ", " .. thd.name .. "' - " .. ret)
+          if not v.tty then
+            local status,ret = pcall(v.close, v)
+            if not status and ret then
+              kernel.logger.log("handle failed to close on exit for thread '" .. pid .. ", " .. thd.name .. "' - " .. ret)
+            end
           end
         end
         computer.pushSignal("thread_died", pid)

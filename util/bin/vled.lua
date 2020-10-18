@@ -1,11 +1,12 @@
 -- vled - Visual Lua EDitor --
 -- better than fled, probably worse than OpenOS's edit.lua. --
 
+local vt = require("vt")
 local editor = require("editor")
 local shell = require("shell")
 local readline = require("readline").readline
 
-local w, h = io.stdout.gpu.getResolution()
+local w, h = vt.getResolution()
 local cur = 1
 local cmd = true
 local line = 1
