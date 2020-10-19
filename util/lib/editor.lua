@@ -50,7 +50,7 @@ function ed.buffer:draw(num)
   local w, h = vt.getResolution()
   if num == false then num = false else num = true end
   local y = 1
-  io.write("\27[9m\27[1H\27[K")
+  io.write("\27(B\27[1H\27[K")
   for i=1+self.scroll.h, 1+self.scroll.h+h, 1 do
     local line = self.lines[i] or ""
     local n = drawline(y, (self.lines[i] and (num and i or "")) or nil, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)), #self.lines)
@@ -59,7 +59,7 @@ function ed.buffer:draw(num)
       break
     end
   end
-  io.write("\27[29m")
+  io.write("\27(b")
 end
 
 function ed.new(file)

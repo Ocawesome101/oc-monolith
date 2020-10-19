@@ -35,7 +35,7 @@ end
 
 local history = {}
 while not exit do
-  io.write("\27[0m"..sh.prompt(os.getenv("PS1")))
+  io.write("\27[0m\27(b"..sh.prompt(os.getenv("PS1")))
   local cmd = readline({history = history, notrail = true})
   if cmd ~= "" then
     local ok, err = shell.execute(cmd)
