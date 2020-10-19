@@ -106,8 +106,8 @@ function rl.readline(prompt, opts)
         end
         if r == "return" then -- HAX
           table.insert(history, buffer)
-          io.write("\n")
-          if not opts.notrail then buffer = buffer .. "\n" end
+          --io.write("\n")
+          if opts.notrail then buffer = buffer:gsub("\n", "") end
           return buffer, history
         end
       else
@@ -118,7 +118,7 @@ function rl.readline(prompt, opts)
         buffer = buffer:sub(1, (unicode.len(buffer) - pos)) .. buffer:sub((unicode.len(buffer) - pos) + 2)
       end
     elseif char == "\13" or char == "\10" or char == "\n" then
-      io.write("\n")
+      --io.write("\n")
       if opts.notrail then buffer = buffer:gsub("\n", "") end
       table.insert(history, buffer)
       return buffer, history
