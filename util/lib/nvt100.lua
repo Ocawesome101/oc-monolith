@@ -360,11 +360,14 @@ function vt.emu(gpu, screen)
 
   local function key_down(sig, kb, char, code)
     if keyboards[kb] then
-      if char == 0 and code > 200 then
+      if char == 0 and code >= 127 then
         local add = ctrlHeld and "\27[1;5" or "\27["
         if code == keys.lcontrol or code == keys.rcontrol then
           ctrlHeld = true
           add = ""
+        end
+        if code == 127 then -- delete
+          add = add .. "3~"
         elseif code == 200 then -- up
           add = add .. "A"
         elseif code == 201 then -- page up
