@@ -387,13 +387,13 @@ function vt.emu(gpu, screen)
         stream:write(c == "\8" and "\8 \8" or c)
       else
         if char == 8 then
-        if #rb > 0 and rb:sub(-1) ~= "\n" then
-          rb = unicode.sub(rb, 1, -2)
-          stream:write("\8 \8")
-        end
+          if #rb > 0 and rb:sub(-1) ~= "\n" then
+            rb = unicode.sub(rb, 1, -2)
+            stream:write("\8 \8")
+          end
         elseif char == 13 then
-        stream:write("\n")
-        rb = rb .. "\n"
+          stream:write("\n")
+          rb = rb .. "\n"
         elseif char ~= 0 then
           local c = unicode.char(char)
           stream:write(c)
