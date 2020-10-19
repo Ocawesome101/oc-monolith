@@ -6,13 +6,14 @@ local vt = require("libvt")
 local rl = {}
 
 local function rlbasic(n)
-  io.write("\27[108m")
+  io.write("\27(l\27(R\27[8m") -- --line mode, ++raw mode, --local echo
   local ret = io.read(n or 1)
-  io.write("\27[128m")
+  io.write("\27(L\27(r\27[28m") -- ++line mode, --raw mode, ++local echo
   return ret
 end
 
--- fancier readline designed to be used directly
+-- fancy, overcomplicated readline designed to be used directly
+-- this used to be io.read..... now it *uses* io.read
 function rl.readline(prompt, opts)
   checkArg(1, prompt, "string", "number", "table", "nil")
   checkArg(2, opts, "table", "nil")
@@ -66,7 +67,8 @@ function rl.readline(prompt, opts)
       end
     end
   }})
-  local tabact = opts.complete or opts.tab or opts.tabact or function(x) return x end
+  local tabact = opts.complete or opts.tab or opts.tabact or
+                      acts.tab or function(x) return x end
   local x, y = vt.getCursor()
   local w, h = vt.getResolution() -- :^)
   local sy = tonumber(y) or 1
@@ -89,10 +91,10 @@ function rl.readline(prompt, opts)
   end
   while true do
     redraw()
-    local char, err = rlbasic(screen, 1)
+    local char, err = rlbasic(1)
     if char == "\27" then
       if arrows then -- ANSI escape start
-        local esc = rlbasic(screen, 2)
+        local esc = rlbasic(2)
         local _, r
         if esc == "[A" and acts.up then
           _, r = pcall(acts.up)

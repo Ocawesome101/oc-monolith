@@ -1,9 +1,9 @@
 -- vled - Visual Lua EDitor --
 -- better than fled, probably worse than OpenOS's edit.lua. --
 
-error([[VLED is broken due to a bug in the current readline implementation.
+--[[error([[VLED is broken due to a bug in the current readline implementation.
 This is a KNOWN issue and will be fixed as soon as possible. Please use 'ed' or
-'led' in the meantime.]])
+'led' in the meantime.]]--)
 
 local vt = require("vt")
 local editor = require("editor")

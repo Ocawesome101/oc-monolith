@@ -100,11 +100,13 @@ function vt.emu(gpu, screen)
   -- 0: regular text
   -- 1: received '\27'
   -- 2: received '\27[', in escape
+  -- 3: received '\27(', in control
   local rb = ""
   local wb = ""
   local nb = ""
   local ec = true -- local echo
   local lm = true -- line mode
+  local raw = false -- raw read mode
   local cx, cy = 1, 1
   local fg, bg = colors[8], colors[1]
   local w, h = gpu.maxResolution()
@@ -175,6 +177,8 @@ function vt.emu(gpu, screen)
       elseif mode == 1 then
         if c == "[" then
           mode = 2
+        elseif c == "(" then
+          mode = 3
         else
           mode = 0
         end
@@ -307,10 +311,6 @@ function vt.emu(gpu, screen)
                   fg = bright[n - 89]
                 elseif n > 99 and n < 108 then -- bright background
                   bg = bright[n - 99]
-                elseif n == 108 then -- disable line mode
-                  lm = false
-                elseif n == 128 then -- enable line mode
-                  lm = true
                 end
                 gpu.setForeground(fg)
                 gpu.setBackground(bg)
@@ -322,6 +322,17 @@ function vt.emu(gpu, screen)
             end
           end
           p = {}
+        end
+      elseif mode == 3 then
+        mode = 0
+        if c == "l" then
+          lm = false
+        elseif c == "L" then
+          lm = true
+        elseif c == "r" then
+          raw = false
+        elseif c == "R" then
+          raw = true
         end
       end
     end
@@ -349,15 +360,7 @@ function vt.emu(gpu, screen)
 
   local function key_down(sig, kb, char, code)
     if keyboards[kb] then
-      if char == 8 then
-        if #rb > 0 and rb:sub(-1) ~= "\n" then
-          rb = unicode.sub(rb, 1, -2)
-          stream:write("\8 \8")
-        end
-      elseif char == 13 then
-        stream:write("\n")
-        rb = rb .. "\n"
-      elseif char == 0 and code > 200 then
+      if char == 0 and code > 200 then
         local add = ctrlHeld and "\27[1;5" or "\27["
         if code == keys.lcontrol or code == keys.rcontrol then
           ctrlHeld = true
@@ -378,10 +381,24 @@ function vt.emu(gpu, screen)
         end
         rb = rb .. add
         stream:write((add:gsub("\27", "^")))
-      elseif char ~= 0 then
+      elseif raw then
         local c = unicode.char(char)
-        stream:write(c)
         rb = rb .. c
+        stream:write(c == "\8" and "\8 \8" or c)
+      else
+        if char == 8 then
+        if #rb > 0 and rb:sub(-1) ~= "\n" then
+          rb = unicode.sub(rb, 1, -2)
+          stream:write("\8 \8")
+        end
+        elseif char == 13 then
+        stream:write("\n")
+        rb = rb .. "\n"
+        elseif char ~= 0 then
+          local c = unicode.char(char)
+          stream:write(c)
+          rb = rb .. c
+        end
       end
     end
   end
