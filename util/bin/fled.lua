@@ -1,10 +1,6 @@
 -- FLED: Fullscreen Lua EDitor --
 
-local args = {...}
-
-error([[FLED is currently broken due to a bug in readline(). Please use 'ed' or
-'led' in the meantime.
-]])
+local args, cliopts = require("shell").parse(...)
 
 local vt = require("vt")
 local w, h = vt.getResolution() -- tee hee hee
@@ -158,25 +154,53 @@ local function brep(b,l)
   opts.text = ""
 end
 
-local help = [[FLED - Fullscreen Lua EDitor copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
+local help = [[
+FLED - Fullscreen Lua EDitor copyright (c) 2020
+Ocawesome101 under the GNU GPLv3.
 Commands:
-  o | open <file>       Open <file> for editing. <file> must exist in your filesystem.
-  n | new  [name]       Create a new buffer with filename [name]. If no [name] is provided you will be prompted when saving.
-  w | save [file]       Save the current buffer to a file. If no [file] is provided and the buffer has no name you will be prompted.
-  b        <num>        Selects buffer <num> as the current.
+  o | open <file>       Open <file> for editing. 
+                        <file> must exist in your
+                        filesystem.
+  n | new  [name]       Create a new buffer with
+                        filename [name].  If no
+                        [name] is provided you
+                        will be prompted when
+                        saving.
+  w | save [file]       Save the current buffer to
+                        a file.  If no [file] is
+                        provided and the buffer
+                        has no name you will be
+                        prompted for a name.
+  b        <num>        Selects buffer <num> as
+                        the current buffer.
   bl                    Lists all loaded buffers.
   db       <num>        Delete buffer <num>.
-  i        [line]       Insert into the current buffer at [line], or line 1.
-  q                     Quit. Do not save any buffers.
-  wq                    Quit. Save all open buffers.
-  l                     Prints the number of lines in the current buffer.
-  dl       [line]       Delete line ([line] or 1) from the current buffer.
-  sc       [line]       Scroll to line [line], or line 1. [line] will be the top line of the screen.
+  i        [line]       Insert into the current
+                        buffer at [line], or line
+                        1.
+  q                     Quit. Do not save any
+                        buffers.
+  wq                    Quit. Save all open
+                        buffers.
+  l                     Print the number of lines
+                        in the current buffer.
+  dl       [line]       Delete line ([line] or 1)
+                        from the current buffer.
+  sc       [line]       Scroll to line [line], or
+                        to line 1. [line] will be
+                        displayed at the top of
+                        the screen.
   r        [line]       Replace line [line].]]
+
+if cliopts.help then
+  print(help)
+  return
+end
+
 local exit = false
 local funcs = {
-  help = function()return help end,
-  h = function()return help end,
+  help = function()os.execute("man fled")end,
+  h = function()os.execute("man fled")end,
   open = fload,
   o = fload,
   new = bnew,
