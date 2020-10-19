@@ -19,16 +19,16 @@ while true do
   local pwd = io.read()
   io.write("\27[0m")
   pwd = pwd:gsub("\n", "")
-  out:write("\n")
+  io.write("\n")
 
   local ok, err = users.login(uname, pwd)
   if not ok then
-    out:write("\27[31m" .. err .. "\27[37m\n")
+    io.write("\27[31m" .. err .. "\27[37m\n")
   else
     local shell = os.getenv("SHELL") or "/bin/sh.lua"
     local ok, err = loadfile(shell)
     if not ok then
-      out:write("\27[31m" .. err .. "\27[37m\n")
+      io.write("\27[31m" .. err .. "\27[37m\n")
     else
       local pid = thread.spawn(ok, shell, function(err)out:write("\27[31m" .. err .. "\27[37m\n")end)
       repeat
@@ -38,7 +38,7 @@ while true do
           os.sleep(10)
         end
       until ((sig == "thread_died" or sig == "thread_errored") and dpid == pid) and (not thread.info(pid))
-      out:write("\27[2J\27[1;1H\27[0m") -- reset screen attributes
+      io.write("\27[2J\27(r\27(L\27[1;1H\27[0m") -- reset screen attributes
     end
   end
 end
