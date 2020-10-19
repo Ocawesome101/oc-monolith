@@ -30,15 +30,15 @@ while true do
     if not ok then
       io.write("\27[31m" .. err .. "\27[37m\n")
     else
-      local pid = thread.spawn(ok, shell, function(err)out:write("\27[31m" .. err .. "\27[37m\n")end)
+      local pid = thread.spawn(ok, shell, function(err)io.stderr:write("\27[31m", err, "\27[37m\n")end)
       repeat
         local sig, dpid, err = coroutine.yield()
         if sig == "thread_errored" and err and dpid == pid then
-          io.write("\27[31m" .. err .. "\27[37m\nResetting in 10 seconds.\n")
+          io.stderr:write("\27[31m", err, "\27[37m\nResetting in 10 seconds.\n")
           os.sleep(10)
         end
       until ((sig == "thread_died" or sig == "thread_errored") and dpid == pid) and (not thread.info(pid))
-      io.write("\27[2J\27(r\27(L\27[1;1H\27[0m") -- reset screen attributes
+      io.write("\27[2J\27(r\27(L\27[1;1H\27[0m") -- reset terminal attributes
     end
   end
 end
