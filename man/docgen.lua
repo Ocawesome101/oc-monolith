@@ -27,7 +27,7 @@ while true do
   outh:write(line .. "\n")
 end
 
-print("\27[A\27[2K[ \27[92m OK \27[39m ] generated manpage")
+print("\27[A\27[2K[ \27[92m OK \27[39m ] generated manpage " .. args[1])
 
 inph:close()
 outh:close()

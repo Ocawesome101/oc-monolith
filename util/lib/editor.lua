@@ -23,7 +23,7 @@ end
 function ed.buffer:save(file)
   checkArg(1, file, "string", "nil")
   if not self.name or self.name == "" then
-    checkArg(1, file, "string")
+    assert(type(file) == "string", "\27[91mE32: No file name\27[0m")
   end
   file = file or self.name
   local handle, err = io.open(file, "w")

@@ -135,6 +135,9 @@ local ops = {
     local min = 1
     local max = #editor.buffers[cur].lines
     line = (n > max and max) or (n < min and min) or n
+  end,
+  ["^:help$"] = function()
+    os.execute("man vled")
   end
 }
 
