@@ -139,6 +139,7 @@ local ops = {
 }
 
 local function parsecmd(c)
+  c = c:gsub("\n", "")
   for pat, func in pairs(ops) do
     if c:match(pat) then
       local a,b = pcall(func, c:match(pat))
