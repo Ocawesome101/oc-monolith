@@ -3,9 +3,6 @@
 local users = require("users")
 local thread = require("thread")
 
-local out = io.output()
-local inp = io.input()
-
 local logo = [[
  _____                 _  o  _-_  _
 |     | ___  ___  ___ | | _ |_ _|| |_
@@ -13,7 +10,7 @@ local logo = [[
 |_|_|_||___||_|_||___||_||_| |_| |_|_|
  This is the Monolith system. Welcome.]]
 
-out:write("\27[2J\27[1;1H\27[0;37m" .. logo .. "\n\n")
+io.write("\27[2J\27(r\27(L\27[1;1H\27[0;37m" .. logo .. "\n\n")
 while true do
   io.write((os.getenv("HOSTNAME") or "localhost") .. " login: ")
   local uname = io.read()

@@ -7,7 +7,7 @@
 *COMMANDS&
         Monolith's *VT100& implementation provides the following escape codes.  Each is documented appropriately.
 
-        *{ESC}& is used to reference the ASCII escape character, 0x1B.
+        *{ESC}& is used to reference the ASCII escape character, 0x1b or \\27.
 
         All numbers, unless otherwise specified, default to 1.  Return values are usually read through ^io.read&.
 
@@ -20,9 +20,6 @@
         ~{ESC}[#nn~C&
                 Move the cursor forward #nn& columns.
 
-        ~{ESC}[#nn~c&
-                Get the terminal name. Returns ~{ESC}[%1ocansi0c&.
-
         ~{ESC}[#nn~D&
                 Move the cursor backward #nn& columns.
 
@@ -34,6 +31,9 @@
         
         ~{ESC}[#yy;xx~f&
                 Identical to ~{ESC}[xx;yyH&.
+
+        ~{ESC}[#xx~G&
+                Moves the cursor to X coordinate #xx&.
         
         ~{ESC}[#yy;xx~H&
                 Move the cursor to row #yy&, column #xx&.  Does not scroll or go off-screen.
@@ -65,20 +65,18 @@
 
                 If the argument is in the range 40-47 or 100-107, sets the text background color.  See *COLORS& below.
 
-                If the argument is 0, resets all attributes - echo, foreground, and background.
+                If the argument is 0, resets all attributes - local echo, foreground, and background.
 
                 If the argument is 7 or 27, switches the foreground and background colors.
 
-                If the argument is 8, disables text echo.
+                If the argument is 8, disables local echo.
 
-                If the argument is 28, enables text echo.
+                If the argument is 28, enables local echo.
 
                 If the argument is 9 and GPU buffers are available, redirects all terminal output to the buffer. Useful for full-screen commands such as #vled& or #less&. An argument of 29 will redirect back to the screen and bitblt the terminal buffer to the screen.
 
         ~{ESC}[#nn~n&
                 If #nn& is 6, returns the current cursor position as ~{ESC}[#yy;xx~R&.
-
-                If #nn& is 5, returns ~{ESC}[#0~n& if the terminal's GPU is bound to a screen and ~{ESC}[#3~n& if it is not.
 
         ~{ESC}[S&
                 Scrolls the terminal down one line.  Does not restore previous content.   
@@ -104,10 +102,24 @@
         ~{ESC}8&
                 Identical to ~{ESC}[u&.
 
+        ~{ESC}(l&
+                Disables line mode. Allows reading single characters from the terminal buffer.
+
+        ~{ESC}(L&
+                Enables line mode. Only allows reading single characters from the last entered line.
+
+        ~{ESC}(r&
+                Disables raw mode.
+
+        ~{ESC}(R&
+                Enables raw mode. Disables actions on any special keys or characters such as the newline (\\10).
+
 *COLORS&
         Monolith's VT100 emulator supports both standard and "bright" colors.  Standard colors are accessed in the ranges 30-37 (foreground) and 40-47 (background), and bright colors are accessed by adding 60 to the color value.  Colors can be configured through #/etc/vtcolors.cfg&.
 
-        Color codes, their names, and their default hexvalues follow.
+        As of Monolith 2020.10.17, the terminal supports selecting a single color from the ANSI-standard 256-color palette through ~{ESC}[38;2;#INDEX~m& for the foreground color and ~{ESC}[48;2;#INDEX~m& for the background color, as well as selecting a 24-bit RGB color through ~{ESC}[38;5;#RRR~;#GGG;#BBB~m& for through a foreground and ~{ESC}[48;5;#RRR~;#GGG;#BBB~m& for the background color.
+
+        Color codes, their names, and their default hexvalues (in 24-bit RGB format) follow.
 
         FORMAT
         fg/bg           name            hexvalue
@@ -131,6 +143,9 @@
         95/105          Purple          0xFF00FF
         96/106          Cyan            0x00FFFF
         97/107          White           0xFFFFFF
+
+*NOTES&
+        As of the transition to the Paragon terminal emulator in Monolith 2020.10.17, terminal I/O has undergone a significant restructuring for the sake of sanity.  Buffer support is not implemented and terminal control codes for line mode and raw mode have been added.  256-color and RGB-color support has been added.  Support for ~5n& and ~c& has been dropped.
 
 *COPYRIGHT
         Monolith System Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.

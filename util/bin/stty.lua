@@ -16,6 +16,7 @@ if #args == 0 then
 end
 
 if presets[args[1]] then
+  io.write(presets[args[1]])
 else
   print("invalid preset (expected insane, sane, raw)")
 end

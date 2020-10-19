@@ -9,13 +9,13 @@ function vt.setCursor(x, y)
 end
 
 function vt.getCursor()
-  io.write("\27[6n\27[108m")
+  io.write("\27[6n\27(l")
   local resp = ""
   repeat
     local c = io.read(1)
     resp = resp .. c
   until c == "R"
-  io.write("\27[128m")
+  io.write("\27(L")
   local y, x = resp:match("\27%[(%d+);(%d+)R")
 --  require("component").sandbox.log(resp, x, y)
   return tonumber(x), tonumber(y)
