@@ -107,10 +107,17 @@ function vt.emu(gpu, screen)
   local ec = true -- local echo
   local lm = true -- line mode
   local raw = false -- raw read mode
+  local buf
   local cx, cy = 1, 1
   local fg, bg = colors[8], colors[1]
   local w, h = gpu.maxResolution()
   gpu.setResolution(w, h)
+
+  -- buffered TTYs for fullscreen apps, just like before but using control codes 
+  --       \27(B/\27(b rather than \27[*m escape sequences
+  if gpu.allocateBuffer then
+    buf = gpu.allocateBuffer()
+  end
 
   local function scroll(n)
     n = n or 1
@@ -333,6 +340,11 @@ function vt.emu(gpu, screen)
           raw = false
         elseif c == "R" then
           raw = true
+        elseif c == "b" then
+          if buf then gpu.setActiveBuffer(0)
+                      gpu.bitblt(buf) end
+        elseif c == "B" then
+          if buf then gpu.setActiveBuffer(buf) end
         end
       end
     end

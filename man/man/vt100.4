@@ -73,7 +73,6 @@
 
                 If the argument is 28, enables local echo.
 
-                If the argument is 9 and GPU buffers are available, redirects all terminal output to the buffer. Useful for full-screen commands such as #vled& or #less&. An argument of 29 will redirect back to the screen and bitblt the terminal buffer to the screen.
 
         ~{ESC}[#nn~n&
                 If #nn& is 6, returns the current cursor position as ~{ESC}[#yy;xx~R&.
@@ -114,6 +113,12 @@
         ~{ESC}(R&
                 Enables raw mode. Disables actions on any special keys or characters such as the newline (\\10).
 
+        ~{ESC}(B&
+                If GPU buffers are available, redirects all terminal output to the buffer. Useful for full-screen commands such as #vled& or #less&.
+
+        ~{ESC}(b&
+                If GPU buffers are available, redirect output back to the screen and bitblt the terminal buffer to the screen.
+
 *COLORS&
         Monolith's VT100 emulator supports both standard and "bright" colors.  Standard colors are accessed in the ranges 30-37 (foreground) and 40-47 (background), and bright colors are accessed by adding 60 to the color value.  Colors can be configured through #/etc/vtcolors.cfg&.
 
@@ -145,7 +150,9 @@
         97/107          White           0xFFFFFF
 
 *NOTES&
-        As of the transition to the Paragon terminal emulator in Monolith 2020.10.17, terminal I/O has undergone a significant restructuring for the sake of sanity.  Buffer support is not implemented and terminal control codes for line mode and raw mode have been added.  256-color and RGB-color support has been added.  Support for ~5n& and ~c& has been dropped.
+        As of the transition to the Paragon terminal emulator in Monolith 2020.10.17, terminal I/O has undergone a significant restructuring for the sake of sanity.  Terminal control codes for line mode, the full-screen buffer, and raw mode have been added.  256-color and RGB-color support has been added.  Support for ~5n& and ~c& has been dropped.
+
+        GPU buffers are available in OpenComputers 1.7.9.208 and later.  The latest builds may be obtained through the mod's Jenkins, at ^https://ci.cil.li&.
 
 *COPYRIGHT
         Monolith System Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
