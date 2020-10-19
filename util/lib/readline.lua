@@ -86,8 +86,7 @@ function rl.readline(prompt, opts)
       end
       lines = written
     end
-    vt.setCursor(1, sy)
-    io.write(string.format("%s%s %s", prompt, write, string.rep("\8", pos)))
+    io.write(string.format("\27[%d;%dH%s%s %s", sy, 1, prompt, write, string.rep("\8", pos)))
   end
   while true do
     redraw()
@@ -119,9 +118,9 @@ function rl.readline(prompt, opts)
         buffer = buffer:sub(1, (unicode.len(buffer) - pos)) .. buffer:sub((unicode.len(buffer) - pos) + 2)
       end
     elseif char == "\13" or char == "\10" or char == "\n" then
-      table.insert(history, buffer)
       io.write("\n")
-      if not opts.notrail then buffer = buffer .. "\n" end
+      if opts.notrail then buffer = buffer:gsub("\n", "") end
+      table.insert(history, buffer)
       return buffer, history
     elseif ctrlDown then
       if char == "a" then

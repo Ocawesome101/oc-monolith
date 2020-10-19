@@ -3,7 +3,7 @@
 assert(xpcall(function()
 local shell = require("shell")
 local sh = require("sh")
---local readline = require("readline").readline
+local readline = require("readline").readline
 local thread = require("thread")
 
 sh.execute("/etc/profile")
@@ -35,9 +35,8 @@ end
 
 local history = {}
 while not exit do
-  require("component").sandbox.log("SHELL LOOP")
   io.write("\27[0m"..sh.prompt(os.getenv("PS1")))
-  local cmd = io.read()--readline({prompt = "\27[0m" .. sh.prompt(os.getenv("PS1")), history = history, notrail = true})
+  local cmd = readline({history = history, notrail = true})
   if cmd ~= "" then
     local ok, err = shell.execute(cmd)
     if not ok and err then
