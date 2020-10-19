@@ -368,11 +368,11 @@ function vt.emu(gpu, screen)
         elseif code == 200 then -- up
           add = add .. "A"
         elseif code == 201 then -- page up
-          -- TODO: does this behave differently when ctrl is held?
+          -- TODO: do pgUp/pgDn behave differently when ctrl is held?
           add = "\27[5~"
         elseif code == 203 then -- left
           add = add .. "D"
-        elseif code == 205 then
+        elseif code == 205 then -- right
           add = add .. "C"
         elseif code == 208 then -- down
           add = add .. "B"
@@ -382,14 +382,16 @@ function vt.emu(gpu, screen)
         rb = rb .. add
         stream:write((add:gsub("\27", "^")))
       elseif raw then
-        local c = unicode.char(char)
-        rb = rb .. c
-        stream:write(c == "\8" and "\8 \8" or c)
+        if char ~= 0 then
+          local c = unicode.char(char == 13 and 10 or char)
+          rb = rb .. c
+          stream:write(c == "\8" and "\8 \8" or c)
+        end
       else
         if char == 8 then
           if #rb > 0 and rb:sub(-1) ~= "\n" then
             rb = unicode.sub(rb, 1, -2)
-            stream:write("\8 \8")
+            if ec then stream:write("\8 \8") end
           end
         elseif char == 13 then
           stream:write("\n")
@@ -422,16 +424,16 @@ function vt.emu(gpu, screen)
     checkArg(1, n, "number")
     if lm then
       while (not rb:find("\n")) or (rb:find("\n") < n) do
-        if rb:find("\4") then os.exit() end
+        if rb:find("\4") then rb = "" os.exit() end
         coroutine.yield()
       end
     else
       while #rb < n do
-        if rb:find("\4") then os.exit() end
+        if rb:find("\4") then rb = "" os.exit() end
         coroutine.yield()
       end
     end
-    if rb:find("\4") then os.exit() end
+    if rb:find("\4") then rb = "" os.exit() end
     local ret = rb:sub(1, n)
     rb = rb:sub(n + 1)
     return ret

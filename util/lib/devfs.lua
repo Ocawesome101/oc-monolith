@@ -70,7 +70,7 @@ end
 function fsc.exists(file)
   checkArg(1, file, "string")
   if file == "/" or file == "" then return true end
-  local ok, err = find(file)
+  local ok, err = devfs.internal.find(file)
   return ok
 end
 

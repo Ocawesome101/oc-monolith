@@ -27,7 +27,7 @@ else
     if file then
       repeat
         local data = file:read(2048)
-        io.write(data)
+        if data then io.write(data) end
       until not data
       file:close()
     else

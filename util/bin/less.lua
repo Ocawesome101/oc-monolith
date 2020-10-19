@@ -1,18 +1,19 @@
 -- less --
 
+local vt = require("vt")
 local shell = require("shell")
 local readline = require("readline").readline
 
 local args, opts = shell.parse(...)
 
-if io.stdin.gpu and #args == 0 then -- not being piped
+if io.stdin.tty and #args == 0 then -- not being piped
   return shell.codes.argument
 end
 
 args[1] = args[1] or "-"
 
 local handle = assert(io.open(args[1], "r"))
-local w, h = io.stdout.gpu.getResolution()
+local w, h = vt.getResolution()
 
 local lines = {}
 local screen = 0
@@ -76,7 +77,7 @@ while true do
       scroll = 0
     end
   elseif esc == "q" then
-    io.write("\27[2J")
+    io.write("\27[2J\27[1H")
     break
   end
 end

@@ -2,14 +2,14 @@
 
 local shell = require("shell")
 local users = require("users")
-local readl = require("readline").readline
 
 local args, opts = shell.parse(...)
 
 local function getPasswordInput()
   local read = ""
-  read = readl("password: ", {pwchar = "*"}):gsub("\n", "")
-  io.write("\27[m\n")
+  io.write("password: \27[8m")
+  read = io.read():gsub("\n", "")
+  io.write("\27[0m\n")
   return read
 end
 
@@ -63,7 +63,7 @@ This is free software, and you are welcome to redistribute it
 under certain conditions.]])
   while interactive do
     io.write("usermgr> ")
-    local cmd = require("text").tokenize(io.read():gsub("\n",""))
+    local cmd = require("text").tokenize((io.read():gsub("\n","")))
     local ok, err = execute(table.unpack(cmd))
     if not ok and err then
       shell.error("usermgr", err)
