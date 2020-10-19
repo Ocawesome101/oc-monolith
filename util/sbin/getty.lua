@@ -4,7 +4,7 @@ local thread = require("thread")
 local component = require("component")
 local computer = require("computer")
 package.loaded.times.getty_start = computer.uptime()
-local vt100 = require("nvt100")
+local vt100 = require("vt100")
 local login = "/sbin/login.lua"
 local login_name = "login"
 
