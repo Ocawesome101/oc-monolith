@@ -45,18 +45,6 @@ local function nextScreen(res)
   return match[res] or match[8000] or match[2000] or match[800]
 end
 
---[[ register gpu/screen as an IO stream
-local function makeStream(gpu, screen)
-  local gpu = component.proxy(gpu)
-  gpu.bind(screen)
-  readline.addscreen(screen, gpu) -- register with readline so it listens for stuff
-  local write = vt100.emu(gpu)
-  local read = readline.readline
-  write("\27[2J")
-  local new = {read = function(s,...) return read(...) end, write = function(s,...) return write(...) end, close = function()end, screen = screen, gpu = gpu}
-  return new
-end]]
-
 local ttyn = 0
 
 function getty.scan()
