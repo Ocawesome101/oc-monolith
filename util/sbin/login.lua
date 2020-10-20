@@ -30,11 +30,12 @@ while true do
     if not ok then
       io.write("\27[31m" .. err .. "\27[37m\n")
     else
-      local pid = thread.spawn(ok, shell, function(err)io.stderr:write("\27[31m", err, "\27[37m\n")end)
+      local stderr = io.stderr -- we need this so as not to error
+      local pid = thread.spawn(ok, shell, function(err)stderr:write("\27[31m", err, "\27[37m\n")end)
       repeat
         local sig, dpid, err = coroutine.yield()
         if sig == "thread_errored" and err and dpid == pid then
-          io.stderr:write("\27[31m", err, "\27[37m\nResetting in 10 seconds.\n")
+          io.write("\27[31m", err, "\27[37m\nResetting in 10 seconds.\n")
           os.sleep(10)
         end
       until ((sig == "thread_died" or sig == "thread_errored") and dpid == pid) and (not thread.info(pid))

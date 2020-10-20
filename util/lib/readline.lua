@@ -71,18 +71,20 @@ function rl.readline(prompt, opts)
                       acts.tab or function(x) return x end
   local x, y = vt.getCursor()
   local w, h = vt.getResolution() -- :^)
-  local sy = tonumber(y) or 1
-  prompt = ("\27[C"):rep((tonumber(x) or 1) - 1) .. (prompt or "")
+  local sy = y or 1
+  prompt = ("\27[C"):rep((x or 1) - 1) .. (prompt or "")
+  local promptLen = unicode.len(opts.prompt or string.rep(" ", x))
   local lines = 1
   function redraw()
     local write = highlighter(buffer)
     if pwchar then write = pwchar:rep(unicode.len(buffer)) end
-    local written = math.max(1, math.ceil((unicode.len(buffer) + unicode.len(prompt)) / w))
+    local written = math.max(1, math.ceil((unicode.len(buffer) + promptLen) / w))
     if written > lines then
       local diff = written - lines
-      io.write(string.rep("\27[B", diff) .. string.rep("\27[A", diff))
-      if (sy + diff + 1) >= h then
-        sy = sy - diff
+--      io.write(string.rep("\27[B", diff) .. string.rep("\27[A", diff))
+      while (sy + diff) > h - 1 do
+        io.write("\27[S")
+        sy = sy - 1
       end
       lines = written
     end
