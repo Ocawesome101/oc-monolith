@@ -85,7 +85,8 @@ do
 
   function io.close(file)
     checkArg(1, file, "table", "nil")
-    if file then
+    if file and not (file == io.stdin or file == io.stdout or file == io.stderr)
+                                                                            then
       return file:close()
     end
     return nil, "cannot close standard file"

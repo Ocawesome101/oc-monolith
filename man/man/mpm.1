@@ -1,0 +1,51 @@
+*NAME&
+        mpm - the Monolith Package Manager
+
+*SYNOPSIS
+        mpm& <?command&> ?...
+
+        *mpm& --*help
+
+DESCRIPTION
+        mpm& is the official package manager for the Monolith system.  It supports installing packages from the #package/& folder in the root of any properly structured service, by default GitHub.
+
+        For an example MPM repository, see ^https://github.com/ocawesome101/mbase&.
+
+*USAGE&
+        All available MPM command-line parameters (?command&s) are listed below.
+
+        *install& [?user*/&]?repo*/?package&
+            Try to install the specified package.  If ?user& is not specified, *mpm& will search all names listed in the configuration.  Dependencies are not resolved or supported.
+
+            MPM will query the configured base URL in the form ?baseURL*/?name*/?repo*/master/packages/?package*.cpio&.
+        
+        *remove& [?user*/&]?repo*/?package&
+            Try to remove the specified package.
+
+        *list&
+            Show all installed packages.
+
+        *search& [?user*/&]?repo*/?package&
+            Check whether the provided package specifier is valid.
+
+        *clean&
+            Clean the package cache.  Equivalent to running #rm -r /var/cache/mpm& in the shell.
+
+*CONFIGURATION
+        mpm& may be configured through #/etc/mpm/mpm.cfg&.
+
+        Packages must be in CPIO form and have a #package.cfg& in the root of the CPIO.  The #package.cfg& file must contain a Lua table formatted as such:
+
+            @{
+              *name& = ~"string"&,
+              *creator& = ~"string"&,
+              *description& = ~"string"&, ^-- This field is optional
+              *files& = @{
+                ~"string"&,
+                ~"string"&,
+                ~...&
+              @}&
+            @}&
+
+*COPYRIGHT
+        Monolith Package Manager& copyright (c) 2020 Ocawesome101 under the GNU GPLv3.

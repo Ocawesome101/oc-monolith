@@ -4,10 +4,53 @@
 *DESCRIPTION
         io& is the Monolith re-implementation of the Lua-standard library of the same name.  It is intended to function identically.
 
-        For documentation, see ^https://lua.org/manual/5.3/manual.html`6.8&.
+        *io& is a global table and does not need to be ^require&d.
+
+        For the official documentation, see ^https://lua.org/manual/5.3/manual.html`6.8&.
+
+*FIELDS
+        stdin&: @table&
+            The standard input stream.  Controlled by a metatable.
+
+        *stdout&: @table&
+            The standard output stream.  Controlled by a metatable.
+
+        *stderr&: @table&
+            The standard error stream.  Controlled by a metatable.
+
+*METHODS
+        input&([*stream&:@table&]): @table& or *nil&, ~string&
+            Returns the current standard input stream.  If the @stream& argument is specified, will attempt to set the input stream to @stream&.
+
+        *output&([*stream&:@table&]): @table& or *nil&, ~string&
+            Controls the current standard output stream.  Behavior is otherwise identical to ^io.input&.
+
+        *error&([@stream&:@table&]): @table& or *nil&, ~string&
+            Controls the current standard error stream.  Behavior is otherwise identical to ^io.input&.  This function is nonstandard.
+
+        *write&([*...&])
+            Write a concatenation of the arguments to the standard output stream.  Analogous to ^io.output&():^write&(*...&).
+
+        *read&([*...&])
+            Read from the standard input stream.  Analogous to ^io.input&():^read&(*...&).  Note that for most programs it is generally better to use *readline&(*3&).
+
+        *open&(*file&:~string&[, *mode&:~string&]): @table& or *nil&, ~string&
+            Attempts to open the specified ~file&.  On success, returns a buffered stream.  ~mode& defaults to ~"r"&, and may contain any of the characters *r&, *w&, *a&, and *b&.  Note that *a& is not valid alongside *r& or *w&.  *b& specifies that the file should be opened in binary mode.
+
+        *popen&(*program&:~string&[, *mode&:~string&]): @table& or *nil&, ~string&
+            Attempts to open the provided ~program&, returning a handle to the program's input or output depending which ~mode& is specified.
+
+        *flush&([*stream&:@table&])
+            Flushes the provided @stream&, or the standard output.
+        
+        *close&([*stream&:@table&]): ?boolean& or *nil&, ~string&
+            Close the provided @stream&.  If called with no arguments, returns *nil&, ~"cannot close standard file"&.
+
+        *type&(*stream&:@table&): ~string& or *nil&
+            Returns the type of the provided table @stream&: ~"file"& if the stream is a file, ~"closed file"& if the stream is a closed file, and *nil& otherwise.
 
 *COPYRIGHT
         Monolith System Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
 
 *SEE ALSO
-        buffer&(*3&)
+        buffer&(*3&), *readline&(*3&)
