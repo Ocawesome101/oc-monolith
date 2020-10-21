@@ -7,7 +7,7 @@ local w, h = vt.getResolution() -- tee hee hee
 w = tonumber(w)
 h = tonumber(h)
 
-local readline = require("readline").readline
+local readline = require("readline")
 
 local buf = {}
 local cur = 1

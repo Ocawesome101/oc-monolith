@@ -5,7 +5,7 @@ local vt = require("vt")
 local term = {}
 
 term.write = io.write
-term.read = require("readline").readline
+term.read = require("readline")
 function term.setCursor(x,y)
   checkArg(1, x, "number")
   checkArg(2, y, "number")

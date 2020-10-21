@@ -1,9 +1,8 @@
 -- relatively flexible readline implementation --
 
-local component = require("component")
 local unicode = require("unicode")
-local vt = require("libvt")
-local rl = {}
+local thread = require("thread")
+local vt    = require("libvt")
 
 local function rlbasic(n)
   io.write("\27(l\27(R\27[8m") -- --line mode, ++raw mode, --local echo
@@ -14,7 +13,7 @@ end
 
 -- fancy, overcomplicated readline designed to be used directly
 -- this used to be io.read..... now it *uses* io.read
-function rl.readline(prompt, opts)
+local function readline(prompt, opts)
   checkArg(1, prompt, "string", "number", "table", "nil")
   checkArg(2, opts, "table", "nil")
   if type(prompt) == "table" then opts = prompt prompt = nil end
@@ -148,6 +147,7 @@ function rl.readline(prompt, opts)
       buffer = buffer:sub(1, (unicode.len(buffer) - pos) + 1) .. char .. buffer:sub((unicode.len(buffer) - pos) + 2)
     end
   end
+  ::ret::
 end
 
-return rl
+return readline

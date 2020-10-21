@@ -2,7 +2,7 @@
 
 local vt = require("vt")
 local shell = require("shell")
-local readline = require("readline").readline
+local readline = require("readline")
 
 local args, opts = shell.parse(...)
 

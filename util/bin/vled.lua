@@ -8,7 +8,7 @@ This is a KNOWN issue and will be fixed as soon as possible. Please use 'ed' or
 local vt = require("vt")
 local editor = require("editor")
 local shell = require("shell")
-local readline = require("readline").readline
+local readline = require("readline")
 
 local w, h = vt.getResolution()
 local cur = 1

@@ -3,8 +3,10 @@
 assert(xpcall(function()
 local shell = require("shell")
 local sh = require("sh")
-local readline = require("readline").readline
+local readline = require("readline")
 local thread = require("thread")
+
+-- suppress interrupts
 
 sh.execute("/etc/profile")
 local exit = false
@@ -34,6 +36,12 @@ if handle then
 end
 
 local history = {}
+
+local function onInterrupt()
+  io.write("^C")
+end
+
+thread.handleSignal(thread.signals.interrupt, onInterrupt)
 while not exit do
   io.write("\27[0m\27(b"..sh.prompt(os.getenv("PS1")))
   local cmd = readline({history = history, notrail = true})

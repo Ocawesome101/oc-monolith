@@ -2,7 +2,7 @@
 
 local args, opts = require("shell").getopt(table.pack(...), {e = {takesarg = true, reqopt = true}})
 
-local readline = require("readline").readline
+local readline = require("readline")
 
 local function tryget(...)
   local s, m = pcall(require, ...)

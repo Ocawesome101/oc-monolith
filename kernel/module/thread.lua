@@ -204,7 +204,7 @@ do
   function thread.handleSignal(sig, func)
     checkArg(1, sig, "number")
     checkArg(2, func, "function", "nil")
-    local info = thread.info()
+    local info = threads[cur]
     info.handlers[sig] = func
     return true
   end
