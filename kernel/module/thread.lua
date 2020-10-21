@@ -85,6 +85,7 @@ do
       parent = cur,                             -- parent thread's PID
       name = name,                              -- thread name
       handler = handler or kernel.logger.panic, -- error handler
+      handlers = {},                            -- signal handlers
       user = kernel.users.uid(),                -- current user
       users = {},                               -- user history
       owner = kernel.users.uid(),               -- thread owner
@@ -200,6 +201,14 @@ do
     return inf
   end
 
+  function thread.handleSignal(sig, func)
+    checkArg(1, sig, "number")
+    checkArg(2, func, "function", "nil")
+    local info = thread.info()
+    info.handlers[sig] = func
+    return true
+  end
+
   function thread.signal(pid, sig)
     checkArg(1, pid, "number")
     checkArg(2, sig, "number")
@@ -209,8 +218,18 @@ do
     if threads[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
-    local msg = {"signal", cur, sig}
-    table.insert(threads[pid].sig, msg)
+    local thd = threads[pid]
+    if sig == thread.signals.kill then
+      thd.dead = true
+    elseif sig == thread.signals.stop then
+      thd.stopped = true
+    elseif sig == thread.signals.continue then
+      thd.stopped = false
+    elseif thd.handlers[sig] then
+      thd.handlers[sig]()
+    else
+      thd.dead = true
+    end
     return true
   end
 
@@ -246,6 +265,7 @@ do
   end
 
   thread.signals = {
+    hangup    = 1,
     interrupt = 2,
     quit      = 3,
     kill      = 9,
@@ -280,18 +300,6 @@ do
         if #thd.ipc > 0 then
           local ipc = table.remove(thd.ipc, 1)
           ok, r1 = coroutine.resume(thd.coro, table.unpack(ipc))
-        elseif #thd.sig > 0 then
-          local nsig = table.remove(thd.sig, 1)
-          if nsig[3] == thread.signals.kill then
-            thd.dead = true
-            ok, r1 = true, "killed"
-          elseif nsig[3] == thread.signals.stop then
-            thd.stopped = true
-          elseif nsig[3] == thread.signals.continue then
-            thd.stopped = false
-          else
-            ok, r1 = coroutine.resume(thd.coro, table.unpack(nsig))
-          end
         elseif sig and #sig > 0 then
           ok, r1 = coroutine.resume(thd.coro, table.unpack(sig))
         else

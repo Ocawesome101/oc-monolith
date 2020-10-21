@@ -2,6 +2,7 @@
 -- This is actually ported from the failed Paragon project.
 
 local event = require("event")
+local thread = require("thread")
 local buffer = require("buffer")
 local unicode = require("unicode")
 local computer = require("computer")
@@ -431,6 +432,20 @@ function vt.emu(gpu, screen)
   event.listen("key_down", key_down)
   event.listen("key_up", key_up)
 
+  -- special character handling functions
+  local chars = {
+    ["\3"] = thread.signals.interrupt,
+    ["\4"] = thread.signals.hangup
+  }
+  local function checkBuffer()
+    for char, sign in pairs(chars) do
+      if rb:find(char) then
+        rb = ""
+        thread.signal(thread.current(), sign)
+      end
+    end
+  end
+
   -- simpler than the original stream:read implementation:
   --   -> required 'n' argument
   --   -> does not support 'n' as string
@@ -439,16 +454,16 @@ function vt.emu(gpu, screen)
     checkArg(1, n, "number")
     if lm then
       while (not rb:find("\n")) or (rb:find("\n") < n) do
-        if rb:find("\3") then rb = "" os.exit() end
+        checkBuffer()
         coroutine.yield()
       end
     else
       while #rb < n do
-        if rb:find("\3") then rb = "" os.exit() end
+        checkBuffer()
         coroutine.yield()
       end
     end
-    if rb:find("\3") then rb = "" os.exit() end
+    checkBuffer()
     local ret = rb:sub(1, n)
     rb = rb:sub(n + 1)
     return ret
