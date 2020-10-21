@@ -4,6 +4,8 @@ Monolith is a monolithic, multitasking, multiuser, multiscreen operating system 
 
 Documentation is available online [here](https://oz-craft.pickardayune.com/man).
 
+Current LOC: 9665
+
 ## Pre-built releases
 
 The latest pre-built release will be downloaded through the installer. At any time, you may upgrade with `mpm install ocawesome101/oc-monolith/base`.
