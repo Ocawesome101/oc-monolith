@@ -1,0 +1,49 @@
+*NAME&
+        filesystem - interface to all mounted filesystems
+
+*DESCRIPTION&
+        All files accessible in a Unix-like system are arranged in one big tree, the file hierarchy, rooted at #/&.  These files can be spread out over several devices.  The *mount&(*1&) command serves to attach the filesystem found at some address to the big file tree.  Conversely, the *umount&(*1&) command will detach it again.  The filesystem is used to control how data is stored on the device.  This library allows an abstracted interface on top of this file tree.  This is not to be confused with the *filesystem& component; for this, see the result of #cdoc filesystem& in the shell.
+
+*METHODS&
+        All methods not specifically defined here function identically to calling the same method on a filesystem component proxy.
+
+        *name&(*path&:~string&): ~string&
+            Returns the file name component of the provided ~path&.
+
+        *path&(*path&:~string&): ~string&
+            Returns exactly the inverse of ^filesystem.name&; This means that ^filesystem.path&(~"/bin/ls.lua"&) ~.. "/" .. & ^filesystem.name&(~"/bin/ls.lua"&) is equal to ~"/bin/ls.lua"&.
+
+        *list&(*path&:~string&): @table& or *nil&, ~string&
+            Returns a list of files under the directory at ~path&.  The list may be used as an iterator.
+
+        *open&(*path&:~string&[, *mode&:~string&]): @table& or *nil&, ~string&
+            Returns a non-buffered stream to the file at the specified ~path&.  The methods ^read&, ^write&, and ^seek& are available and function similarly to their buffered counterparts; however, ^fileStream:read& and ^fileStream:write& each take a single argument, and ^fileStream:read& accepts the string argument ~"*a"& to read all unread data from the file.  It is recommended to use the *io&(*3&) library for file IO wherever possible.
+
+        *canonical&(*path&:~string&): ~string&
+            Returns the canonicalized form of the specified ~path&.
+
+        *concat&(*path1&:~string&, *path2&:~string&[, *...&]): ~string&
+            Returns the canonicalized, concatenated form of all provided paths, e.g. ^fs.concat&(~"/lib/.."&, ~"bin"&, ~"ls.lua"&) returns ~"/bin/ls.lua"&.
+
+        *mount&(*fsp&:~string& or @table&, *path&:~string&[, *ro&:?boolean&]): ?boolean&
+            Mounts the specified filesystem @fsp& at the specified ~path&.  If ~fsp& is a string, will attempt to ^component.proxy& ~fsp&.  If ?ro& is ?true&, mounts the filesystem as read-only whether the filesystem component is read-only or not.
+
+        *mounts&(): @table&
+            Returns a table of current mounts, with the key-value arrangement [~path&] = ~address&.
+
+        *umount&(*path&:~string&): ?boolean& or *nil&, ~string&
+            Unmounts the filesystem mounted at the specified ~path&.
+
+        *get&(*path&:~string&): @table&
+            Returns the component proxy of the filesystem mounted at the specified ~path&.
+
+*NOTES&
+        The behavior of ^filesystem.list& and ^fileStream:read& deviates slightly from the OpenOS implementations.  The OpenOS API documentation may be found at ^https://ocdoc.cil.li/api:filesystem&.
+        
+        ^filesystem.copy& and ^filesystem.rename& cannot operate on directories.
+
+*COPYRIGHT
+        Monolith Kernel Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        *cdoc&(*1&), *mount&(*1&), *umount&(*1&), *component&(*2&)
