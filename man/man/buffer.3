@@ -4,5 +4,14 @@
 *DESCRIPTION&
         The *buffer& API is an implementation of the FILE object in PUC Lua 5.3 and above.  It is used primarily in the *io&(*3&) library, but can be used elsewhere as well.
 
+*METHODS
+        new&(*mode&:~string&, *stream&:@table&): @table&
+            Returns a buffered interface to the provided @stream&.  Used directly in ^io.open&.
+
+            The returned stream may be treated identically to Lua's FILE object.
+
 *COPYRIGHT
         buffer& is copyright (c) 2013 ~Sangar& as part of OpenOS.
+
+*SEE ALSO
+        io&(*3&), *filesystem&(*2&)
