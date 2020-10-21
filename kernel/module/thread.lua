@@ -32,7 +32,7 @@ do
     local dead = {}
     for pid, thd in pairs(threads) do
       if checkDead(thd) then
-        for k, v in pairs(thd.closeOnExit) do
+        for k, v in pairs(thd.handles) do
           if not v.tty then
             local status,ret = pcall(v.close, v)
             if not status and ret then
@@ -96,16 +96,16 @@ do
       uptime = 0,                               -- thread uptime
       stopped = false,                          -- is it stopped?
       started = computer.uptime(),              -- time of thread creation
-      closeOnExit = {},                         -- handles the scheduler should close on thread exit
+      handles = {},                             -- handles the scheduler should close on thread exit
       io      = {                               -- thread I/O streams
         [0] = current.data.io[0],
         [1] = current.data.io[1],
         [2] = current.data.io[2] or current.data.io[1]
       }
     }
-    new.closeOnExit[1] = new.io[0]
-    new.closeOnExit[2] = new.io[1]
-    new.closeOnExit[3] = new.io[2]
+    new.handles[1] = new.io[0]
+    new.handles[2] = new.io[1]
+    new.handles[3] = new.io[2]
     if not new.env.PWD then
       new.env.PWD = "/"
     end
@@ -166,12 +166,12 @@ do
     local info, err = thread.info()
     if not info then return nil, err end
     local old = handle.close
-    local i = #info.handles + 1
+    local i = #info.data.handles + 1
     function handle:close()
-      info.handles[i] = nil
-      return close()
+      info.data.handles[i] = nil
+      return close(handle)
     end
-    info.handles[i] = handle
+    info.data.handles[i] = handle
     return true
   end
 
@@ -194,7 +194,7 @@ do
       inf.data = {
         io = t.io,
         env = t.env,
-        handles = t.closeOnExit
+        handles = t.handles
       }
     end
     return inf

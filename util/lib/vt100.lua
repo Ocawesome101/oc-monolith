@@ -439,16 +439,16 @@ function vt.emu(gpu, screen)
     checkArg(1, n, "number")
     if lm then
       while (not rb:find("\n")) or (rb:find("\n") < n) do
-        if rb:find("\4") then rb = "" os.exit() end
+        if rb:find("\3") then rb = "" os.exit() end
         coroutine.yield()
       end
     else
       while #rb < n do
-        if rb:find("\4") then rb = "" os.exit() end
+        if rb:find("\3") then rb = "" os.exit() end
         coroutine.yield()
       end
     end
-    if rb:find("\4") then rb = "" os.exit() end
+    if rb:find("\3") then rb = "" os.exit() end
     local ret = rb:sub(1, n)
     rb = rb:sub(n + 1)
     return ret

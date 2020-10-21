@@ -71,7 +71,7 @@ options:
   --poweroff, -P, -h    power off
   --reboot, -r          reboot
   -k                    send the shutdown signal but do not shut down
-      ]])
+]])
       return
     end
 

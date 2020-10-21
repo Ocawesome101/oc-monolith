@@ -44,6 +44,7 @@ do
     end
     if file then
       thread.info().data.io[1] = file
+      thread.closeOnExit(file)
     end
     return thread.info().data.io[1]
   end
@@ -55,6 +56,7 @@ do
     end
     if file then
       thread.info().data.io[0] = file
+      thread.closeOnExit(file)
     end
     return thread.info().data.io[0]
   end
@@ -66,6 +68,7 @@ do
     end
     if file then
       thread.info().data.io[2] = file
+      thread.closeOnExit(file)
     end
     return thread.info().data.io[2] or thread.info().data.io[1]
   end
