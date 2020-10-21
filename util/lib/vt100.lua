@@ -441,6 +441,7 @@ function vt.emu(gpu, screen)
     for char, sign in pairs(chars) do
       if rb:find(char) then
         rb = ""
+        stream:write("\n")
         thread.signal(thread.current(), sign)
       end
     end
