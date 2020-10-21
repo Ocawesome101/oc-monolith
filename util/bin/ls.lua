@@ -106,11 +106,11 @@ for i=1, #args, 1 do
       else
         if n + longest >= w and n ~= 1 then out = out .. "\n" n = 1 end
         out = out .. f
-        n = n + longest + 1
-        if n + (longest - #f + 1) >= w then
+        n = n + longest + 2
+        if n + (longest - #f + 2) >= w then
           n = 1 out = out .. "\n"
         else
-          out = out .. (" "):rep(longest - #f + 1)
+          out = out .. (" "):rep(longest - #f + 2)
         end
       end
     end
