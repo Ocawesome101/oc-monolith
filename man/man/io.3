@@ -38,7 +38,7 @@
             Attempts to open the specified ~file&.  On success, returns a buffered stream.  ~mode& defaults to ~"r"&, and may contain any of the characters *r&, *w&, *a&, and *b&.  Note that *a& is not valid alongside *r& or *w&.  *b& specifies that the file should be opened in binary mode.
 
         *popen&(*program&:~string&[, *mode&:~string&]): @table& or *nil&, ~string&
-            Attempts to open the provided ~program&, returning a handle to the program's input or output depending which ~mode& is specified.
+            Attempts to open the provided ~program&, returning a handle to the program's input or output depending which ~mode& is specified.  Uses *pipe&(*3&) for piping.
 
         *flush&([*stream&:@table&])
             Flushes the provided @stream&, or the standard output.
@@ -53,4 +53,4 @@
         Monolith System Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
 
 *SEE ALSO
-        buffer&(*3&), *readline&(*3&)
+        buffer&(*3&), *readline&(*3&), *pipe&(*3&)

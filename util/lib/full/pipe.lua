@@ -49,8 +49,8 @@ local streamB = {
   end
 }
 
-function pipe.new()
-  tbl = { bufA = "", bufB = "" }
+local function _create_pipes()
+  local tbl = { bufA = "", bufB = "" }
   return setmetatable(tbl, {__index = streamA}), setmetatable(tbl, {__index = streamB})
 end
 
@@ -64,7 +64,7 @@ function pipe.popen(prog, pmode, env)
   if not ok then
     return nil, err
   end
-  local input, output = pipe.new()
+  local input, output = _create_pipes()
   local mode = {}
   for m in pmode:gmatch(".") do mode[m] = true end
   local orig_io = {i = io.input(), o = io.output()}
