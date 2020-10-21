@@ -19,29 +19,27 @@
                       *history& = @table&,
                       *prompt& = ~string&,
                       *arrows& = ?boolean&,
-                      *actions& = @table&
+                      *actions& = @table&,
+                      *highlighter& = ^function&,
+                      *default&, *text& = ~string&,
+                      *complete*, *tab&, *tabact& = ^function&
                     }
 
-                If ~opts.prompt& is specified and no ~prompt& is specified, ~opts.prompt& will be used instead.
+                All @opts& are optional.  If ~opts.prompt& is specified and no ~prompt& is specified, ~opts.prompt& will be used instead.
 
-                ?arrows& specifies whether *readline& should act specially on arrow-key presses and defaults to ?true&.
+                ?arrows& specifies whether *readline& should act specially on arrow-key presses and defaults to ?true&.  @actions&, if specified, should have four fields: *up&:^function&, *down&:^function&, *left&:^function&, and *right&:^function&.  These functions are called upon their corresponding arrow-key presses.  
 
-                @actions&, if specified, should have four fields: *up&:^function&, *down&:^function&, *left&:^function&, and *right&:^function&.  These functions are called upon their corresponding keypresses.
-        
-        *readlinebasic&(*screen&:~string&[, *n&:#number&]): ~string& or *nil&, ~string&
-                Reads *n& characters, or until return is pressed.  Does not output to the screen.  Used internally.  Not recommended, use *readline& instead.
+                ^highlighter& should either do nothing, or highlight the provided string using VT100 control codes.  ^highlighter& should always return a string.  ~default& and ~text& each specify text the buffer should be initialized to; ~default& takes precedence.  ^complete&, ^tab&, ^tabact&, and @actions&.^tab& are called when the ^[TAB]& key is pressed; *readline& checks for each of these respectively.
 
-        *addscreen&(*screen&:~string&, *gpu&:~string& or @table&): ?boolean& or *nil&, ~string&
-                Does what it says on the tin.  Registers a screen and all its keyboards, plus a GPU.
+                If a ^[TAB]&- or arrow-key-action returns the string ~"return"&, *readline& will return the contents of the current text buffer.  If the ^[TAB]&-action returns the string ~"return_none"&, *readline& will return only a newline (~"\n"&).
 
-        *buffersize&(*screen&:~string&): #number& or *nil&, ?boolean&
-                Returns the size of the specified screen's input buffer.
+*NOTES&
+        In most cases, *readline& is the preferred method of retrieving keyboard input.
 
-*NOTES
-        readline& is the preferred way to get keyboard input.
+        *readline& uses *libvt&(*3&) to get the current cursor position and screen resolution.
 
 *COPYRIGHT
         Monolith System Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
 
 *SEE ALSO
-        *sh&(*1&), *login&(*1&), *io&(*3&)
+        sh&(*1&), *login&(*1&), *io&(*3&), *libvt&(*3&)
