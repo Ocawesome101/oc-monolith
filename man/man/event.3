@@ -2,4 +2,40 @@
         event - library for handling events
 
 *DESCRIPTION&
-        See ^https://ocdoc.cil.li/api:event&.
+        The *event& API provides facilities for registering event listeners in a simpler manner than spawning an equivalent thread.  This API is taken from #OpenOS& 1.7.5.
+
+*METHODS
+        register&([*key&:~string&], *callback&:^function&[, *interval&:#number&][, *times&:#number*]): #number&
+            Registers a new event listener or timer with the specified parameters.  It is generally recommended to use a more specific function such as ^event.listen& or ^event.timer& instead.  This function does not check its arguments.
+
+        *listen&(*name&:~string, *callback&:^function&): #number&
+            Registers an event listener for the event matching the provided ~name&.  ^callback& will be called on every occurrence of the event.
+
+        *pull&([*...&]): *...&
+            Pulls an event.  If the first argument is a #number&, it will be interpreted as the timeout.  All other arguments will be interpreted as an event filter, i.e. only an exactly matching event will be returned.
+
+        *push&([*...&])
+            Analogous to ^computer.pushSignal&.  See *computer&(*2&).
+
+        Documentation for some internal functions such as ^event.pullMultiple& has been omitted.
+
+        *timer&(*interval&:#number&, *callback&:^function&[, *times&:#number& or *nil&]): #number&
+            Registers a timer, optionally called only the provided number of #times&.  The provided ^callback& argument is the function to be called.
+
+        *cancel&(*timerId&:#number&): ?boolean&
+            Attempts to cancel the timer registered with the ID #timerId&.  Can also be called with the ID returned from ^event.listen& or ^event.register&.
+
+        *ignore&(*name&:~string&, *callback&:^function&): ?boolean&
+            Attempts to remove the event listener matching the provided ~name& and ^callback&.
+
+        *onError&(*message&)
+            Error handler function for the *event& library.  By default, logs to #/tmp/event.log&.
+
+*NOTES&
+        Official documentation for the *event& library is at ^https://ocdoc.cil.li/api:event&.
+
+*COPYRIGHT
+        event& is copyright (c) circa 2015 Sangar, Payonel as part of OpenOS.
+
+*SEE ALSO&
+        *computer&(*2&)
