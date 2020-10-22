@@ -6,6 +6,16 @@ Documentation is available online [here](https://oz-craft.pickardayune.com/man).
 
 Current LOC: 9665
 
+## Installation
+To install Monolith to any empty hard disk, run the following commands in the OpenOS shell. You will need an internet card.
+```
+cd /home
+wget https://raw.githubusercontent.com/ocawesome101/oc-monolith/master/installer.lua
+./installer.lua
+```
+
+Note that the installation process assumes the current root filesystem is mounted as writable. The Monolith installer will refuse to install to the root filesystem.
+
 ## Pre-built releases
 
 The latest pre-built release will be downloaded through the installer. At any time, you may upgrade with `mpm install ocawesome101/oc-monolith/base`.
