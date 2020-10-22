@@ -78,8 +78,8 @@ if runlevel.levels[maxrunlevel].services then
     if cfg[service] then
       return true
     end
-    if fs.exists(services .. script .. ".lua") then
-      cfg[script] = true
+    if fs.exists(services .. service .. ".lua") then
+      cfg[service] = true
       config.save(cfg, "/etc/initsvc.cfg")
     else
       return nil, "service not found"
