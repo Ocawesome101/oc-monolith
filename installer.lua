@@ -11,13 +11,13 @@ local computer    = require("computer")
 local internet   = require("internet")
 local fs      = require("filesystem")
 
-if fs.isReadOnly("/") then
-  print("Your OpenOS filesystem must be writable - exiting")
+if fs.get("/").isReadOnly() then
+  print("Your root filesystem must be writable - exiting")
   os.exit(1)
 end
 
 -- get sha3 if we don't have it
-if not require("sha3") then
+if not pcall(require, "sha3") then
   print("SHA-3 library not found - downloading")
   assert(loadfile("/bin/wget.lua"))("https://github.com/ocawesome101/oc-monolith/raw/master/util/lib/sha3.lua", "/lib/sha3.lua")
 end
@@ -206,5 +206,3 @@ fs.makeDirectory(fs.concat(MOUNT, "/home"))
 fs.makeDirectory(fs.concat(MOUNT, tpasswd[1].h))
 
 print("Done.")
-
-print("NOTE: Manual pages are excluded from Monolith builds. To install manual pages, run 'mpm install ocawesome101/mbase/man' in the Monolith shell.")

@@ -1,0 +1,37 @@
+*NAME&
+        users - kernel-level user management API
+
+*DESCRIPTION
+        users& (*kernel.users& in the environment provided to *init&(*1&)) is Monolith's user management API.  The version provided to *init& is largely a shell, and is later complemented by the userspace API *users&(*3&).  Note that the kernel-based *users& API does NOT resolve usernames to UIDs; for that, see *users&(*3&).
+
+        *kernel.users& is not directly accessible from user programs.
+
+*METHODS
+        authenticate&(*uid&:#number&, *password&:~string&): ?boolean&[, ~string&]
+                Attempts to authenticate the current process as #uid&.  Returns ?true& on success, ?false& and an error message on failure.
+
+        *login&(*uid&:#number&, *password&:~string&): ?boolean&[, ~string&]
+                Attempts to login the current process as #uid&. Returns ?true& on success, ?false& and an error message on failure.
+
+        *uid&(): #number&
+                Returns the current UID.
+
+        *add&(*password&:~string&[, *cansudo&:?boolean&]): #number& or *nil&, ~string&
+                Attempts to add a user, returning the new user's UID.  Only the root user can perform this function.
+
+        *del&(*uid&:#number&): ?boolean& or *nil&, ~string&
+                Attempts to delete user #uid&.  Only the root user can perform this function.
+
+        *sudo&(*func&:^function&, *uid&:#number&, *password&:~string&): ?boolean&, ?boolean&, ... or *nil&, ~string&
+                Attempts to execute function ^func& as user #uid&.  ~password& should be the current user's password.
+
+                On success, returns ?true& and the first two results from *pcall&(^func&).
+
+*NOTES&
+        All *users& functions are overwritten in userspace by the *users&(*3&) API.  This API is usually only relevant to kernel or *init&(*1&,*5&) development.
+
+*COPYRIGHT
+        Monolith Kernel Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        usermgr&(*1&), *users&(*3&), *init&(*1&), *init&(*5&)

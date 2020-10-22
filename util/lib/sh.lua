@@ -6,34 +6,24 @@ local sh = {}
 
 local psrep = {
   ["\\w"] = function()
-    return (os.getenv("PWD") and os.getenv("PWD"):gsub("^" .. os.getenv("HOME") .. "?", "~")) or "/"
+    return (os.getenv("PWD") and os.getenv("PWD"):gsub("^"..os.getenv("HOME").."?", "~")) or "/"
   end,
-  ["\\W"] = function()
-    return fs.name(os.getenv("PWD") or "/") or ""
-  end,
-  ["\\$"] = function()
-    if os.getenv("UID") == 0 then
-      return "#"
-    else
-      return "$"
-    end
-  end,
-  ["\\u"] = function()
-    return os.getenv("USER") or ""
-  end,
-  ["\\h"] = function()
-    return os.getenv("HOSTNAME") or "localhost"
-  end
+  ["\\W"] = function() return fs.name(os.getenv("PWD") or "/") end,
+  ["\\h"] = function() return os.getenv("HOSTNAME") end,
+  ["\\s"] = function() return "sh" end,
+  ["\\v"] = function() return "0.5.0" end,
+  ["\\a"] = function() return "\a" end,
+  ["\\u"] = function() return os.getenv("USER") or "[unknown]" end,
+  ["\\%$"] = function() return (os.getenv("UID") == 0 and "#" or "$") end
 }
 
-function sh.prompt(p)
+function sh.prompt(prompt)
   checkArg(1, p, "string", "nil")
-  p = p or os.getenv("PS1") or "\\w\\$ "
-  for k, v in pairs(psrep) do
-    k = k:gsub("%$", "%%$") -- ouch
-    p = p:gsub(k, v())
+  local ret = prompt
+  for pat, rep in pairs(psrep) do
+    ret = ret:gsub(pat, rep() or "")
   end
-  return shell.vars(p)
+  return ret
 end
 
 -- runs shell scripts

@@ -1,0 +1,17 @@
+*NAME&
+        cp.copy - recursive copy used in cp
+
+*DESCRIPTION&
+        This utility is the backend of the *cp&(*1&) utility.
+
+*USAGE&
+        #local& copy = ^require&(~"cp.copy"&)
+
+        ^copy&(*files&:@table&) or ^copy&(*...&:~string&s)
+          ^-- copies files recursively in the same manner as *cp&(*1&)^.&
+
+*COPYRIGHT
+        Monolith System Utilities& copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        cp&(*1&), *filesystem&(*2&)

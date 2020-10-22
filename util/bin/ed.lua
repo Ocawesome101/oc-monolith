@@ -1,4 +1,3 @@
-#!/usr/bin/lua5.3
 -- lua version of, you guessed it, ed --
 -- written entirely in standard lua 5.3 --
 
@@ -10,12 +9,11 @@ local prompt=false
 local file = args[1]
 local handle = io.open(file or "")
 if handle then
-  local data = handle:read("a")
-  handle:close()
   buf={}
-  for line in handle:gmatch("[^\n]+")do
+  for line in handle:lines()do
     buf[#buf+1]=line.."\n"
   end
+  handle:close()
 end
 
 local commands = {}
@@ -41,8 +39,12 @@ function commands.i(n)
   end
   cur=n
 end
-function commands.l()
-  print(#buf)
+function commands.l(a,b)
+  for i=a,b,1 do
+    io.write((
+      buf[i]:gsub("%$", "\\$"):sub(1,-2).."$".."\n"
+    ))
+  end
 end
 function commands.p(a,b)
   for i=a,b,1 do

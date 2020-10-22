@@ -1,0 +1,47 @@
+*NAME&
+        editor - common library for text editors to use
+
+*DESCRIPTION
+        editor&, inspired by and similar in form and function to the PsychOS library *ed&, is a common library for use by text editors.  It facilitates the creation, storage, removal, saving, and displaying of text buffers.
+
+*FIELDS
+        buffer&: @table&
+                The base buffer object.
+
+        *buffers&: @table&
+                All opened buffers.
+
+        *getScreenSize&()
+                Returns the size of the screen the editor is running on.
+
+        *new&([*file&:~string&]): #number&
+                Creates a new buffer and returns its index in @ed.buffers&.
+
+*BUFFER OBJECT METHODS
+        buffer&:*load&(*file&:~string&): ?boolean& or *nil&, ~string&
+                Loads file ~file& into the buffer.
+
+        *buffer&:*save&([*file&:~string&]): ?boolean& or *nil&, ~string&
+                Saves the buffer to ~file&.  If the buffer name is ~""& or *nil&, ~file& is a required argument.  Otherwise, ~file& is optional.
+
+        *buffer&:*draw&()
+                Draw the buffer to the screen.
+
+*BUFFER OBJECT FIELDS
+        name&: ~string&
+                The buffer name.
+        
+        *lines&: @table&
+                The buffer.
+        
+        *scroll&: @table&
+                Sub-elements *w& and *h&, both numbers, specify vertical and horizontal scroll.
+
+        [*highlighter&: ^function&]
+                Optional.  Specifies a syntax highlighter to use when drawing the buffer.
+
+*COPYRIGHT
+        Monolith Libraries and Utilities& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        vled&(*1&), *fled&(*1&), *led&(*1&), *ed&(*1&)

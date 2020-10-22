@@ -32,10 +32,12 @@ do
     local dead = {}
     for pid, thd in pairs(threads) do
       if checkDead(thd) then
-        for k, v in pairs(thd.closeOnExit) do
-          local status,ret = pcall(v.close, v)
-          if not status and ret then
-            kernel.logger.log("handle failed to close on exit for thread '" .. pid .. ", " .. thd.name .. "' - " .. ret)
+        for k, v in pairs(thd.handles) do
+          if not v.tty then
+            local status,ret = pcall(v.close, v)
+            if not status and ret then
+              kernel.logger.log("handle failed to close on exit for thread '" .. pid .. ", " .. thd.name .. "' - " .. ret)
+            end
           end
         end
         computer.pushSignal("thread_died", pid)
@@ -63,7 +65,7 @@ do
     threads[thd.pid] = nil
     computer.pushSignal("thread_errored", thd.pid, string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
     kernel.logger.log("thread errored: " .. string.format("error in thread '%s' (PID %d): %s", thd.name, thd.pid, err))
-    h(thd.name .. ": " .. err)
+    h(thd.name .. ": " .. tostring(err))
   end
 
   local global_env = {}
@@ -73,6 +75,7 @@ do
     checkArg(2, name, "string")
     checkArg(3, handler, "function", "nil")
     checkArg(4, env, "table", "nil")
+    --component.sandbox.log("SPAWN", name)
     last = last + 1
     local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
     env = env or kernel.table_copy(current.data.env)
@@ -82,6 +85,7 @@ do
       parent = cur,                             -- parent thread's PID
       name = name,                              -- thread name
       handler = handler or kernel.logger.panic, -- error handler
+      handlers = {},                            -- signal handlers
       user = kernel.users.uid(),                -- current user
       users = {},                               -- user history
       owner = kernel.users.uid(),               -- thread owner
@@ -93,16 +97,16 @@ do
       uptime = 0,                               -- thread uptime
       stopped = false,                          -- is it stopped?
       started = computer.uptime(),              -- time of thread creation
-      closeOnExit = {},                         -- handles the scheduler should close on thread exit
+      handles = {},                             -- handles the scheduler should close on thread exit
       io      = {                               -- thread I/O streams
         [0] = current.data.io[0],
         [1] = current.data.io[1],
         [2] = current.data.io[2] or current.data.io[1]
       }
     }
-    new.closeOnExit[1] = new.io[0]
-    new.closeOnExit[2] = new.io[1]
-    new.closeOnExit[3] = new.io[2]
+    new.handles[1] = new.io[0]
+    new.handles[2] = new.io[1]
+    new.handles[3] = new.io[2]
     if not new.env.PWD then
       new.env.PWD = "/"
     end
@@ -163,12 +167,12 @@ do
     local info, err = thread.info()
     if not info then return nil, err end
     local old = handle.close
-    local i = #info.handles + 1
+    local i = #info.data.handles + 1
     function handle:close()
-      info.handles[i] = nil
-      return close()
+      info.data.handles[i] = nil
+      return close(handle)
     end
-    info.handles[i] = handle
+    info.data.handles[i] = handle
     return true
   end
 
@@ -191,10 +195,18 @@ do
       inf.data = {
         io = t.io,
         env = t.env,
-        handles = t.closeOnExit
+        handles = t.handles
       }
     end
     return inf
+  end
+
+  function thread.handleSignal(sig, func)
+    checkArg(1, sig, "number")
+    checkArg(2, func, "function", "nil")
+    local info = threads[cur]
+    info.handlers[sig] = func
+    return true
   end
 
   function thread.signal(pid, sig)
@@ -206,8 +218,18 @@ do
     if threads[pid].owner ~= kernel.users.uid() and kernel.users.uid() ~= 0 then
       return nil, "permission denied"
     end
-    local msg = {"signal", cur, sig}
-    table.insert(threads[pid].sig, msg)
+    local thd = threads[pid]
+    if sig == thread.signals.kill then
+      thd.dead = true
+    elseif sig == thread.signals.stop then
+      thd.stopped = true
+    elseif sig == thread.signals.continue then
+      thd.stopped = false
+    elseif thd.handlers[sig] then
+      thd.handlers[sig]()
+    else
+      thd.dead = true
+    end
     return true
   end
 
@@ -243,6 +265,7 @@ do
   end
 
   thread.signals = {
+    hangup    = 1,
     interrupt = 2,
     quit      = 3,
     kill      = 9,
@@ -277,24 +300,12 @@ do
         if #thd.ipc > 0 then
           local ipc = table.remove(thd.ipc, 1)
           ok, r1 = coroutine.resume(thd.coro, table.unpack(ipc))
-        elseif #thd.sig > 0 then
-          local nsig = table.remove(thd.sig, 1)
-          if nsig[3] == thread.signals.kill then
-            thd.dead = true
-            ok, r1 = true, "killed"
-          elseif nsig[3] == thread.signals.stop then
-            thd.stopped = true
-          elseif nsig[3] == thread.signals.continue then
-            thd.stopped = false
-          else
-            ok, r1 = coroutine.resume(thd.coro, table.unpack(nsig))
-          end
         elseif sig and #sig > 0 then
           ok, r1 = coroutine.resume(thd.coro, table.unpack(sig))
         else
           ok, r1 = coroutine.resume(thd.coro)
         end
-        --kernel.logger.log(tostring(ok) .. " " .. tostring(r1))
+        --component.sandbox.log(thd.pid, ok, r1)
         if (not ok) and r1 then
           handleProcessError(thd, r1)
         elseif ok then
@@ -310,7 +321,7 @@ do
       if computer.freeMemory() < 512 then -- oh no, we're out of memory
         kernel.logger.log("Low memory - collecting garbage")
         collectgarbage()
-        if computer.freeMemory() < 512 then -- GC didn't help. Panic!
+        if computer.freeMemory() < 256 then -- GC didn't help. Panic!
           kernel.logger.panic("ran out of memory")
         end
       end

@@ -5,7 +5,6 @@ local component = require("component")
 local computer = require("computer")
 package.loaded.times.getty_start = computer.uptime()
 local vt100 = require("vt100")
-local readline = require("readline")
 local login = "/sbin/login.lua"
 local login_name = "login"
 
@@ -43,18 +42,6 @@ local function nextScreen(res)
   end
 
   return match[res] or match[8000] or match[2000] or match[800]
-end
-
--- register gpu/screen as an IO stream
-local function makeStream(gpu, screen)
-  local gpu = component.proxy(gpu)
-  gpu.bind(screen)
-  readline.addscreen(screen, gpu) -- register with readline so it listens for stuff
-  local write = vt100.emu(gpu)
-  local read = readline.readline
-  write("\27[2J")
-  local new = {read = function(s,...) return read(...) end, write = function(s,...) return write(...) end, close = function()end, screen = screen, gpu = gpu}
-  return new
 end
 
 local ttyn = 0
@@ -97,7 +84,10 @@ function getty.scan()
       if not ok then
         error(err)
       end
-      local ios = makeStream(gpu, screen)
+      local ios, err = vt100.emu(gpu, screen)
+      if not ios then
+        error(err)
+      end
       ios.tty = true
       io.input(ios)
       io.output(ios)

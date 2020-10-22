@@ -12,6 +12,7 @@ GNU General Public License for more details. ]]
 local shell = require("shell")
 
 local args, opts = shell.parse(...)
+
 if #args == 0 then
   while true do
     local data = io.read()
@@ -26,7 +27,7 @@ else
     if file then
       repeat
         local data = file:read(2048)
-        io.write(data)
+        if data then io.write(data) end
       until not data
       file:close()
     else

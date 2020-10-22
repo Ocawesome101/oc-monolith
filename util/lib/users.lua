@@ -104,7 +104,7 @@ function users.sudo(func, uname, password)
   if old.authenticate(users.uid(), password) then
     local uuid = users.uid
     local name = os.getenv("USER")
-    local ouid = os.getenv("UID")
+    local ouid = uuid()
     function users.uid()
       return uid
     end

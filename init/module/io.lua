@@ -44,6 +44,7 @@ do
     end
     if file then
       thread.info().data.io[1] = file
+      thread.closeOnExit(file)
     end
     return thread.info().data.io[1]
   end
@@ -55,6 +56,7 @@ do
     end
     if file then
       thread.info().data.io[0] = file
+      thread.closeOnExit(file)
     end
     return thread.info().data.io[0]
   end
@@ -66,6 +68,7 @@ do
     end
     if file then
       thread.info().data.io[2] = file
+      thread.closeOnExit(file)
     end
     return thread.info().data.io[2] or thread.info().data.io[1]
   end
@@ -85,7 +88,8 @@ do
 
   function io.close(file)
     checkArg(1, file, "table", "nil")
-    if file then
+    if file and not (file == io.stdin or file == io.stdout or file == io.stderr)
+                                                                            then
       return file:close()
     end
     return nil, "cannot close standard file"
@@ -112,7 +116,7 @@ do
   end
 
   function io.write(...)
-    return io.output():write(table.concat({...}))
+    return io.output():write(...)
   end
 
   function _G.print(...)

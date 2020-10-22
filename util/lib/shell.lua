@@ -1,9 +1,7 @@
 -- improved shell API --
 
 local fs = require("filesystem")
-local text = require("text")
 local pipe = require("pipe")
-local users = require("users")
 local thread = require("thread")
 
 local shell = {}
@@ -22,7 +20,7 @@ function shell.error(cmd, err)
   io.stderr:write(string.format("\27[31m%s: %s\27[37m\n", cmd, err))
 end
 
-local defaultPath = "/bin:/usr/bin:/usr/local/bin"
+local defaultPath = "/bin:/sbin:/usr/bin:/usr/local/bin"
 os.setenv("PATH", os.getenv("PATH") or defaultPath)
 
 shell.extensions = {
@@ -73,7 +71,7 @@ options:
   --poweroff, -P, -h    power off
   --reboot, -r          reboot
   -k                    send the shutdown signal but do not shut down
-      ]])
+]])
       return
     end
 
@@ -178,32 +176,23 @@ function shell.parse(...)
   return args, opts
 end
 
-function shell.resolve(path, ext)
-  checkArg(1, path, "string")
-  checkArg(2, ext, "string", "nil")
-  ext = ext or ""
-  local PATH = os.getenv("PATH") or defaultPath
-  if path:sub(1,1) == "/" then
-    path = fs.canonical(path)
-    if fs.exists(path) then
-      return path
-    elseif fs.exists(path .. "." .. ext) then
-      return path .. "." .. ext
+function shell.resolve(cmd)
+  if fs.exists(cmd) then
+    return cmd
+  end
+  if fs.exists(cmd..".lua") then
+    return cmd..".lua"
+  end
+  for path in os.getenv("PATH"):gmatch("[^:]+") do
+    local check = fs.concat(path, cmd)
+    if fs.exists(check) then
+      return check
+    end
+    if fs.exists(check..".lua") then
+      return check..".lua"
     end
   end
-  for s in PATH:gmatch("[^:]+") do
-    local try = fs.concat(s, path)
-    local txt = try .. "." .. ext
-    if fs.exists(try) then
-      return try
-    elseif fs.exists(txt) then
-      return txt
-    end
-  end
-  if ext then
-    return path
-  end
-  return fs.canonical(path)
+  return nil, cmd..": command not found"
 end
 
 -- fancier split that deals with args like `prog print "this is cool" --text="this is also cool"`
@@ -242,63 +231,124 @@ local function split(str, pat)
   return sep
 end
 
-local function execute(cmd)
-  local commands = split(shell.expand(cmd), "[^|]+")
-  local has_builtin = false
-  local builtin = {}
-  for k, v in pairs(commands) do
-    commands[k] = shell.split(v)
-    if #commands[k] == 0 then return end
-    if aliases[commands[k][1]] then
-      commands[k][1] = shell.expand(aliases[commands[k][1]])
-      commands[k] = shell.split(table.concat(commands[k], " "))
-    end
-    if commands[k][1]:match("(%S+)=(%S+)") then
-      shell.builtins.set(commands[k][1])
-      table.remove(commands[k], 1)
-    end
-    if #commands[k] == 0 then
-      table.remove(commands, k)
-      goto skip
-    end
-    if shell.builtins[commands[k][1]] then
-      has_builtin = true
-      builtin = commands[k]
-    else
-      commands[k][1] = shell.resolve(commands[k][1], "lua") or commands[k][1]
-    end
-    ::skip::
-  end
-  if #commands > 1 and has_builtin then
-    shell.error("sh", "cannot pipe to or from builtin command")
-    return false
-  end
-  if has_builtin then
-    local cmd = commands[1]
-    return shell.builtins[cmd[1]](table.unpack(cmd, 2))
-  end
-  local pids, err = pipe.chain(commands)
-  if not pids then
-    return shell.error("sh", err)
-  end
-  local running = true
-  while running do
-    running = false
-    for i, pid in pairs(pids) do
-      if thread.info(pid) then
-        running = true
-      else
-        pids[i] = nil
+-- "a | b > c" -> {{cmd = {"a"}, i = <std>, o = <pipe>}, {cmd = {"b"}, i = <pipe>, o = <handle_to_c>}}
+local function setup(str)
+  str = shell.expand(str)
+  local tokens = shell.split(str)
+  local stdin = io.input()
+  local stdout = io.output()
+  local ret = {}
+  local cur = {cmd = {}, i = stdin, o = stdout}
+  local i = 1
+  while i <= #tokens do
+    local t = tokens[i]
+    if t:match("(.-)=(.+)") and #cur.cmd == 0 then
+      local k, v = t:match("(.-)=(.+)")
+      cur.env = cur.env or {}
+      cur.env[k] = v
+    elseif t == "|" then
+      if #cur.cmd == 0 or i == #tokens then
+        return nil, "syntax error near unexpected token `|`"
       end
+      local new = pipe.create()
+      cur.o = new
+      table.insert(ret, cur)
+      cur = {cmd = {}, i = pipe, o = stdout}
+    elseif t == ">" or t == ">>" then -- > write, >> append
+      if #cur.cmd == 0 or i == #tokens then
+        return nil, "syntax error near unexpected token `"..t.."`"
+      end
+      i = i + 1
+      local handle, err = io.open(tokens[i], t == ">" and "w" or "a")
+      if not handle then
+        return nil, err
+      end
+      cur.o = handle
+    elseif t == "<" then
+      if #cur.cmd == 0 or i == #tokens then
+        return nil, "syntax error near unexpected token `<`"
+      end
+      i = i + 1
+      local handle, err = io.open(tokens[i], "r")
+      if not handle then
+        return nil, err
+      end
+      cur.i = handle
+    elseif shell.aliases[t] and #cur.cmd == 0 then
+      local ps = shell.split(shell.expand(shell.aliases[t]))
+      cur.cmd = ps
+    else
+      cur.cmd[#cur.cmd + 1] = t
     end
-    local sig = table.pack(coroutine.yield(0)) -- effectively busywait
-    if sig[1] == "thread_errored" then
-      for k,v in pairs(pids) do
-        if sig[2] == v then
-          print("\27[31m" .. sig[3] .. "\27[37m")
+    i = i + 1
+  end
+  if #cur.cmd > 0 then
+    table.insert(ret, cur)
+  end
+  return ret
+end
+
+local immediate = {set = true, cd = true}
+local function execute(str)
+  local exec, err = setup(str)
+  if not exec then
+    return nil, err
+  end
+  local pids = {}
+  local errno = false
+  for i=1, #exec, 1 do
+    local func
+    local ex = exec[i]
+    local cmd = ex.cmd[1]
+    if shell.builtins[cmd] then
+      if immediate[cmd] then
+        shell.builtins[cmd](table.unpack(ex.cmd, 2))
+      end
+      func = shell.builtins[cmd]
+    else
+      local path, err = shell.resolve(cmd)
+      if not path then
+        shell.error("sh", err)
+        return nil, err
+      end
+      local ok, err = loadfile(path)
+      if not ok then
+        shell.error("sh", err)
+        return nil, err
+      end
+      func = ok
+    end
+    local f = function()
+      io.input(ex.i)
+      io.output(ex.o)
+      if ex.env then
+        for k, v in pairs(ex.env) do
+          os.setenv(k, v)
+        end
+      end
+      local ok, ret = pcall(func, table.unpack(ex.cmd, 2))
+      if not ok and ret then
+        errno = ret
+        io.stderr:write(ret,"\n")
+        for i=1, #pids, 1 do
+          thread.signal(pids[i], thread.signals.kill)
         end
       end
     end
+    table.insert(pids, thread.spawn(f, table.concat(ex.cmd, " ")))
+  end
+  while true do
+    coroutine.yield(0)
+    local run = false
+    for k, pid in pairs(pids) do
+      if thread.info(pid) then
+        run = true
+      end
+    end
+    if errno or not run then break end
+  end
+  if errno then
+    return nil, errno
   end
   return true
 end
@@ -308,7 +358,7 @@ function shell.execute(...)
   if args[2] == nil or type(args[2]) == "table" then -- discard the 'env' argument OpenOS programs may supply
     pcall(table.remove, args, 2)
   end
-  local commands = split(shell.expand(table.concat(args, "")), "[^%;]+")
+  local commands = split(shell.expand(table.concat(args, " ")), "[^%;]+")
   for i=1, #commands, 1 do
     execute(commands[i])
   end

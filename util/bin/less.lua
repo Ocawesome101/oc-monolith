@@ -1,18 +1,19 @@
 -- less --
 
+local vt = require("vt")
 local shell = require("shell")
-local readline = require("readline").readline
+local readline = require("readline")
 
 local args, opts = shell.parse(...)
 
-if io.stdin.gpu and #args == 0 then -- not being piped
+if io.stdin.tty and #args == 0 then -- not being piped
   return shell.codes.argument
 end
 
 args[1] = args[1] or "-"
 
 local handle = assert(io.open(args[1], "r"))
-local w, h = io.stdout.gpu.getResolution()
+local w, h = vt.getResolution()
 
 local lines = {}
 local screen = 0
@@ -29,7 +30,7 @@ local function drawLine(y, txt)
 end
 
 local function redraw(a)
-  io.write("\27[2J")
+  io.write("\27[9m\27[2J")
   local y = 1
   local n = 1
   while y < h - 1 do
@@ -41,6 +42,7 @@ local function redraw(a)
   else
     drawLine(h, "\27[2K"..a..":")
   end
+  io.write("\27[29m")
   --io.write(string.format("\27[%d;%dH%5d/%5d", w - 11, h, h + scroll, screen))
 end
 
@@ -51,12 +53,16 @@ while true do
   local esc = readline(1)
   if esc == "\27" then esc = esc .. readline(2) end
   if esc == "\27[A" or esc == "w" then
-    if scroll > 0 then
-      scroll = scroll - 1
+    if scroll > 2 then
+      scroll = scroll - 3
+    else
+      scroll = 0
     end
   elseif esc == "\27[B" or esc == "s" then
-    if scroll + h <= screen then
-      scroll = scroll + 1
+    if scroll + h <= screen - 2 then
+      scroll = scroll + 3
+    else
+      scroll = screen - h + 1
     end
   elseif esc == " " or esc == "\27[6" then
     if scroll + h*2 <= screen then
@@ -71,7 +77,7 @@ while true do
       scroll = 0
     end
   elseif esc == "q" then
-    io.write("\27[2J")
+    io.write("\27[2J\27[1H")
     break
   end
 end

@@ -11,7 +11,7 @@ export WAIT="\033[39m[ \033[93mWAIT\033[39m ]"
 export luacomp="$PWD/luacomp"
 
 log() {
-  /bin/echo -e $@
+  /bin/echo -e "\e[G$@"
 }
 
 build() {
@@ -25,6 +25,8 @@ log "$INFO Building Monolith"
 mkdir -p build/{usr/man,sbin}
 cp -r util/* build
 log "$OK Built utilities"
+build man
+log "$OK Generated manual pages"
 build kernel
 log "$INFO Copying kernel to build" 
 cp kernel/monolith build/boot/
@@ -36,18 +38,22 @@ while [ $# -gt 0 ]; do
   case "$1" in
     release)
       log "$WAIT Building release.cpio"
-      cp package.cfg build
       cd build && find ./* | cpio -o > ../release.cpio && cd ..
-      cp release.cpio ./packages/base.cpio
+      printf "\e[2A\e[G$OK\e[2B"
+      log "$WAIT Building packages/base.cpio"
+      cp package.cfg build
+      rm -rf build/etc/ build/home
+      cd build && find ./* | cpio -o > ../packages/base.cpio && cd ..
+      printf "\e[2A\e[G$OK\e[2B"
       shift
       ;;
     webdoc)
       log "$WAIT Assembling man pages in web format"
-      cd ../mpkg/man
+      cd man
       ./genhtml.sh
       cd web
       push-man
-      cd ../../monolith || cd ../../src
+      cd ..
       shift
       ;;
     *)

@@ -1,0 +1,21 @@
+*NAME&
+        libvt - library for easier VT100 cursor manipulation
+
+*DESCRIPTION&
+        The *libvt& library is a small library used to mostly replace the removed GPU-access capabilities from the old terminal system.
+
+*METHODS
+        setCursor&(*x&:#number&, *y&:#number&)
+              Sets the cursor position to #x;y&.
+
+        *getCursor&(): #number&, #number&
+              Returns the current cursor position.
+
+        *getResolution(): #number&, #number&
+              Returns the initialized terminal resolution.  This should never be lower than #50&, #16&.
+
+*COPYRIGHT
+        Monolith System Utilities& copyright (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        vt100&(*4&)

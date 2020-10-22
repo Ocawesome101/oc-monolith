@@ -2,7 +2,7 @@
 
 local shell = require("shell")
 local users = require("users")
-local readline = require("readline").readline
+local readline = require("readline")
 
 local args = {...}
 

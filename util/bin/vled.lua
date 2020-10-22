@@ -1,11 +1,16 @@
 -- vled - Visual Lua EDitor --
 -- better than fled, probably worse than OpenOS's edit.lua. --
 
+--[[error([[VLED is broken due to a bug in the current readline implementation.
+This is a KNOWN issue and will be fixed as soon as possible. Please use 'ed' or
+'led' in the meantime.]]--)
+
+local vt = require("vt")
 local editor = require("editor")
 local shell = require("shell")
-local readline = require("readline").readline
+local readline = require("readline")
 
-local w, h = io.stdout.gpu.getResolution()
+local w, h = vt.getResolution()
 local cur = 1
 local cmd = true
 local line = 1
@@ -130,10 +135,14 @@ local ops = {
     local min = 1
     local max = #editor.buffers[cur].lines
     line = (n > max and max) or (n < min and min) or n
+  end,
+  ["^:help$"] = function()
+    os.execute("man vled")
   end
 }
 
 local function parsecmd(c)
+  c = c:gsub("\n", "")
   for pat, func in pairs(ops) do
     if c:match(pat) then
       local a,b = pcall(func, c:match(pat))
@@ -152,7 +161,7 @@ while running do
   editor.buffers[cur]:draw()
   if line > #editor.buffers[cur].lines then line = #editor.buffers[cur].lines end
   if cmd then
-    io.write(string.format("\27[%d;1H", h - 1))
+    io.write(string.format("\27[%d;1H", h))
     parsecmd(readline(rlopts_cmd))
   else
     if editor.buffers[cur].scroll.h - line > h then

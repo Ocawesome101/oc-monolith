@@ -1,0 +1,48 @@
+*NAME&
+        runlevel - manage run-levels
+
+*DESCRIPTION
+        runlevel& is a kernel-provided API that provides information about system runlevels.
+
+*RUNLEVELS&
+        Supported runlevels, and what they mean:
+
+        *0&
+                Kernel booted: *no&
+                Init started: *no&
+                Services started: *no&
+                Multi-user mode: *no&
+
+        *1&
+                Kernel booted: *yes&
+                Init started: *yes&
+                Services started: *no&
+                Multi-user mode: *no&
+
+        *2&
+                Kernel booted: *yes&
+                Init started: *yes&
+                Services started: *yes&
+                Multi-user mode: *no&
+
+        *3&
+                Kernel booted: *yes&
+                Init started: *yes&
+                Services started: *yes&
+                Multi-user mode: *yes&
+
+*METHODS
+        setrunlevel&(*n&:#number&): ?boolean& or *nil&, ~string&
+                Attempt to set the system's runlevel.  Only root can do this.
+
+        *getrunlevel&(): #number&
+                Returns the system's current runlevel.
+
+*CONFIGURATION&
+        The maximum runlevel is set through a flag in #/boot/kernel/loader& -- see *loader&(*5&).  If not specified, defaults to 3.
+
+*COPYRIGHT
+        Monolith Kernel Interfaces& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+*SEE ALSO
+        loader&(*5&)

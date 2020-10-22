@@ -131,7 +131,7 @@ local function resolve(file)
     if file:sub(1,2) == './' then
       file = file:sub(3, -1)
     end
-    return fs.canonical(fs.concat(shell.getWorkingDirectory(), file))
+    return fs.canonical(fs.concat(os.getenv("PWD"), file))
   end
 end
 
@@ -319,4 +319,4 @@ for meta,status in readLines() do
   end
 end
 
-return ec or any_hit_ec
+return 0--ec or any_hit_ec

@@ -1,5 +1,6 @@
 -- common editor functions --
 
+local vt = require("vt")
 local ed = {}
 ed.buffers = {}
 ed.buffer = {}
@@ -11,7 +12,7 @@ function ed.buffer:load(file)
     return nil, err
   end
   local lines = {}
-  for line in handle:lines() do
+  for line in handle:lines("l") do
     lines[#lines + 1] = line:gsub("\n", "") .. "\n"
   end
   handle:close()
@@ -22,7 +23,7 @@ end
 function ed.buffer:save(file)
   checkArg(1, file, "string", "nil")
   if not self.name or self.name == "" then
-    checkArg(1, file, "string")
+    assert(type(file) == "string", "\27[91mE32: No file name\27[0m")
   end
   file = file or self.name
   local handle, err = io.open(file, "w")
@@ -41,15 +42,15 @@ local function drawline(y, n, l, L)
   n = (n and tostring(n)) or "\27[94m~"
   local nl = tostring(L):len()
   local out = string.format("\27[%d;1H\27[93m%"..nl.."s\27[37m %s", y, n, l)
-  out = out .. (" "):rep((ed.getScreenSize()))
+  out = out .. (" "):rep((vt.getResolution()))
   io.write(out)
 end
 
 function ed.buffer:draw(num)
-  local w, h = ed.getScreenSize()
+  local w, h = vt.getResolution()
   if num == false then num = false else num = true end
   local y = 1
-  io.write("\27[1H\27[K")
+  io.write("\27(B\27[1H\27[K")
   for i=1+self.scroll.h, 1+self.scroll.h+h, 1 do
     local line = self.lines[i] or ""
     local n = drawline(y, (self.lines[i] and (num and i or "")) or nil, (self.highlighter or function(e)return e end)(line:sub(1, w + self.scroll.w)), #self.lines)
@@ -58,10 +59,7 @@ function ed.buffer:draw(num)
       break
     end
   end
-end
-
-function ed.getScreenSize()
-  return io.stdout.gpu.getResolution()
+  io.write("\27(b")
 end
 
 function ed.new(file)
