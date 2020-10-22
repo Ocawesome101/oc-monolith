@@ -447,7 +447,6 @@ log("OK", "module/component")
 do
   local component = require("component")
   local overrides = {
-    gpu = function()return io.stdout.gpu end
   }
   local mt = {
     __index = function(tbl, k)

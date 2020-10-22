@@ -343,7 +343,7 @@ function vt.emu(gpu, screen)
           raw = true
         elseif c == "b" then
           if buf then gpu.setActiveBuffer(0)
-                      gpu.bitblt(buf) end
+                      gpu.bitblt(0, 1, 1, w, h, buf) end
         elseif c == "B" then
           if buf then gpu.setActiveBuffer(buf) end
         end
