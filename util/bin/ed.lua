@@ -39,8 +39,12 @@ function commands.i(n)
   end
   cur=n
 end
-function commands.l()
-  print(#buf)
+function commands.l(a,b)
+  for i=a,b,1 do
+    io.write((
+      buf[i]:gsub("%$", "\\$"):sub(1,-2).."$".."\n"
+    ))
+  end
 end
 function commands.p(a,b)
   for i=a,b,1 do

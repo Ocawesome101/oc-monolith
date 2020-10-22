@@ -5,7 +5,46 @@
         ed& [?file&]
 
 *DESCRIPTION
-        ed& is a Lua implementation of the standard Unix text editor.  It does not feature all of the commands, but is similar enough to be recognizable.  It supports the *a&, *c&, *d&, *i&, *l&, *p&, *P&, *q&, *s&, and *w& commands.
+        ed& is a Lua implementation of the standard Unix text editor.  *ed& is a line-oriented text editor.  It is used to create, display, modify, and otherwise manipulate text files interactively.  This version is more similar to *red&, the restricted editor, except that it can edit files anywhere in the filesystem.
+
+        *ed& will start edit by reading in '?file&' if given.  It supports the *a&, *c&, *d&, *i&, *l&, *p&, *P&, *q&, *s&, and *w& commands.
+
+*COMMANDS&
+        All *ed& commands are single characters, though some require additional parameters.  At most one command is allowed per line.
+
+        (?.&)*a&
+            Appends text to the buffer after the addressed line.  The address '#0&' (zero) is valid for this command; it places the entered text at the beginning of the buffer.  Text is entered in input mode.  The current address is set to the address of the last line entered or, if there were none, to the addressed line.
+
+        (?.*,?.&)*c&
+            Changes lines in the buffer.  The addressed lines are deleted from theh buffer, and text is inserted in their place.  Text is entered in input mode.  The current address is set to the address of the last line entered or, if there were none, to the new address of the line after the last line deleted; if the lines deleted were originally at the end of the buffer, the current address os set to the address of the new last line; if no lines remain in the buffer, the current address is set to zero.
+
+        (?.*,?.&)*d&
+            Deletes the addressed lines from the buffer.  The current address is set to the new address of the line after the last line deleted; if the lines deleted were originally at the end of the buffer, the current address is set to the address of the new last line; if no lines remain in the buffer, the current address is set to zero.
+
+        *e?FILE&
+            Edits ?FILE&, and sets the default filename.  If ?FILE& is not specified, then the default filename is used.  Any lines in the buffer are deleted before the new file is read.  The current address is set to the address of the last line in the buffer.
+
+        *f?FILE&
+            Sets the default filename to ?FILE&.  If ?FILE& is not specified, then the default filename is printed.
+
+        (?.&)*i&
+            Inserts text in the buffer before the addressed line.  The address '0' (zero) is valid for this command; it places the entered tet at the beginning of the buffer. Text is entered in input mode.  The current address is set to the address of the last line entered or, if there were none, to the addressed line.
+
+        (?.*,?.&)*l&
+            List command.  Prints the addressed lines unambiguously.  The end of each line is marked with a '$', and every '$' character within the text is printed with a preceding backslash.
+
+        (?.*,?.&)*p&
+            Prints the addressed lines.
+
+        *P&
+            Toggles the command prompt on and off.  The default prompt is an asterisk.
+
+        *q&
+            Quits '*ed&' unconditionally.  Unwritten changes are discarded without warning.
+        
+        sw
+
+        (?1*,?$&)*s/?RE*/?REPLACEMENT*/&
 
 *EXAMPLES&
         Command parameters should be given without spaces - for example, *w example& becomes *wexample&.
