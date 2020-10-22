@@ -45,6 +45,7 @@ while [ $# -gt 0 ]; do
       rm -rf build/etc/ build/home
       cd build && find ./* | cpio -o > ../packages/base.cpio && cd ..
       printf "\e[2A\e[G$OK\e[2B"
+      cp -r util/etc build/etc
       shift
       ;;
     webdoc)

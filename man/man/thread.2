@@ -45,7 +45,8 @@
                         *[1]& = @table&: *thread stdout&,
                         *[2]& = @table&: *thread stderr&
                       @}&,
-                      *env& = @table&: *thread environment variables&
+                      *env& = @table&: *thread environment variables&,
+                      *handles& = @table&: *opened file handles&
                     @}&
 
         *ipc&(*pid&:#number&, ...): ?boolean& or *nil&, ~string&
