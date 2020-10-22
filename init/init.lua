@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.10.21"
+local _INITVERSION = "InitMe 2020.10.22"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
@@ -573,8 +573,8 @@ if runlevel.levels[maxrunlevel].services then
     if cfg[service] then
       return true
     end
-    if fs.exists(services .. script .. ".lua") then
-      cfg[script] = true
+    if fs.exists(services .. service .. ".lua") then
+      cfg[service] = true
       config.save(cfg, "/etc/initsvc.cfg")
     else
       return nil, "service not found"
