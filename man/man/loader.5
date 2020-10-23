@@ -7,16 +7,19 @@
         *loader& provides the kernel logger and passes the kernel a table of flags.
 
 *CONFIGURATION&
-        The default loader script contains a table of flags starting on line 4.  The following flags are currently supported:
+        The default loader script sets kernel flags on line 4.  The following flags are currently supported:
 
-        *init&~string&
+        *init&=~string&
                 The script to load and run as the init process.  Should only be changed when developing alternate init systems.
 
-        *quiet&:?boolean&
+        *quiet&=?boolean&
                 Whether to disable screen logging on boot.  May slightly improve boot times.
 
-        *runlevel&:#number&
+        *runlevel&=#number&
                 The maximum runlevel the system should attempt to reach.  Values larger than 3 will have no effect.
+
+*EXAMPLES&
+        ~init=/bin/sh.lua&
 
 *COPYRIGHT
         Monolith System& (c) 2020 Ocawesome101 under the GNU GPLv3.

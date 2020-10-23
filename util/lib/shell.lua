@@ -318,6 +318,7 @@ local function execute(str)
       end
       func = ok
     end
+    local shenv = thread.info().data.env
     local f = function()
       io.input(ex.i)
       io.output(ex.o)
@@ -332,6 +333,11 @@ local function execute(str)
         io.stderr:write(ret,"\n")
         for i, _ in pairs(pids) do
           thread.signal(pids[i], thread.signals.kill)
+        end
+      end
+      if shellEnv then
+        for k, v in pairs(thread.info().data.env) do
+          shenv[k] = v
         end
       end
     end
