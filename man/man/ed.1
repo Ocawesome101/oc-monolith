@@ -7,7 +7,7 @@
 *DESCRIPTION
         ed& is a Lua implementation of the standard Unix text editor.  *ed& is a line-oriented text editor.  It is used to create, display, modify, and otherwise manipulate text files interactively.  This version is more similar to *red&, the restricted editor, except that it can edit files anywhere in the filesystem.
 
-        *ed& will start edit by reading in '?file&' if given.  It supports the *a&, *c&, *d&, *i&, *l&, *p&, *P&, *q&, *s&, and *w& commands.
+        *ed& will start edit by reading in '?file&' if given.
 
 *COMMANDS&
         All *ed& commands are single characters, though some require additional parameters.  At most one command is allowed per line.
@@ -42,9 +42,17 @@
         *q&
             Quits '*ed&' unconditionally.  Unwritten changes are discarded without warning.
         
-        sw
+        w
 
         (?1*,?$&)*s/?RE*/?REPLACEMENT*/&
+            Substitute command.  Replaces text in the addressed lines matching a Lua pattern ?RE& with ?REPLACEMENT&.
+
+            ?RE& and ?REPLACEMENT& may only be delimited by the */& (forward-slash) character.  If the last delimiter is omitted, the command will not execute.
+
+            An unescaped *o/o?n& in ?REPLACEMENT& will match the ?n&th occurrence of the pattern matched by ?RE& in any given line.
+
+        (?1*,?$&)*w?FILE&
+            Writes the addressed lines to ?FILE&.  Any previous contents of ?FILE& are lost without warning.  If there is no default filename, then the default filename is set to ?FILE&, otherwise it is unchanged.  If no filename is specified, then the default filename is used.
 
 *EXAMPLES&
         Command parameters should be given without spaces - for example, *w example& becomes *wexample&.
@@ -57,6 +65,8 @@
 
 *COPYRIGHT
         Original design and implementation& (c) 1969 Ken Thompson/Bell Labs. *Lua implementation& (c) 2020 Ocawesome101 under the GNU GPLv3.
+
+        Command descriptions partially taken from the Texinfo manual page on *ed&.  Copyright (C) 1993, 1994, 2006-2020 Free Software Foundation, Inc.
 
 *SEE ALSO
         led&(*1&), *fled&(*1&), *vled&(*1&), *editor&(*3&)

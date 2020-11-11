@@ -24,6 +24,7 @@ while true do
   line = line:gsub("%^", "\27[94m")
   line = line:gsub("%%%%", "?") -- always the edge case :P
   line = line:gsub("%`", "#") -- and another one
+  line = line:gsub("o/o", "%") -- aaaaand another
   outh:write(line .. "\n")
 end
 
