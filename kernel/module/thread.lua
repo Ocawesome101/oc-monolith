@@ -166,11 +166,11 @@ do
     checkArg(1, handle, "table", "nil")
     local info, err = thread.info()
     if not info then return nil, err end
-    local old = handle.close
+    local old_close = handle.close
     local i = #info.data.handles + 1
     function handle:close()
       info.data.handles[i] = nil
-      return close(handle)
+      return old_close(handle)
     end
     info.data.handles[i] = handle
     return true

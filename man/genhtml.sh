@@ -8,10 +8,10 @@ DOMAIN='oz-craft.pickardayune.com'
 
 echo '
 <link rel="stylesheet" href="https://oz-craft.pickardayune.com/blog/style.css">
-<html><title>Monolith manual pages</title>
+<html><title>monolith manual pages</title>
 <body>
 <p>
-The following links point to all currently available manual pages from the Monolith system.<br><br>If you notice any deficiencies, please open an issue on the <a href="https://github.com/ocawesome101/oc-monolith/issues">Monolith GitHub Issues page</a>.
+the following links point to all currently available manual pages from the monolith system.<br><br>if you notice any deficiencies, please open an issue on the <a href="https://github.com/oc-monolith/oc-monolith/issues">monolith github issues page</a>.
 </p>
 ' > ./web/man/index.html
 

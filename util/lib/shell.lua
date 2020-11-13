@@ -340,6 +340,7 @@ local function execute(str)
           shenv[k] = v
         end
       end
+      os.exit()
     end
     table.insert(pids, thread.spawn(f, table.concat(ex.cmd, " ")))
   end
