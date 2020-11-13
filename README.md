@@ -4,7 +4,7 @@ Monolith is a monolithic, multitasking, multiuser, multiscreen operating system 
 
 Documentation is available online [here](https://oz-craft.pickardayune.com/man).
 
-Current LOC: 9665
+Current LOC: 9681
 
 ## Installation
 To install Monolith to any empty hard disk, run the following commands in the OpenOS shell. You will need an internet card.
