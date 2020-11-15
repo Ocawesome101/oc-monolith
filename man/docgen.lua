@@ -3,6 +3,7 @@
 
 local args = {...}
 
+print=function()end
 print(table.concat({"[ \27[94mINFO\27[39m ] docgen", args[1], "->", args[2]}, " "))
 
 local inp = args[1]

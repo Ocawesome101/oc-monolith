@@ -10,7 +10,7 @@ export FAIL="\033[39m[ \033[91mFAIL\033[39m ]"
 export WAIT="\033[39m[ \033[93mWAIT\033[39m ]"
 export luacomp="$PWD/luacomp"
 
-log() {
+log () {
   /bin/echo -e "\e[G$@"
 }
 
