@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.11.14"
+local _INITVERSION = "InitMe 2020.11.17"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
@@ -608,13 +608,6 @@ if runlevel.levels[maxrunlevel].services then
   end
 end
 
-log("WAIT", "Starting getty")
-local ok, err = loadfile("/sbin/getty.lua")
-if not ok then
-  panic("GETTY load failed: " .. err)
-end
-require("thread").spawn(ok, "getty", error)
-
 
 kernel.logger.setShown(false)
 logger.setShown(false)
@@ -628,6 +621,7 @@ package.loaded.times = {
   init_finish   = _INITFINISH
 }
 
+local event = require("event")
 while true do
-  require("event").pull()
+  event.pull()
 end

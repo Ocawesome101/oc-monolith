@@ -113,10 +113,3 @@ if runlevel.levels[maxrunlevel].services then
     end
   end
 end
-
-log("WAIT", "Starting getty")
-local ok, err = loadfile("/sbin/getty.lua")
-if not ok then
-  panic("GETTY load failed: " .. err)
-end
-require("thread").spawn(ok, "getty", error)

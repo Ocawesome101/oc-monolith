@@ -93,6 +93,7 @@ function getty.scan()
       io.output(ios)
       io.error(ios)
       local pid = thread.spawn(ok, login_name or login, error)
+      thread.orphan(pid)
       gpus[gpu].bound = pid
       gpus[gpu].screen = screen
       screens[screen].bound = pid
