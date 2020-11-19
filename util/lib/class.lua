@@ -1,10 +1,17 @@
 -- classes --
 
+local function inherit(tbl, ...)
+  tbl = tbl or {}
+  local new = setmetatable({}, {__index = tbl, __call = inherit})
+  if new.__init then
+    new:__init(...)
+  end
+  return new
+end
+
 local function class(tbl)
   checkArg(1, tbl, "table", "nil")
-  tbl = tbl or {}
-  local new = setmetatable(tbl, {__call=function(_,...)local c = setmetatable({}, {__index=tbl}) if c.__init then c:__init(...) end return c end})
-  return new
+  return setmetatable(tbl or {}, {__call = inherit})
 end
 
 return class

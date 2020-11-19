@@ -93,9 +93,7 @@ end
 --   x:number - X coordinate - relative to the object!
 --   y:number - Y coordinate - relative to the object!
 --   b:number - mouse button
---   m:boolean - mouse pressed or released?
---
-function _obj:click(x,y,bm)
+function _obj:click(x,y,b)
   for i=1, #self.children, 1 do
     local c = self.children[i]
     if x >= c.pos.x and x <= c.pos.x + c.size.w and

@@ -44,6 +44,11 @@ do
     end
     function logger.log(status, ...)
       local msg = table.concat({...}, " ")
+      if msg:sub(1,1) == "^" then
+        klog.y = klog.y - 1
+        msg = msg:sub(2)
+        msg = msg .. string.rep(" ", w - #msg)
+      end
       for line in msg:gmatch("[^\n]+") do
         log(status, line)
       end

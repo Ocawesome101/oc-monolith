@@ -111,5 +111,6 @@ if runlevel.levels[maxrunlevel].services then
     if not ok then
       panic(err)
     end
+    log("OK", "^Started service " .. sname)
   end
 end

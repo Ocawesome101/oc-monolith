@@ -80,7 +80,9 @@ do
     local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
     env = env or kernel.table_copy(current.data.env)
     local new = {
-      coro = coroutine.create(func),            -- the thread
+      coro = coroutine.create(function()return
+        assert(xpcall(func, debug.traceback))
+      end),                                     -- the thread
       pid = last,                               -- process/thread ID
       parent = cur,                             -- parent thread's PID
       name = name,                              -- thread name

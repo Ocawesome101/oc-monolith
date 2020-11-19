@@ -3,6 +3,7 @@
 -- Kernel flags. DO NOT EDIT ANYTHING OTHER THAN THIS LINE.
 -- See `man flags' for details.
 local flags = "init=/sbin/init.lua quiet=false runlevel=3"
+local debugLogs = true -- whether to write logs to disk or to the tmpfs
 -- Below this line, do not touch this file except for debugging purposes!
 
 _G._START = computer.uptime()
@@ -15,7 +16,7 @@ kernel.logger = {}
 kernel.logger.log = function()end
 
 local blog, tmp, addr, invoke
-tmp = computer.tmpAddress() or computer.getBootAddress()
+tmp = (not debugLogs) and computer.tmpAddress() or computer.getBootAddress()
 
 do
   kernel.logger.y = 0

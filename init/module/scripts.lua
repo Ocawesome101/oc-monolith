@@ -12,9 +12,9 @@ if files then
     end
     local s, r = xpcall(ok, debug.traceback)
     if not s and r then
-      kernel.logger.y = kernel.logger.y - 1
-      log("FAIL", v)
+      log("FAIL", "^"..v)
       panic(r)
     end
+    log("OK", "^"..v)
   end
 end
