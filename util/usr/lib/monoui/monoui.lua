@@ -18,10 +18,19 @@
 -- these are passed by MDM
 local gpu, screen = ...
 
+local users = require("users")
 local monoui = require("monoui")
 local window = require("monoui.window")
 local label = require("monoui.label")
 
 local uiBase = monoui.init(gpu, screen)
--- this is terrible code and should be made more readable once testing is done.
-uiBase:addChild(window.new(1, 1, 80, 25):addChild(label.new(2, 2, "This is some text", 0, 0xFFFFFF))):mainLoop()
+
+local win = window.new(1, 1, 20, 10)
+local lab = label.new(7, 1, "LOG IN", 0)
+win:addChild(lab)
+uiBase:addChild(win)
+local win2 = window.new(10, 10, 20, 10)
+win2:bg(0xFF0000)
+uiBase:addChild(win2)
+
+uiBase:mainLoop()
