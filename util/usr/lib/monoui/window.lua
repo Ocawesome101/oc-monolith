@@ -16,7 +16,9 @@ local keys = {
   rcontrol = 157
 }
 function _window:key(c, k, m)
-  self.ctrl = (k == keys.lcontrol or k == keys.rcontrol) and m
+  if (k == keys.lcontrol or k == keys.rcontrol) then
+    self.ctrl = m
+  end
   if self.ctrl and string.char(c) == "w" and m then
     self.parent.children[self.childidx] = nil
     return

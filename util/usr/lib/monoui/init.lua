@@ -84,7 +84,7 @@ function base:mainLoop()
         self:render()
         focused = self
       elseif sig == "key_down" or sig == "key_up" then
-        focused:key(p1, p2, sig == "key_up")
+        focused:key(p1, p2, sig == "key_down")
       end
     end
   end
