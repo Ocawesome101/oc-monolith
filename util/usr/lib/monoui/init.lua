@@ -21,7 +21,7 @@ end
 function base:render()
   self.gpu.fill(1, 1, self.size.w, self.size.h, " ")
   for i=1, #self.children, 1 do
-    self.children[i]:render(self.gpu)
+    self.children[i]:render(self.gpu, 0, 0)
   end
 end
 
