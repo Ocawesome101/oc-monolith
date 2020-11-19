@@ -62,6 +62,7 @@ function base:mainLoop()
   end
   local focused = self
   local drag = false
+  self:render()
   while true do
     local sig, addr, p1, p2, p3 = coroutine.yield()
     if addr == screen or keyboards[addr] then
@@ -72,6 +73,7 @@ function base:mainLoop()
         end
       elseif sig == "drag" then
         drag = true
+        self.gpu.set(p1, p2, "-")
       elseif sig == "drop" then
         if drag then
           focused:drag(p1, p2)
