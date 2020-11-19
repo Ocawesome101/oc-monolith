@@ -17,6 +17,7 @@ function _obj:__init(x, y, w, h)
   checkArg(4, h, "number")
   self.size = {w=w, h=h}
   self.pos  = {x=x, y=y}
+  self.col  = {fg=0x000000, bg=0xFFFFFF}
   self.children = {}
 end
 
@@ -32,6 +33,25 @@ function _obj:addChild(chl)
   return self
 end
 
+-- set colors
+function _obj:fg(f)
+  checkArg(1, f, "number", "nil")
+  if f then
+    self.col.fg = f
+    return self
+  end
+  return self.col.fg
+end
+
+function _obj:bg(b)
+  checkArg(1, b, "number", "nil")
+  if b then
+    self.col.bg = b
+    return self
+  end
+  return self.col.bg
+end
+
 -- render the object and all its children in a recursive-descent order.
 -- for perfoamance reasons, this function is by default only called on the base
 -- object when the user releases a mouse button.  I may change this in the
@@ -43,6 +63,8 @@ end
 --   y:number  - base Y coordinate (parent's base Y + parent's Y position)
 function _obj:render(gpu, x, y)
   checkArg(1, gpu, "table")
+  gpu.setForeground(self.col.fg)
+  gpu.setBackground(self.col.bg)
   gpu.fill(self.pos.x + x, self.pos.y + y, self.size.w, self.size.h, " ")
   if self.text then
     gpu.set(self.text.x + self.pos.x + x, self.text.y + self.pos.y + y,
