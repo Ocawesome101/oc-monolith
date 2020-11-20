@@ -70,6 +70,8 @@ function base:mainLoop()
         local c = self:findChild(p1, p2)
         if c then
           focused = c
+        else
+          focused = self
         end
       elseif sig == "drag" then
         drag = true
@@ -82,7 +84,6 @@ function base:mainLoop()
         end
         drag = false
         self:render()
-        focused = self
       elseif sig == "key_down" or sig == "key_up" then
         focused:key(p1, p2, sig == "key_down")
       end
