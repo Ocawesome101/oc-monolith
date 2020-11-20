@@ -53,6 +53,7 @@ package.loaded.times = {
   init_finish   = _INITFINISH
 }
 
+local event = require("event")
 while true do
-  require("event").pull()
+  event.pull()
 end

@@ -232,6 +232,7 @@ local function split(str, pat)
 end
 
 -- "a | b > c" -> {{cmd = {"a"}, i = <std>, o = <pipe>}, {cmd = {"b"}, i = <pipe>, o = <handle_to_c>}}
+local shellEnv = {cd = true, set = true}
 local function setup(str)
   str = shell.expand(str)
   local tokens = shell.split(str)
@@ -253,7 +254,7 @@ local function setup(str)
       local new = pipe.create()
       cur.o = new
       table.insert(ret, cur)
-      cur = {cmd = {}, i = pipe, o = stdout}
+      cur = {cmd = {}, i = new, o = stdout}
     elseif t == ">" or t == ">>" then -- > write, >> append
       if #cur.cmd == 0 or i == #tokens then
         return nil, "syntax error near unexpected token `"..t.."`"
@@ -277,6 +278,9 @@ local function setup(str)
     elseif shell.aliases[t] and #cur.cmd == 0 then
       local ps = shell.split(shell.expand(shell.aliases[t]))
       cur.cmd = ps
+    elseif #cur.cmd == 0 and shellEnv[t] then
+      cur.env = thread.info().data.env
+      cur.cmd[1] = t
     else
       cur.cmd[#cur.cmd + 1] = t
     end
@@ -288,7 +292,6 @@ local function setup(str)
   return ret
 end
 
-local immediate = {set = true, cd = true}
 local function execute(str)
   local exec, err = setup(str)
   if not exec then
@@ -301,9 +304,6 @@ local function execute(str)
     local ex = exec[i]
     local cmd = ex.cmd[1]
     if shell.builtins[cmd] then
-      if immediate[cmd] then
-        shell.builtins[cmd](table.unpack(ex.cmd, 2))
-      end
       func = shell.builtins[cmd]
     else
       local path, err = shell.resolve(cmd)
@@ -318,6 +318,7 @@ local function execute(str)
       end
       func = ok
     end
+    local shenv = thread.info().data.env
     local f = function()
       io.input(ex.i)
       io.output(ex.o)
@@ -330,10 +331,16 @@ local function execute(str)
       if not ok and ret then
         errno = ret
         io.stderr:write(ret,"\n")
-        for i=1, #pids, 1 do
+        for i, _ in pairs(pids) do
           thread.signal(pids[i], thread.signals.kill)
         end
       end
+      if shellEnv then
+        for k, v in pairs(thread.info().data.env) do
+          shenv[k] = v
+        end
+      end
+      os.exit()
     end
     table.insert(pids, thread.spawn(f, table.concat(ex.cmd, " ")))
   end

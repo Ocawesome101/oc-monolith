@@ -4,8 +4,12 @@ local shell = require("shell")
 local fs = require("filesystem")
 local vt = require("vt")
 
-local x, y = vt.getCursor()
-local w, h = vt.getResolution()
+local x, y = 1, 1
+local w, h = math.huge, math.huge 
+if io.stdout.tty and io.stdin.tty then
+  x, y = vt.getCursor()
+  w, h = vt.getResolution()
+end
 
 local args, opts = shell.parse(...)
 
@@ -28,6 +32,9 @@ if col then
 end
 
 local function color(colo)
+  if not io.stdout.tty then -- not connected to a terminal
+    return ""
+  end
   return string.format("\27[%dm", col and colo or 39)
 end
 

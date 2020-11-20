@@ -5,7 +5,7 @@ local  config  = require (  "config"  )
 local   cpio   = require (   "cpio"   )
 local    fs    = require ("filesystem")
 local internet = require ( "internet" )
-local  logger  = require (  "logger"  ).new("arrow")
+local  logger  = require (  "logger"  ).new("pacman")
 local    cp    = loadfile("/bin/cp.lua")
 local    rm    = loadfile("/bin/rm.lua")
 

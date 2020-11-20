@@ -17,7 +17,18 @@
 
 kernel._START = computer.uptime()
 
-local flags = ... or {}
+-- kernel arguments
+local kargs = ... or ""
+local flags = {}
+do
+  for word in kargs:gmatch("[^%s]+") do
+    local flag, val = word:match("(.-)=(.+)")
+    flag = flag or word
+    val = val or "true"
+    val = tonumber(val) or val == "true" or (val ~= "false" and val)
+    flags[flag] = val
+  end
+end
 flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 flags.runlevel = flags.runlevel or 3

@@ -19,7 +19,7 @@ do
   package.loaded = loaded
   local fs = kernel.filesystem
 
-  package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua;/usr/compat/?.lua;/usr/compat/lib?.lua"
+  package.path = "/lib/?.lua;/lib/lib?.lua;/lib/?/init.lua;/usr/lib/?.lua;/usr/lib/lib?.lua;/usr/lib/?/init.lua;/usr/compat/?.lua;/usr/compat/lib?.lua"
 
   local function libError(name, searched)
     local err = "module '%s' not found:\n\tno field package.loaded['%s']"

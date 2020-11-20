@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.10.21"
+local _INITVERSION = "InitMe 2020.11.20"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic
@@ -68,6 +68,11 @@ do
     end
     function logger.log(status, ...)
       local msg = table.concat({...}, " ")
+      if msg:sub(1,1) == "^" then
+        klog.y = klog.y - 1
+        msg = msg:sub(2)
+        msg = msg .. string.rep(" ", w - #msg)
+      end
       for line in msg:gmatch("[^\n]+") do
         log(status, line)
       end
@@ -102,7 +107,7 @@ do
   package.loaded = loaded
   local fs = kernel.filesystem
 
-  package.path = "/lib/?.lua;/lib/lib?.lua;/usr/lib/?.lua;/usr/lib/lib?.lua;/usr/compat/?.lua;/usr/compat/lib?.lua"
+  package.path = "/lib/?.lua;/lib/lib?.lua;/lib/?/init.lua;/usr/lib/?.lua;/usr/lib/lib?.lua;/usr/lib/?/init.lua;/usr/compat/?.lua;/usr/compat/lib?.lua"
 
   local function libError(name, searched)
     local err = "module '%s' not found:\n\tno field package.loaded['%s']"
@@ -447,7 +452,6 @@ log("OK", "module/component")
 do
   local component = require("component")
   local overrides = {
-    gpu = function()return io.stdout.gpu end
   }
   local mt = {
     __index = function(tbl, k)
@@ -482,10 +486,10 @@ if files then
     end
     local s, r = xpcall(ok, debug.traceback)
     if not s and r then
-      kernel.logger.y = kernel.logger.y - 1
-      log("FAIL", v)
+      log("FAIL", "^"..v)
       panic(r)
     end
+    log("OK", "^"..v)
   end
 end
 
@@ -573,8 +577,8 @@ if runlevel.levels[maxrunlevel].services then
     if cfg[service] then
       return true
     end
-    if fs.exists(services .. script .. ".lua") then
-      cfg[script] = true
+    if fs.exists(services .. service .. ".lua") then
+      cfg[service] = true
       config.save(cfg, "/etc/initsvc.cfg")
     else
       return nil, "service not found"
@@ -606,15 +610,9 @@ if runlevel.levels[maxrunlevel].services then
     if not ok then
       panic(err)
     end
+    log("OK", "^Started service " .. sname)
   end
 end
-
-log("WAIT", "Starting getty")
-local ok, err = loadfile("/sbin/getty.lua")
-if not ok then
-  panic("GETTY load failed: " .. err)
-end
-require("thread").spawn(ok, "getty", error)
 
 
 kernel.logger.setShown(false)
@@ -629,6 +627,7 @@ package.loaded.times = {
   init_finish   = _INITFINISH
 }
 
+local event = require("event")
 while true do
-  require("event").pull()
+  event.pull()
 end

@@ -10,7 +10,7 @@ export FAIL="\033[39m[ \033[91mFAIL\033[39m ]"
 export WAIT="\033[39m[ \033[93mWAIT\033[39m ]"
 export luacomp="$PWD/luacomp"
 
-log() {
+log () {
   /bin/echo -e "\e[G$@"
 }
 
@@ -45,6 +45,7 @@ while [ $# -gt 0 ]; do
       rm -rf build/etc/ build/home
       cd build && find ./* | cpio -o > ../packages/base.cpio && cd ..
       printf "\e[2A\e[G$OK\e[2B"
+      cp -r util/etc build/etc
       shift
       ;;
     webdoc)

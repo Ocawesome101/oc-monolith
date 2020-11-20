@@ -1,14 +1,16 @@
 -- vled - Visual Lua EDitor --
 -- better than fled, probably worse than OpenOS's edit.lua. --
 
---[[error([[VLED is broken due to a bug in the current readline implementation.
-This is a KNOWN issue and will be fixed as soon as possible. Please use 'ed' or
-'led' in the meantime.]]--)
-
 local vt = require("vt")
-local editor = require("editor")
 local shell = require("shell")
+local thread = require("thread")
+local editor = require("editor")
 local readline = require("readline")
+
+local sigHandler = function() end
+-- ignore ctrl-C/ctrl-D
+thread.handleSignal(thread.signals.interrupt, sigHandler)
+thread.handleSignal(thread.signals.hangup, sigHandler)
 
 local w, h = vt.getResolution()
 local cur = 1

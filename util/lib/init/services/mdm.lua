@@ -4,19 +4,8 @@ local thread = require("thread")
 local component = require("component")
 local computer = require("computer")
 package.loaded.times.getty_start = computer.uptime()
-local vt100 = require("vt100")
-local login = "/sbin/login.lua"
+local login = "/usr/lib/monoui/monoui.lua"
 local login_name = "login"
-
-local rl = require("runlevel")
-if not rl.levels[rl.max()].multiuser then
-  login = "/bin/sh.lua"
-  login_name = "shell"
-  local users = require("users")
-  users.getname(0)
-  os.setenv("UID", 0)
-  os.setenv("USER", "root")
-end
 
 local getty = {}
 
@@ -84,15 +73,8 @@ function getty.scan()
       if not ok then
         error(err)
       end
-      local ios, err = vt100.emu(gpu, screen)
-      if not ios then
-        error(err)
-      end
-      ios.tty = true
-      io.input(ios)
-      io.output(ios)
-      io.error(ios)
-      local pid = thread.spawn(ok, login_name or login, error)
+      local pid = thread.spawn(function()ok(gpu, screen)end, login_name or login, error)
+      thread.orphan(pid)
       gpus[gpu].bound = pid
       gpus[gpu].screen = screen
       screens[screen].bound = pid

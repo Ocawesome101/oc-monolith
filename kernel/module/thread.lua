@@ -80,7 +80,9 @@ do
     local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
     env = env or kernel.table_copy(current.data.env)
     local new = {
-      coro = coroutine.create(func),            -- the thread
+      coro = coroutine.create(function()return
+        assert(xpcall(func, debug.traceback))
+      end),                                     -- the thread
       pid = last,                               -- process/thread ID
       parent = cur,                             -- parent thread's PID
       name = name,                              -- thread name
@@ -166,11 +168,11 @@ do
     checkArg(1, handle, "table", "nil")
     local info, err = thread.info()
     if not info then return nil, err end
-    local old = handle.close
+    local old_close = handle.close
     local i = #info.data.handles + 1
     function handle:close()
       info.data.handles[i] = nil
-      return close(handle)
+      return old_close(handle)
     end
     info.data.handles[i] = handle
     return true

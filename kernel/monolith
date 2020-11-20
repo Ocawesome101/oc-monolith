@@ -17,13 +17,24 @@
 
 kernel._START = computer.uptime()
 
-local flags = ... or {}
+-- kernel arguments
+local kargs = ... or ""
+local flags = {}
+do
+  for word in kargs:gmatch("[^%s]+") do
+    local flag, val = word:match("(.-)=(.+)")
+    flag = flag or word
+    val = val or "true"
+    val = tonumber(val) or val == "true" or (val ~= "false" and val)
+    flags[flag] = val
+  end
+end
 flags.init = flags.init or "/sbin/init.lua"
 flags.quiet = flags.quiet or false
 flags.runlevel = flags.runlevel or 3
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "2020.10.21"
+local _KERNEL_REVISION = "2020.11.20"
 
 _G._OSVERSION = string.format("%s version %s", _KERNEL_NAME, _KERNEL_REVISION)
 
@@ -648,7 +659,9 @@ do
     local current = thread.info() or { data = { io = {[0] = {}, [1] = {}, [2] = {} }, env = {} } }
     env = env or kernel.table_copy(current.data.env)
     local new = {
-      coro = coroutine.create(func),            -- the thread
+      coro = coroutine.create(function()return
+        assert(xpcall(func, debug.traceback))
+      end),                                     -- the thread
       pid = last,                               -- process/thread ID
       parent = cur,                             -- parent thread's PID
       name = name,                              -- thread name
@@ -734,11 +747,11 @@ do
     checkArg(1, handle, "table", "nil")
     local info, err = thread.info()
     if not info then return nil, err end
-    local old = handle.close
+    local old_close = handle.close
     local i = #info.data.handles + 1
     function handle:close()
       info.data.handles[i] = nil
-      return close(handle)
+      return old_close(handle)
     end
     info.data.handles[i] = handle
     return true
@@ -930,9 +943,33 @@ end
 local sandbox = {}
 
 -- it is now time for an actually working sandbox!
+-- V2
+-- from https://lua-users.org/wiki/CopyTable because apparently my
+-- implementation is somewhat incompetent (doesn't always work)
+local function deepcopy(orig, copies)
+  copies = copies or {}
+  local orig_type = type(orig)
+  local copy
+  if orig_type == 'table' then
+    if copies[orig] then
+      copy = copies[orig]
+    else
+      copy = {}
+      copies[orig] = copy
+      for orig_key, orig_value in next, orig, nil do
+        copy[deepcopy(orig_key, copies)] = deepcopy(orig_value, copies)
+      end
+      setmetatable(copy, deepcopy(getmetatable(orig), copies))
+    end
+  else -- number, string, boolean, etc
+    copy = orig
+  end
+  return copy
+end
+
 function kernel.table_copy(t)
   checkArg(1, t, "table")
-  local seen = {}
+--[[  local seen = {}
   local function copy(tbl)
     local ret = {}
     tbl = tbl or {}
@@ -945,8 +982,8 @@ function kernel.table_copy(t)
       end
     end
     return ret
-  end
-  return copy(t)
+  end]]
+  return deepcopy(t)
 end
 
 sandbox = kernel.table_copy(_G)

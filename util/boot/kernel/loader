@@ -1,11 +1,9 @@
 -- boot loader for the Monolith kernel. ensures compatibility with OpenLoader. --
 
--- Kernel flags. DO NOT EDIT ANYTHING OTHER THAN THIS TABLE.
-local flags = {
-  init = "/sbin/init.lua",  -- string: script to load as init
-  quiet = false,            -- boolean: whether to disable boot logging
-  runlevel = 3              -- number: maximum system runlevel
-}
+-- Kernel flags. DO NOT EDIT ANYTHING OTHER THAN THIS LINE.
+-- See `man flags' for details.
+local flags = "init=/sbin/init.lua quiet=false runlevel=3"
+local debugLogs = false -- whether to write logs to disk or to the tmpfs
 -- Below this line, do not touch this file except for debugging purposes!
 
 _G._START = computer.uptime()
@@ -18,7 +16,7 @@ kernel.logger = {}
 kernel.logger.log = function()end
 
 local blog, tmp, addr, invoke
-tmp = computer.tmpAddress() or computer.getBootAddress()
+tmp = (not debugLogs) and computer.tmpAddress() or computer.getBootAddress()
 
 do
   kernel.logger.y = 0
@@ -27,7 +25,7 @@ do
   local screen = component.list("screen")()
   local log = function() end
   local show = true
-  if gpu and screen and not flags.quiet then
+  if gpu and screen and not flags:match("quiet=true") then
     gpu = component.proxy(gpu)
     kernel.logger.gpu = gpu
     gpu.bind(screen)
