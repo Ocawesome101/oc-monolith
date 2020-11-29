@@ -34,7 +34,7 @@ flags.quiet = flags.quiet or false
 flags.runlevel = flags.runlevel or 3
 
 local _KERNEL_NAME = "Monolith"
-local _KERNEL_REVISION = "2020.11.20"
+local _KERNEL_REVISION = "2020.11.21"
 
 _G._OSVERSION = string.format("%s version %s", _KERNEL_NAME, _KERNEL_REVISION)
 
