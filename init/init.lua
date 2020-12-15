@@ -16,7 +16,7 @@
         along with this program.  If not, see <https://www.gnu.org/licenses/>. ]]
 
 local maxrunlevel = ...
-local _INITVERSION = "InitMe 2020.11.21"
+local _INITVERSION = "InitMe 2020.12.15"
 local _INITSTART = computer.uptime()
 local kernel = kernel
 local panic = kernel.logger.panic

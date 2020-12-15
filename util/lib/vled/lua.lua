@@ -1,65 +1,116 @@
--- basic Lua syntax highlighting for the VLED text editor --
--- uses vt100, so will NOT be fast. at all. --
+-- Lua highlighting for TLE --
 
-local text = require("text")
+local keyword_color, builtin_color, const_color, str_color,
+                                                          cmt_color, kchar_color
+    = 93,            94,            95,         95,       94,        92
 
--- VT100 colors
-local colors = {
-  bright = {
-    red = 91,
-    green = 92,
-    yellow = 93,
-    blue = 94,
-    purple = 95,
-    cyan = 96,
-    white = 97
-  },
-  red = 31,
-  green = 32,
-  yellow = 33,
-  blue = 34,
-  purple = 35,
-  cyan = 36,
-  white = 37
+local function esc(n)
+  return string.format("\27[%dm", n)
+end
+
+keyword_color = esc(keyword_color)
+builtin_color = esc(builtin_color)
+kchar_color = esc(kchar_color)
+const_color = esc(const_color)
+str_color = esc(str_color)
+cmt_color = esc(cmt_color)
+
+local keywords = {
+  ['local']    = true,
+  ['while']    = true,
+  ['for']      = true,
+  ['repeat']   = true,
+  ['until']    = true,
+  ['do']       = true,
+  ['if']       = true,
+  ['in']       = true,
+  ['else']     = true,
+  ['elseif']   = true,
+  ['and']      = true,
+  ['or']       = true,
+  ['not']      = true,
+  ['then']     = true,
+  ['end']      = true,
+  ['function'] = true,
+  ['return']   = true
 }
 
-local patterns = {
-  ["[\"'].-[\"']"]                      = colors.red,
-  ["([%s%(%)]+)(true)([%s%(%)]+)"]      = "%1\27[95m%2\27[37m%3",
-  ["([%s%(%)]+)(false)([%s%(%)]+)"]     = "%1\27[95m%2\27[37m%3",
-  ["([%s%(%)]+)(nil)([%s%(%)]+)"]       = "%1\27[95m%2\27[37m%3",
-  ["([%{%}])"]                          = colors.bright.green,
-  ["([^\"']?)if (.-) then([^\"']?)"]    = "%1\27[93mif\27[37m %2 \27[93mthen\27[37m%3",
-  ["(%S-)(%()"]                         = "\27[94m%1\27[37m%2",
-  ["while (.-) do"]                     = "\27[93mwhile\27[37m %1 \27[93mdo\27[37m",
-  ["for (.-) do"]                       = "\27[93mfor\27[37m %1 \27[93mdo\27[37m",
-  ["if (.-) then (.-) end"]             = "\27[93mif\27[37m %1\27[37mthen\27[37m %2 \27[93mend\27[37m",
-  ["while (.-) do (.-) end"]            = "\27[93mwhile\27[37m %1\27[37mdo\27[37m %2 \27[93mend\27[37m",
-  ["for (.-) do (.-) end"]              = "\27[93mfor\27[37m %1\27[37mdo\27[37m %2 \27[93mend\27[37m",
-  ["local (.+)"]                        = "\27[93mlocal\27[37m %1",
-  ["return (.+)"]                       = "\27[93mreturn\27[37m %1",
-  ["not (.+)"]                          = "\27[93mnot\27[37m %1",
-  ["function (.+)"]                     = "\27[94mfunction\27[37m %1",
-  [" else "]                            = colors.bright.yellow
+local functions = {
+  ['print'] = true,
+  ['_G'] = true,
 }
 
-local function color(c)
-  return string.format("\27[%dm", c)
+do
+  local seen = {}
+  local function add_highlight(k, obj)
+    if type(obj) == "table" then
+      if not seen[obj] then
+        for _k, _v in pairs(obj) do
+          add_highlight(k..".".._k, v)
+        end
+      end
+      seen[obj] = true
+    end
+    functions[k] = true
+  end
+  seen = {}
+  for k, v in pairs(_G) do
+    add_highlight(k, v)
+  end
+end
+
+local kchars = "[%{%}%[%]%(%)]"
+local operators = ""
+
+local function words(ln)
+  local words = {}
+  local ws, word = "", ""
+  for char in ln:gmatch(".") do
+    if char:match("[%{%}%[%]%(%)%s\"',%+%=%%%/%|%&%>%<%*]") then
+      ws = char
+      if #word > 0 then words[#words + 1] = word  end
+      if #ws > 0 then words[#words + 1] = ws  end
+      word = ""
+      ws = ""
+    else
+      word = word .. char
+    end
+  end
+  if #word > 0 then words[#words + 1] = word  end
+  if #ws > 0 then words[#words + 1] = ws  end
+  return words
 end
 
 local function highlight(line)
-  local trim = text.trim(line)
-  if trim:sub(1,2) == "--" or line:sub(1,3) == "#!/" then -- comment or shebang
-    return color(colors.bright.blue) .. line
-  elseif trim == "do" or trim == "end" or trim == "else" then
-    return color(colors.bright.yellow) .. line
-  else
-    for pat, col in pairs(patterns) do
-      if type(col) == "string" then line = line:gsub(pat, col) else
-        line = line:gsub(pat, color(col) .. "%1\27[37m") end
+  local ret = ""
+  local in_str = false
+  local in_cmt = false
+  for i, word in ipairs(words(line)) do
+    if word:match("[\"']") and not in_str and not in_cmt then
+      in_str = true
+      ret = ret .. str_color .. word
+    elseif in_str then
+      ret = ret .. word
+      if word:match("[\"']") then
+        ret = ret .. "\27[39m"
+        in_str = false
+      end
+    elseif word:sub(1,2) == "--" then
+      in_cmt = true
+      ret = ret .. cmt_color .. word
+    elseif in_cmt then
+      ret = ret .. word
+    else
+      local esc = (keywords[word] and keyword_color) or
+                  (functions[word] and builtin_color) or
+                  ((word == "true" or word == "false") and const_color) or
+                  (word:match(kchars) and kchar_color) or
+                  (word:match("^%d+$") and const_color) or ""
+      if esc == "" then word = word:gsub("_G", builtin_color.."_G\27[39m") end
+      ret = ret .. esc .. word .. (esc ~= "" and "\27[39m" or "")
     end
   end
-  return line .. "\27[37m"
+  return ret
 end
 
 return highlight
