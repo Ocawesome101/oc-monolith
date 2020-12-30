@@ -1,5 +1,5 @@
 -- A new vt100 emulator, with some major improvements. --
--- This is actually ported from the failed Paragon project.
+-- This is actually ported from the Paragon kernel.
 
 local event = require("event")
 local thread = require("thread")

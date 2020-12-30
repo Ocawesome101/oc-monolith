@@ -7,7 +7,8 @@ local _box = base(0,0,0,0)
 local binit = _box.__init
 function _box:__init(x, y, w, h)
   self.buffer = ""
-  self.text = {text="", x=1, y=1}
+  self.text = {text="", x=0, y=0}
+  self.col = {fg = 0xFFFFFF, bg = 0x000000}
   return binit(self, x, y, w, h)
 end
 
@@ -23,7 +24,7 @@ function _box:key(c, k, m)
         self.submit(self.buffer)
       end
     end
-    self.text.text = self.buffer:sub(#self.buffer - self.size.w, 0)
+    self.text.text = self.buffer:sub(1, self.size.w, 0)
   end
 end
 
