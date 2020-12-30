@@ -53,6 +53,10 @@ function base:findChild(x, y)
   end
 end
 
+function base:getResolution()
+  return self.gpu.getResolution()
+end
+
 -- main loop function - spawns a thread dealing with the provided UI base.
 function base:mainLoop()
   local screen = self.gpu.getScreen()
@@ -80,13 +84,13 @@ function base:mainLoop()
         if drag then
           focused:drag(p1, p2)
         else
-          focused:click(p1, p2, p3)
+          focused:click(p1 - focused.pos.x, p2 - focused.pos.y, p3)
         end
         drag = false
         self:render()
       elseif sig == "key_down" or sig == "key_up" then
         focused:key(p1, p2, sig == "key_down")
-        if sig == "key_up" then
+        if sig == "key_down" and not p3 then
           self:render()
         end
       end

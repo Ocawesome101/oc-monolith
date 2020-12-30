@@ -27,12 +27,41 @@ local textbox = require("monoui.textbox")
 local uiBase = monoui.init(gpu, screen)
 
 local win = window.new(1, 1, 20, 10)
-local lab = label.new(7, 1, "LOG IN", 0)
-local txb = textbox.new(3, 3, 14, 1)
-txb:fg(0xFFFFFF)
-txb:bg(0x000000)
+local lab = label.new(7, 1, "Log In", 0)
+local errLabel = label.new(1, 2, "Invalid Credentials", 0xFF0000)
+local unb = textbox.new(3, 3, 14, 1)
+local pwb = textbox.new(3, 5, 14, 1, true)
+unb:fg(0xFFFFFF):bg(0x000000)
+pwb:fg(0xFFFFFF):bg(0x000000)
 win:addChild(lab)
-win:addChild(txb)
+win:addChild(unb)
+
+function unb.submit()
+  win:addChild(pwb)
+end
+
+local added = false
+function pwb.submit()
+  local ok, err = users.login(unb.buffer, pwb.buffer)
+  if not ok then
+    win.children[pwb.childidx] = nil
+    if not added then
+      added = true
+      win:addChild(errLabel)
+    end
+    pwb.parent = nil
+    pwb.childidx = nil
+    pwb.submittable = true
+    unb.submittable = true
+  else
+    -- create desktop
+    uiBase:bg(0x00AAFF).children = {}
+    local w, h = uiBase:getResolution()
+    local bar = window.new(1, h - 3, w, 1):fg(0xFFFFFF):bg(0x222222)
+    uiBase:addChild(bar)
+  end
+end
+
 uiBase:addChild(win)
 
 uiBase:mainLoop()

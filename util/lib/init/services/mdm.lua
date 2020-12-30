@@ -5,7 +5,7 @@ local component = require("component")
 local computer = require("computer")
 package.loaded.times.getty_start = computer.uptime()
 local login = "/usr/lib/monoui/monoui.lua"
-local login_name = "login"
+local login_name = "monoui"
 
 local getty = {}
 
