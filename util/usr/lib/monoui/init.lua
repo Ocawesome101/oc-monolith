@@ -90,7 +90,7 @@ function base:mainLoop()
         self:render()
       elseif sig == "key_down" or sig == "key_up" then
         focused:key(p1, p2, sig == "key_down")
-        if sig == "key_down" and not p3 then
+        if sig == "key_up" then
           self:render()
         end
       end

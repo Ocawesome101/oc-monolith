@@ -22,6 +22,7 @@ local users = require("users")
 local monoui = require("monoui")
 local window = require("monoui.window")
 local label = require("monoui.label")
+local button = require("monoui.button")
 local textbox = require("monoui.textbox")
 
 local uiBase = monoui.init(gpu, screen)
@@ -55,10 +56,31 @@ function pwb.submit()
     unb.submittable = true
   else
     -- create desktop
-    uiBase:bg(0x00AAFF).children = {}
+    uiBase:bg(0x55AAFF).children = {}
     local w, h = uiBase:getResolution()
-    local bar = window.new(1, h - 3, w, 1):fg(0xFFFFFF):bg(0x222222)
-    uiBase:addChild(bar)
+    local menu_shown = false
+    local menu = window.new(1, h - 10, 20, 8):fg(0x000000):bg(0xAAAAAA)
+    local shd = button.new(0, 0, 20, 1, 0x888888, "Shut Down", 0x000000)
+    local rbt = button.new(0, 1, 20, 1, 0x888888, "Restart", 0x000000)
+    function shd:click()
+      require("computer").shutdown()
+    end
+    function rbt:click()
+      require("computer").shutdown(true)
+    end
+    menu:addChild(shd)
+    menu:addChild(rbt)
+    function uiBase:click(x,y,b)
+      if b ~= 1 then return end
+      menu_shown = not menu_shown
+      if menu_shown then
+        menu.pos.x = x
+        menu.pos.y = y
+        uiBase:addChild(menu)
+      else
+        uiBase.children[menu.childidx] = nil
+      end
+    end
   end
 end
 
