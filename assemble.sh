@@ -42,7 +42,7 @@ while [ $# -gt 0 ]; do
       printf "\e[2A\e[G$OK\e[2B"
       log "$WAIT Building packages/base.cpio"
       cp package.cfg build
-      rm -rf build/etc/ build/home
+      rm -rf build/etc/ build/home build/root build/usr/lib build/lib/init/services/mdm.lua
       cd build && find ./* | cpio -o > ../packages/base.cpio && cd ..
       printf "\e[2A\e[G$OK\e[2B"
       cp -r util/etc build/etc
