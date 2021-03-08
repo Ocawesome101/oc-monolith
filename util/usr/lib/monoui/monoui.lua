@@ -71,7 +71,7 @@ function pwb.submit()
     end
 
     function shl:click()
-      local win = dofile("/usr/lib/monoui/apps/shell.lua")
+      local win = require("monoui/apps/shell")
       uiBase:addChild(win)
     end
     
