@@ -4,7 +4,7 @@
 set -e
 
 log () {
-  /bin/echo -e "[ $1\033[39m ] $2"
+  printf "[ $1\033[39m ] $2\n"
 }
 
 ./docgen.sh

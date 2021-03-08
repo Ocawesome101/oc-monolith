@@ -11,7 +11,7 @@ export WAIT="\033[39m[ \033[93mWAIT\033[39m ]"
 export luacomp="$PWD/luacomp"
 
 log () {
-  /bin/echo -e "\e[G$@"
+  printf "\e[G$@\n"
 }
 
 build() {
