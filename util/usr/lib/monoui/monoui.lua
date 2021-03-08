@@ -62,14 +62,22 @@ function pwb.submit()
     local menu = window.new(1, h - 10, 20, 8):fg(0x000000):bg(0xAAAAAA)
     local shd = button.new(0, 0, 20, 1, 0x888888, "Shut Down", 0x000000)
     local rbt = button.new(0, 1, 20, 1, 0x888888, "Restart", 0x000000)
+    local shl = button.new(0, 3, 20, 1, 0x888888, "Shell", 0x000000)
     function shd:click()
       require("computer").shutdown()
     end
     function rbt:click()
       require("computer").shutdown(true)
     end
+
+    function shl:click()
+      local win = dofile("/usr/lib/monoui/apps/shell.lua")
+      uiBase:addChild(win)
+    end
+    
     menu:addChild(shd)
     menu:addChild(rbt)
+    menu:addChild(shl)
     function uiBase:click(x,y,b)
       if b ~= 1 then return end
       menu_shown = not menu_shown
