@@ -2,6 +2,6 @@
 #
 # build init
 
-/bin/echo -e "$INFO Building the InitMe init system"
+printf "$INFO Building the InitMe init system\n"
 $luacomp base.lua -Oinit.lua
-/bin/echo -e "$OK Built InitMe"
+printf "$OK Built InitMe\n"

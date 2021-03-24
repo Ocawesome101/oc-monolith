@@ -1,7 +1,7 @@
 #!/bin/bash
 # Automated manual page generation in lieu of a proper Makefile
 
-/bin/echo -e "\033[39m[ \033[94mINFO\033[39m ] Generating markdown man-page documentation...."
+ printf "\033[39m[ \033[94mINFO\033[39m ] Generating markdown man-page documentation....\n"
 set -e
 mkdir -p ./web/man
 DOMAIN='oz-craft.pickardayune.com'

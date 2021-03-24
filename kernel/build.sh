@@ -2,6 +2,6 @@
 #
 # Build me
 
-/bin/echo -e "$INFO Beginning kernel build"
+printf "$INFO Beginning kernel build\n"
 $luacomp base.lua -Omonolith
-/bin/echo -e "$OK Built kernel"
+printf "$OK Built kernel\n"
