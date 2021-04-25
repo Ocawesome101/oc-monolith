@@ -1,4 +1,5 @@
 build
 kernel/kernel.lua
+kernel/monolith
 init/init.lua
 \.lite_workspace.lua
